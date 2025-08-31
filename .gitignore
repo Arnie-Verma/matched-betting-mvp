@@ -1,0 +1,31 @@
+# Node
+node_modules/
+.next/
+.out/
+.turbo/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.uv/
+.poetry/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build artifacts
+coverage/
+*.log
