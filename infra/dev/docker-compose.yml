@@ -1,0 +1,103 @@
+version: "3.9"
+name: mb-dev
+
+services:
+  db:
+    image: postgres:16
+    container_name: mb_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-mb_dev}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mb_dev}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: mb_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile.dev
+    container_name: mb_api
+    env_file:
+      - ../../.env
+    working_dir: /workspace/apps/api
+    volumes:
+      - ../..:/workspace
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:${API_PORT:-8000}/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    image: node:20-bookworm-slim
+    container_name: mb_web
+    env_file:
+      - ../../.env
+    working_dir: /workspace                      # run at repo root so workspaces install properly
+    environment:
+      CI: "1"                                    # non-interactive — pnpm won't prompt
+      NEXT_TELEMETRY_DISABLED: "1"
+      PORT: "3000"
+      CHOKIDAR_USEPOLLING: "true"
+      NEXT_PUBLIC_API_BASE_URL: "http://localhost:${API_PORT:-8000}"
+      PNPM_HOME: "/usr/local/share/pnpm"
+    volumes:
+      - ../..:/workspace:cached                  # your repo
+      - /workspace/node_modules                  # container-only root node_modules (shadows host)
+      - /workspace/apps/web/node_modules         # container-only web node_modules
+      - /workspace/.pnpm-store                   # container-only pnpm store
+      - /workspace/apps/web/.next                # container-only Next cache
+    command: >
+      bash -lc "
+        set -euo pipefail &&
+        apt-get update &&
+        apt-get install -y --no-install-recommends python3 make g++ ca-certificates &&
+        rm -rf /var/lib/apt/lists/* &&
+        corepack enable &&
+        corepack prepare pnpm@9 --activate &&
+        pnpm config set store-dir /workspace/.pnpm-store &&
+        pnpm config set ignore-scripts false &&
+        pnpm install --no-frozen-lockfile --force &&
+        pnpm --filter web dev
+      "
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+
+
+
+volumes:
+  pgdata:
