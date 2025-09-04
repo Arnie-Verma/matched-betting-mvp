@@ -29,3 +29,13 @@ Thumbs.db
 # Build artifacts
 coverage/
 *.log
+
+# Env files
+.env*
+
+# pnpm store (local)
+.pnpm-store/
+
+# Next cache (local)
+apps/web/.next/
+
