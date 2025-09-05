@@ -1,0 +1,9 @@
+[tool.mypy]
+python_version = "3.11"
+# Prevent mypy from scanning GitHub Actions’ own test files
+exclude = "^_actions/"
+
+# Silence missing numpy stubs if something ever imports it
+[[tool.mypy.overrides]]
+module = ["numpy", "numpy.*"]
+ignore_missing_imports = true

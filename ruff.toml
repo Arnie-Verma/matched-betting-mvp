@@ -1,0 +1,5 @@
+[lint]
+select = ["E", "F", "I", "UP"]  # errors, flakes, import-sort, pyupgrade
+
+[lint.isort]
+known-first-party = ["api"]

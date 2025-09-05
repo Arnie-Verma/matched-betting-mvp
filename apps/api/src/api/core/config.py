@@ -1,15 +1,15 @@
 from pydantic_settings import BaseSettings
-from typing import List
+
 
 class Settings(BaseSettings):
-    app_env: str = "development"
     api_host: str = "127.0.0.1"
     api_port: int = 8000
-    cors_origins: List[str] = ["http://localhost:3000"]
+    cors_origins: list[str] = ["http://localhost:3000"]
+    app_env: str = "development"  # used by api/main.py
 
     class Config:
         env_file = ".env"
-        env_prefix = ""
-        case_sensitive = False
+        env_file_encoding = "utf-8"
+
 
 settings = Settings()
