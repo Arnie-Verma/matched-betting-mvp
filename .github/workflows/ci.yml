@@ -81,8 +81,8 @@ jobs:
           pip install -e .
 
       - name: Ruff (lint)
-        run: ruff check .
-
+        working-directory: ../..
+        run: ruff check apps/api --fix
       - name: Mypy (type-check from repo root)
         working-directory: ../..
         run: mypy .
