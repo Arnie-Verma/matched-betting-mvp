@@ -37,6 +37,15 @@ services:
     container_name: mb_api
     env_file:
       - ../../.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://postgres:postgres@db:5432/mb_dev}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      # --- Auth verification used in Step 3 ---
+      - MB_AUTH_AUDIENCE=${MB_AUTH_AUDIENCE}
+      - MB_AUTH_JWKS_URL=${MB_AUTH_JWKS_URL}
+      - MB_AUTH_JWKS_CACHE_TTL=${MB_AUTH_JWKS_CACHE_TTL:-600}
+      - MB_AUTH_LEEWAY=${MB_AUTH_LEEWAY:-10}
+      - MB_AUTH_ALGS=${MB_AUTH_ALGS:-RS256}
     working_dir: /workspace/apps/api
     volumes:
       - ../..:/workspace
@@ -65,6 +74,10 @@ services:
       PORT: "3000"
       CHOKIDAR_USEPOLLING: "true"
       NEXT_PUBLIC_API_BASE_URL: "http://localhost:${API_PORT:-8000}"
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_ISSUER: ${CLERK_ISSUER}
+      CLERK_JWT_TEMPLATE: ${CLERK_JWT_TEMPLATE:-mb-api}
       PNPM_HOME: "/usr/local/share/pnpm"
     volumes:
       - ../..:/workspace:cached                  # your repo
