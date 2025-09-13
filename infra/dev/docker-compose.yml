@@ -1,4 +1,3 @@
-version: "3.9"
 name: mb-dev
 
 services:
@@ -40,12 +39,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://postgres:postgres@db:5432/mb_dev}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
-      # --- Auth verification used in Step 3 ---
-      - MB_AUTH_AUDIENCE=${MB_AUTH_AUDIENCE}
-      - MB_AUTH_JWKS_URL=${MB_AUTH_JWKS_URL}
-      - MB_AUTH_JWKS_CACHE_TTL=${MB_AUTH_JWKS_CACHE_TTL:-600}
-      - MB_AUTH_LEEWAY=${MB_AUTH_LEEWAY:-10}
-      - MB_AUTH_ALGS=${MB_AUTH_ALGS:-RS256}
+      # MB_AUTH_* come from env_file; don't redeclare here to avoid blank warnings
     working_dir: /workspace/apps/api
     volumes:
       - ../..:/workspace
@@ -57,7 +51,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:${API_PORT:-8000}/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -67,36 +61,34 @@ services:
     container_name: mb_web
     env_file:
       - ../../.env
-    working_dir: /workspace                      # run at repo root so workspaces install properly
+    working_dir: /workspace
     environment:
-      CI: "1"                                    # non-interactive — pnpm won't prompt
+      CI: "1"
       NEXT_TELEMETRY_DISABLED: "1"
       PORT: "3000"
       CHOKIDAR_USEPOLLING: "true"
-      NEXT_PUBLIC_API_BASE_URL: "http://localhost:${API_PORT:-8000}"
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
-      CLERK_ISSUER: ${CLERK_ISSUER}
-      CLERK_JWT_TEMPLATE: ${CLERK_JWT_TEMPLATE:-mb-api}
       PNPM_HOME: "/usr/local/share/pnpm"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      INTERNAL_API_URL: ${INTERNAL_API_URL:-http://api:8000}
     volumes:
-      - ../..:/workspace:cached                  # your repo
-      - /workspace/node_modules                  # container-only root node_modules (shadows host)
-      - /workspace/apps/web/node_modules         # container-only web node_modules
-      - /workspace/.pnpm-store                   # container-only pnpm store
-      - /workspace/apps/web/.next                # container-only Next cache
+      - ../..:/workspace:cached
+      - /workspace/node_modules
+      - /workspace/apps/web/node_modules
+      - /workspace/.pnpm-store
+      - /workspace/apps/web/.next
     command: >
       bash -lc "
         set -euo pipefail &&
         apt-get update &&
-        apt-get install -y --no-install-recommends python3 make g++ ca-certificates &&
+        # curl for healthcheck + procps/iproute2 for debugging (ps/ss)
+        apt-get install -y --no-install-recommends curl procps iproute2 python3 make g++ ca-certificates &&
         rm -rf /var/lib/apt/lists/* &&
         corepack enable &&
         corepack prepare pnpm@9 --activate &&
         pnpm config set store-dir /workspace/.pnpm-store &&
         pnpm config set ignore-scripts false &&
         pnpm install --no-frozen-lockfile --force &&
-        pnpm --filter web dev
+        pnpm --filter web dev -H 0.0.0.0 -p 3000
       "
     ports:
       - "${WEB_PORT:-3000}:3000"
@@ -104,13 +96,10 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/ || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/healthz || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 30
-
-
-
 
 volumes:
   pgdata:
