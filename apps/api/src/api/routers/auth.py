@@ -1,6 +1,7 @@
 # apps/api/src/api/routers/auth.py
 from fastapi import APIRouter, Depends
-from api.core.auth import require_user, UserClaims
+
+from api.core.auth import UserClaims, require_user
 
 router = APIRouter(prefix="", tags=["auth"])
 

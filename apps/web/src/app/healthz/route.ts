@@ -1,5 +1,10 @@
-import { NextResponse } from "next/server";
+// apps/web/src/app/healthz/route.ts
+import { NextResponse } from 'next/server';
 
 export async function GET() {
-  return NextResponse.json({ ok: true, ts: Date.now() });
+  return NextResponse.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'web'
+  });
 }

@@ -1,15 +1,13 @@
 # apps/api/src/api/core/auth.py
-import json
-import time
-from typing import Optional, Dict, Any
-import jwt
-from jwt import PyJWKClient
-import requests
-from fastapi import HTTPException, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
-import os
 import logging
+import os
+from typing import Any
+
+import jwt
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jwt import PyJWKClient
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +29,13 @@ if MB_AUTH_JWKS_URL:
 class UserClaims(BaseModel):
     """Validated user claims from JWT"""
     sub: str  # Clerk user ID
-    email: Optional[str] = None
-    email_verified: Optional[bool] = False
-    session_id: Optional[str] = None
-    raw_claims: Dict[str, Any] = {}
+    email: str | None = None
+    email_verified: bool | None = False
+    session_id: str | None = None
+    raw_claims: dict[str, Any] = {}
 
     @classmethod
-    def from_payload(cls, payload: Dict[str, Any]) -> "UserClaims":
+    def from_payload(cls, payload: dict[str, Any]) -> "UserClaims":
         """Create UserClaims from JWT payload with safe field extraction"""
         # Handle email_verified - could be bool, string, or template literal
         email_verified_raw = payload.get("email_verified")
@@ -105,7 +103,7 @@ def decode_token(token: str) -> UserClaims:
         raise HTTPException(status_code=401, detail="Token verification failed")
 
 def require_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+    credentials: HTTPAuthorizationCredentials | None = Depends(security)
 ) -> UserClaims:
     """FastAPI dependency to require authenticated user"""
     if not credentials:
@@ -116,8 +114,8 @@ def require_user(
     return decode_token(credentials.credentials)
 
 def optional_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
-) -> Optional[UserClaims]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security)
+) -> UserClaims | None:
     """FastAPI dependency for optional authentication"""
     if not credentials:
         return None

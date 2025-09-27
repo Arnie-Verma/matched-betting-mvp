@@ -1,9 +1,10 @@
 # apps/api/src/api/main.py
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import os
 import json
 import logging
+import os
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 # Import routers
 from api.routers import auth

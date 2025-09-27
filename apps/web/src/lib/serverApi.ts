@@ -1,13 +1,11 @@
 // apps/web/src/lib/serverApi.ts
 import { auth } from '@clerk/nextjs/server';
-import { NextRequest } from 'next/server';
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL || 'http://api:8000';
 
 export async function callApi(
   path: string,
-  init?: RequestInit,
-  req?: NextRequest
+  init?: RequestInit
 ): Promise<Response> {
   console.log('[serverApi] path:', path);
   

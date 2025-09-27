@@ -12,8 +12,8 @@ export async function GET(req: NextRequest) {
 
   try {
     token = await getToken({ template: process.env.CLERK_JWT_TEMPLATE || "mb-api" });
-  } catch (e: any) {
-    tokenErr = e?.message ?? String(e);
+  } catch (e: unknown) {
+    tokenErr = e instanceof Error ? e.message : String(e);
   }
 
   return NextResponse.json({
