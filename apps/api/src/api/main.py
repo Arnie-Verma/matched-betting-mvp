@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import routers
-from api.routers import auth
+from api.routers import auth, billing, stripe_webhooks, plan_demo
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -33,6 +33,9 @@ def health_check():
 
 # Include routers
 app.include_router(auth.router)
+app.include_router(billing.router)
+app.include_router(stripe_webhooks.router)
+app.include_router(plan_demo.router)
 
 # Log startup configuration
 @app.on_event("startup")

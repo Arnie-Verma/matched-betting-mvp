@@ -109,9 +109,12 @@ def require_user(
     if not credentials:
         logger.warning("No authorization header present")
         raise HTTPException(status_code=401, detail="Missing bearer token")
-    
+
     logger.info("Authorization header received, decoding token...")
     return decode_token(credentials.credentials)
+
+# Alias for compatibility
+get_current_user = require_user
 
 def optional_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security)
