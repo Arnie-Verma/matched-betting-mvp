@@ -3,9 +3,12 @@ pyproject.toml
 src/api/__init__.py
 src/api/main.py
 src/api/core/__init__.py
+src/api/core/auth.py
 src/api/core/config.py
 src/api/routers/__init__.py
+src/api/routers/auth.py
 src/api/routers/health.py
+src/api/routers/whoami.py
 src/mb_api.egg-info/PKG-INFO
 src/mb_api.egg-info/SOURCES.txt
 src/mb_api.egg-info/dependency_links.txt

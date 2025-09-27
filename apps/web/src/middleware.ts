@@ -1,20 +1,13 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+// apps/web/src/middleware.ts
+import { clerkMiddleware } from '@clerk/nextjs/server';
 
-const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/account(.*)",
-]);
+export default clerkMiddleware();
 
-export default clerkMiddleware(async (auth, req) => {
-  const { userId, redirectToSignIn } = await auth();
-  if (!userId && isProtectedRoute(req)) {
-    return redirectToSignIn();
-  }
-  return NextResponse.next();
-});
-
-// Don't intercept Next internals or static assets or our /healthz probe
 export const config = {
-  matcher: ["/((?!_next|.*\\..*|favicon.ico|healthz).*)"],
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
+  ],
 };
