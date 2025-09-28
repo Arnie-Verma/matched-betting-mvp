@@ -151,6 +151,10 @@ class StripeService:
                 "clerk_user_id": user.clerk_user_id
             },
             "automatic_tax": {"enabled": True},  # Enable automatic tax calculation
+            "customer_update": {
+                "address": "auto",  # Automatically collect and save customer address for tax calculation
+                "name": "auto"      # Automatically collect and save customer name for tax ID collection
+            },
             "tax_id_collection": {"enabled": True},  # Allow customers to provide tax IDs
         }
 

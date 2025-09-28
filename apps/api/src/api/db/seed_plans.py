@@ -21,7 +21,7 @@ async def seed_plans():
             "stripe_price_yearly_id": None,
             "features": {
                 "max_bookmakers": 2,
-                "max_bets_per_month": 50,
+                "max_bets_per_month": -1,
                 "email_notifications": True,
                 "mobile_app": False,
                 "priority_support": False,
@@ -42,7 +42,7 @@ async def seed_plans():
             "stripe_price_yearly_id": None,
             "features": {
                 "max_bookmakers": 10,
-                "max_bets_per_month": 500,
+                "max_bets_per_month": -1,
                 "email_notifications": True,
                 "mobile_app": True,
                 "priority_support": False,

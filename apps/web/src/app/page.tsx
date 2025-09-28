@@ -24,19 +24,19 @@ export default function Home() {
     {
       name: "Sarah M.",
       location: "Melbourne",
-      earnings: "£2,847",
-      quote: "Started with £50 and made over £2,800 in my first 3 months. The academy made it so easy!"
+      earnings: "$2,847 AUD",
+      quote: "Started with $50 AUD and made over $2,800 AUD in my first 3 months. The academy made it so easy!"
     },
     {
       name: "James T.",
       location: "Sydney",
-      earnings: "£5,234",
+      earnings: "$5,234 AUD",
       quote: "The calculators are incredibly accurate. I've never lost money with this system."
     },
     {
       name: "Emma D.",
       location: "Brisbane",
-      earnings: "£1,923",
+      earnings: "$1,923 AUD",
       quote: "Perfect side income. I spend 2 hours per week and earn consistent profits."
     }
   ]
@@ -44,7 +44,7 @@ export default function Home() {
   const plans = [
     {
       name: "Free",
-      price: "£0",
+      price: "$0 AUD",
       period: "forever",
       bookmakers: "2",
       features: [
@@ -55,7 +55,7 @@ export default function Home() {
     },
     {
       name: "Premium",
-      price: "£25",
+      price: "$25 AUD",
       period: "per month",
       bookmakers: "10",
       popular: true,
@@ -69,7 +69,7 @@ export default function Home() {
     },
     {
       name: "Platinum",
-      price: "£35",
+      price: "$35 AUD",
       period: "per month",
       bookmakers: "100+",
       features: [
@@ -94,7 +94,7 @@ export default function Home() {
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               Master matched betting with professional tools, step-by-step academy, and real-time odds matching.
-              Join thousands earning £500+ per month risk-free.
+              Join thousands earning $500+ AUD per month risk-free.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Link

@@ -12,7 +12,11 @@ from alembic import context
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
 from api.core.database import Base
-from api.models import User, Subscription, Plan, WebhookEvent
+from api.models import (
+    User, Subscription, Plan, WebhookEvent,
+    Sport, Competition, Team, Bookmaker, BookmakerSource,
+    Event, Market, Selection, OddsSnapshot, OddsComparison
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

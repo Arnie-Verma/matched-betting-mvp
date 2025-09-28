@@ -92,7 +92,7 @@ export default function PricingPlans() {
 
   const formatPrice = (cents: number | null) => {
     if (!cents) return 'Free'
-    return `$${(cents / 100).toFixed(0)}`
+    return `$${(cents / 100).toFixed(0)} AUD`
   }
 
   const formatFeature = (key: string, value: unknown) => {
@@ -100,7 +100,7 @@ export default function PricingPlans() {
       case 'max_bookmakers':
         return value === -1 ? 'Unlimited bookmakers' : `Up to ${value} bookmakers`
       case 'max_bets_per_month':
-        return value === -1 ? 'Unlimited bets' : `Up to ${value} bets per month`
+        return 'Unlimited bets per month'
       case 'email_notifications':
         return value ? '✓ Email notifications' : '✗ Email notifications'
       case 'mobile_app':
