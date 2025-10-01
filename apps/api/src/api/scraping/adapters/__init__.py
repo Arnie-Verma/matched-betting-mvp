@@ -1,1 +1,0 @@
-# apps/api/src/api/scraping/adapters/__init__.py
