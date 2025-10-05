@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import routers
-from api.routers import auth, billing, stripe_webhooks, plan_demo
+from api.routers import auth, billing, stripe_webhooks, plan_demo, odds_matcher, odds_matcher_mock
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -36,6 +36,8 @@ app.include_router(auth.router)
 app.include_router(billing.router)
 app.include_router(stripe_webhooks.router)
 app.include_router(plan_demo.router)
+app.include_router(odds_matcher.router)
+app.include_router(odds_matcher_mock.router)  # Mock data for testing - DELETE when scraping works!
 
 # Log startup configuration
 @app.on_event("startup")

@@ -49,7 +49,7 @@ export default function PostLoginHeader() {
   ]
 
   const tools = [
-    { name: 'Odds Matcher', href: '/tools/odds-matcher', description: 'Find matched betting opportunities' },
+    { name: 'Odds Matcher', href: '/dashboard/odds-matcher', description: 'Find matched betting opportunities' },
     { name: 'Dutching Opportunities', href: '/tools/dutching', description: 'Discover profitable dutching bets' },
     { name: 'Bookmaker Bonuses', href: '/tools/bonuses', description: 'Track available bonus offers' },
     { name: 'Profit Tracker', href: '/tools/profit-tracker', description: 'Monitor your betting performance' },
