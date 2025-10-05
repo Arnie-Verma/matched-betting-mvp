@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc
 import stripe
 
-from api.models import User, Subscription, Plan, WebhookEvent
+from api.models import User, Subscription, Plan, WebhookEvent, Bookmaker
 from api.services.stripe_service import StripeService
 
 
@@ -248,3 +248,39 @@ class SubscriptionService:
             }
 
         return result
+
+    def get_allowed_bookmakers(self, db: Session, user: User) -> list[str]:
+        """
+        Get list of bookmaker codes allowed for user's plan.
+
+        Tier structure is CUMULATIVE:
+        - Free tier: TAB, Ladbrokes (2 bookmakers)
+        - Premium tier: Free + 13 more = 15 total
+        - Platinum tier: Premium + all others = 100+ total
+        """
+        plan = user.current_plan.lower()
+
+        # Free tier: Only TAB and Ladbrokes
+        if plan == "free":
+            return ["tab", "ladbrokes"]
+
+        # Premium tier: Free (2) + Premium (13) = 15 total
+        if plan == "premium":
+            return [
+                # Free tier bookmakers
+                "tab", "ladbrokes",
+                # Premium tier bookmakers (13)
+                "sportsbet", "neds", "betfair", "pointsbet", "unibet",
+                "betr", "betdeluxe", "betright", "crossbet", "dabble",
+                "elitebet", "tabtouch", "realbookie", "picklebet"
+            ]
+
+        # Platinum tier: All bookmakers (active + inactive)
+        # Platinum users get everything
+        if plan == "platinum" or plan == "diamond":
+            # Return ALL bookmakers in the database
+            bookmakers = db.query(Bookmaker).all()
+            return [bm.code for bm in bookmakers]
+
+        # Default: free tier
+        return ["tab", "ladbrokes"]

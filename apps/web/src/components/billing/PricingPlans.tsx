@@ -91,29 +91,16 @@ export default function PricingPlans() {
   }, [user])
 
   const formatPrice = (cents: number | null) => {
-    if (!cents) return 'Free'
-    return `$${(cents / 100).toFixed(0)} AUD`
+    if (!cents) return '$0'
+    return `$${(cents / 100).toFixed(0)}`
   }
 
-  const formatFeature = (key: string, value: unknown) => {
-    switch (key) {
-      case 'max_bookmakers':
-        return value === -1 ? 'Unlimited bookmakers' : `Up to ${value} bookmakers`
-      case 'max_bets_per_month':
-        return 'Unlimited bets per month'
-      case 'email_notifications':
-        return value ? '✓ Email notifications' : '✗ Email notifications'
-      case 'mobile_app':
-        return value ? '✓ Mobile app access' : '✗ Mobile app access'
-      case 'priority_support':
-        return value ? '✓ Priority support' : '✗ Priority support'
-      case 'custom_alerts':
-        return value ? '✓ Custom alerts' : '✗ Custom alerts'
-      case 'api_access':
-        return value ? '✓ API access' : '✗ API access'
-      default:
-        return `${key}: ${value}`
+  const getFeatureList = (plan: Plan): string[] => {
+    // Use the feature_list from features JSON
+    if (plan.features.feature_list && Array.isArray(plan.features.feature_list)) {
+      return plan.features.feature_list as string[]
     }
+    return []
   }
 
   const handleSubscribe = async (plan: Plan) => {
@@ -271,28 +258,27 @@ export default function PricingPlans() {
                   {plan.display_name}
                 </h3>
 
-                <div className="mb-6">
+                <div className="mb-4">
                   <span className="text-4xl font-bold text-gray-900">
                     {formatPrice(price)}
                   </span>
-                  {price && (
-                    <span className="text-gray-600 ml-2">
-                      /month
-                    </span>
-                  )}
+                  <span className="text-gray-600 ml-1">/month</span>
                 </div>
 
-                <p className="text-gray-600 mb-6">{plan.description}</p>
+                <p className="text-gray-600 text-sm mb-6">{plan.description}</p>
 
-                <ul className="space-y-3 mb-8">
-                  {Object.entries(plan.features).map(([key, value]) => (
-                    <li key={key} className="flex items-start">
-                      <span className="text-sm text-gray-700">
-                        {formatFeature(key, value)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mb-6">
+                  <p className="font-semibold text-gray-900 mb-3">
+                    {plan.display_name} includes:
+                  </p>
+                  <ul className="space-y-2">
+                    {getFeatureList(plan).map((feature, index) => (
+                      <li key={index} className="text-sm text-gray-700">
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
                 <button
                   onClick={() => !isCurrent ? handleSubscribe(plan) : undefined}
@@ -315,9 +301,9 @@ export default function PricingPlans() {
                   ) : isCurrent ? (
                     'Current Plan'
                   ) : plan.name === 'free' ? (
-                    user ? 'Start Free Plan' : 'Sign Up Free'
+                    'Try for free'
                   ) : (
-                    'Start Monthly Plan'
+                    'Select this plan'
                   )}
                 </button>
 
