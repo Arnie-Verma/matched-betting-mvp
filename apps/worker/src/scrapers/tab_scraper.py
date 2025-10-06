@@ -32,25 +32,49 @@ class TABScraper(BaseScraper):
 
         # TAB API endpoints
         self.api_base = "https://api.beta.tab.com.au"
-        self.sports_endpoint = f"{self.api_base}/v1/tab-info-service/sports/events"
+        self.jurisdiction = "VIC"  # Can be VIC, NSW, QLD, etc.
 
-        # Sport mapping (TAB codes to our codes)
+        # Sport mapping (our codes to TAB codes - TAB uses capitalized names)
         self.sport_mapping = {
-            "australian-rules": "afl",
-            "rugby-league": "nrl",
-            "cricket": "cricket",
-            "tennis": "tennis",
-            "soccer": "soccer",
-            "basketball": "basketball",
+            "afl": "Australian Rules",
+            "nrl": "Rugby League",
+            "cricket": "Cricket",
+            "tennis": "Tennis",
+            "soccer": "Soccer",
+            "basketball": "Basketball",
+        }
+
+        # Competition mapping for popular leagues
+        self.competition_mapping = {
+            "epl": "English Premier League",
+            "ucl": "UEFA Champions League",
+            "nba": "NBA",
         }
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def fetch_json(self, url: str, params: Optional[Dict] = None) -> Dict:
-        """Fetch JSON data from TAB API with retry logic"""
-        async with httpx.AsyncClient() as client:
+        """Fetch JSON data from TAB API with retry logic and anti-bot headers"""
+        # TAB-specific headers to mimic browser requests
+        tab_headers = {
+            "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-AU,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Origin": "https://www.tab.com.au",
+            "Referer": "https://www.tab.com.au/",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-site",
+            "sec-ch-ua": '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+            "sec-ch-ua-mobile": "?1",
+            "sec-ch-ua-platform": '"Android"',
+            "Connection": "keep-alive",
+        }
+
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.get(
                 url,
-                headers=self.headers,
+                headers=tab_headers,
                 params=params,
                 timeout=self.timeout_seconds
             )
@@ -88,26 +112,31 @@ class TABScraper(BaseScraper):
                     completed_at=datetime.now(timezone.utc)
                 )
 
-            # Fetch events from TAB API
-            # Note: This is a simplified version. Real implementation needs
-            # to handle TAB's actual API structure
+            # Fetch competitions for this sport first
             self.logger.info(f"Scraping TAB for sport: {sport} ({tab_sport_code})")
 
-            # Placeholder: TAB API structure varies by sport
-            # For sports betting, they typically have:
-            # GET /v1/tab-info-service/sports/{sport}/meetings
-            url = f"{self.api_base}/v1/tab-info-service/sports/{tab_sport_code}/meetings"
+            # For EPL specifically, fetch matches from the competition
+            # https://api.beta.tab.com.au/v1/tab-info-service/sports/Soccer/competitions/English%20Premier%20League/matches?jurisdiction=VIC
 
-            try:
-                data = await self.fetch_json(url)
-                events = self.parse_tab_events(data, sport)
+            if sport == "soccer":
+                # Hardcode EPL for now
+                competition_name = "English%20Premier%20League"
+                matches_url = f"{self.api_base}/v1/tab-info-service/sports/{tab_sport_code}/competitions/{competition_name}/matches"
+                params = {"jurisdiction": self.jurisdiction}
 
-                if limit:
-                    events = events[:limit]
+                try:
+                    data = await self.fetch_json(matches_url, params)
+                    events = await self.parse_tab_matches(data, sport, "English Premier League")
 
-            except Exception as e:
-                errors.append(f"Failed to fetch events: {str(e)}")
-                self.logger.error(f"TAB API error: {e}")
+                    if limit:
+                        events = events[:limit]
+
+                except Exception as e:
+                    errors.append(f"Failed to fetch matches: {str(e)}")
+                    self.logger.error(f"TAB API error: {e}")
+            else:
+                errors.append(f"Sport {sport} not yet implemented for TAB scraper")
+                self.logger.warning(f"TAB scraper doesn't support {sport} yet")
 
         except Exception as e:
             errors.append(f"Scrape failed: {str(e)}")
@@ -133,22 +162,29 @@ class TABScraper(BaseScraper):
         self.log_scrape_stats(result)
         return result
 
-    def parse_tab_events(self, api_data: Dict, sport: str) -> List[ScrapedEvent]:
+    async def parse_tab_matches(self, api_data: Dict, sport: str, competition: str) -> List[ScrapedEvent]:
         """
-        Parse TAB API response into ScrapedEvent objects.
+        Parse TAB matches API response into ScrapedEvent objects.
 
-        TAB API structure (example):
+        TAB matches structure:
         {
-            "meetings": [
+            "matches": [
                 {
-                    "meetingId": "123",
-                    "meetingName": "AFL - Round 1",
-                    "events": [
+                    "id": "NForvChls",
+                    "name": "Nottinghm Forest v Chelsea",
+                    "startTime": "2025-10-18T11:30:00.000Z",
+                    "contestants": [
+                        {"name": "Nottinghm Forest", "position": "HOME"},
+                        {"name": "Chelsea", "position": "AWAY"}
+                    ],
+                    "markets": [
                         {
-                            "eventId": "456",
-                            "eventName": "Richmond vs Collingwood",
-                            "startTime": "2025-03-15T19:20:00Z",
-                            "markets": [...]
+                            "name": "EPL Result",
+                            "propositions": [
+                                {"name": "Nottinghm Forest", "returnWin": 3.4},
+                                {"name": "Draw", "returnWin": 3.5},
+                                {"name": "Chelsea", "returnWin": 1.92}
+                            ]
                         }
                     ]
                 }
@@ -156,29 +192,60 @@ class TABScraper(BaseScraper):
         }
         """
         events = []
+        matches = api_data.get("matches", [])
 
-        # This is a placeholder - actual TAB API structure needs to be discovered
-        # by inspecting network requests on tab.com.au
-        meetings = api_data.get("meetings", [])
+        for match_data in matches:
+            try:
+                # Parse match details
+                match_id = str(match_data.get("id", ""))
+                match_name = match_data.get("name", "Unknown Match")
+                start_time_str = match_data.get("startTime", "")
 
-        for meeting in meetings:
-            competition = meeting.get("meetingName", "Unknown Competition")
-
-            for event_data in meeting.get("events", []):
+                # Parse start time
                 try:
-                    event = self.parse_event(event_data)
-                    event.sport = sport
-                    event.competition = competition
+                    start_time = datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
+                except:
+                    start_time = datetime.now(timezone.utc)
 
-                    # Parse odds for this event
-                    odds = self.parse_odds(event_data.get("markets", []), event)
-                    event.odds = odds
+                # Extract teams from contestants
+                contestants = match_data.get("contestants", [])
+                home_team = None
+                away_team = None
 
-                    events.append(event)
+                for contestant in contestants:
+                    if contestant.get("position") == "HOME":
+                        home_team = contestant.get("name")
+                    elif contestant.get("position") == "AWAY":
+                        away_team = contestant.get("name")
 
-                except Exception as e:
-                    self.logger.error(f"Failed to parse TAB event: {e}")
-                    continue
+                # Create event
+                event = ScrapedEvent(
+                    external_id=match_id,
+                    name=match_name,
+                    sport=sport,
+                    competition=competition,
+                    start_time=start_time,
+                    home_team=home_team,
+                    away_team=away_team,
+                    odds=[]
+                )
+
+                # TAB uses HATEOAS - fetch markets from _links
+                markets_url = match_data.get("_links", {}).get("markets")
+                if markets_url:
+                    try:
+                        markets_data = await self.fetch_json(markets_url)
+                        markets = markets_data.get("markets", [])
+                        if markets:
+                            event.odds = self.parse_tab_markets(markets, event)
+                    except Exception as e:
+                        self.logger.error(f"Failed to fetch markets for {event.name}: {e}")
+
+                events.append(event)
+
+            except Exception as e:
+                self.logger.error(f"Failed to parse TAB match: {e}")
+                continue
 
         return events
 
@@ -209,26 +276,39 @@ class TABScraper(BaseScraper):
             odds=[]
         )
 
-    def parse_odds(self, markets_data: List[Dict], event: ScrapedEvent) -> List[ScrapedOdds]:
+    def parse_odds(self, odds_data: Any, event: ScrapedEvent) -> List[ScrapedOdds]:
+        """Parse odds data (for abstract method compliance)"""
+        if isinstance(odds_data, list):
+            return self.parse_tab_markets(odds_data, event)
+        return []
+
+    def parse_tab_markets(self, markets_data: List[Dict], event: ScrapedEvent) -> List[ScrapedOdds]:
         """
         Parse odds from TAB markets data.
 
-        TAB markets structure (example):
+        TAB propositions structure:
         [
             {
-                "marketId": "789",
-                "marketName": "Head To Head",
-                "marketType": "WIN",
-                "selections": [
+                "id": "122045315",
+                "name": "EPL Nott For-Chelsea Result",
+                "propositions": [
                     {
-                        "selectionId": "1",
-                        "name": "Richmond",
-                        "odds": 1.85
+                        "id": "362615",
+                        "name": "Nottinghm Forest",
+                        "returnWin": 3.4,
+                        "position": "HOME"
                     },
                     {
-                        "selectionId": "2",
-                        "name": "Collingwood",
-                        "odds": 2.10
+                        "id": "362624",
+                        "name": "Draw",
+                        "returnWin": 3.5,
+                        "position": "DRAW"
+                    },
+                    {
+                        "id": "362653",
+                        "name": "Chelsea",
+                        "returnWin": 1.92,
+                        "position": "AWAY"
                     }
                 ]
             }
@@ -237,12 +317,13 @@ class TABScraper(BaseScraper):
         odds_list = []
 
         for market in markets_data:
-            market_name = market.get("marketName", "Unknown")
+            market_name = market.get("name", "Unknown")
             market_type = self.normalize_market_type(market_name)
 
-            for selection in market.get("selections", []):
+            for proposition in market.get("propositions", []):
                 try:
-                    odds_value = selection.get("odds") or selection.get("price")
+                    # TAB uses "returnWin" for decimal odds
+                    odds_value = proposition.get("returnWin")
                     if not odds_value:
                         continue
 
@@ -254,11 +335,11 @@ class TABScraper(BaseScraper):
                         start_time=event.start_time,
                         market_type=market_type,
                         market_name=market_name,
-                        selection_name=selection.get("name", "Unknown"),
-                        selection_key=self.get_selection_key(selection.get("name", ""), event),
+                        selection_name=proposition.get("name", "Unknown"),
+                        selection_key=self.get_selection_key(proposition.get("name", ""), event),
                         decimal_odds=Decimal(str(odds_value)),
                         bookmaker_code=self.bookmaker_code,
-                        source_url=f"{self.api_base}/event/{event.external_id}",
+                        source_url=f"{self.api_base}/sports/Soccer/competitions/English%20Premier%20League",
                         scraped_at=datetime.now(timezone.utc)
                     )
 
@@ -272,8 +353,7 @@ class TABScraper(BaseScraper):
 
     def get_tab_sport_code(self, our_code: str) -> Optional[str]:
         """Convert our sport code to TAB's sport code"""
-        reverse_mapping = {v: k for k, v in self.sport_mapping.items()}
-        return reverse_mapping.get(our_code)
+        return self.sport_mapping.get(our_code)
 
     def get_selection_key(self, selection_name: str, event: ScrapedEvent) -> str:
         """Determine selection key (home/away/draw) from selection name"""

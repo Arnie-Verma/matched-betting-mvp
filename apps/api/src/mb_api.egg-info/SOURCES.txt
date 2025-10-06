@@ -25,7 +25,9 @@ src/api/routers/plan_demo.py
 src/api/routers/stripe_webhooks.py
 src/api/routers/whoami.py
 src/api/scripts/create_stripe_products.py
+src/api/scripts/seed_all_bookmakers.py
 src/api/scripts/seed_bookmakers.py
+src/api/scripts/seed_plans.py
 src/api/services/matching_engine.py
 src/api/services/stripe_service.py
 src/api/services/subscription_service.py
