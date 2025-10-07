@@ -95,9 +95,8 @@ export function OddsMatcherClient() {
         params.append('min_rating', filters.minRating.toString())
       }
 
-      // 🧪 TESTING: Use mock endpoint until scraping is set up
-      // Change to '/api/proxy/odds/matcher' when real data is available
-      const response = await fetch(`/api/proxy/odds/matcher-mock?${params.toString()}`)
+      // ✅ Using real TAB + Betfair odds from database
+      const response = await fetch(`/api/proxy/odds/matcher?${params.toString()}`)
 
       if (!response.ok) {
         throw new Error('Failed to fetch odds')
