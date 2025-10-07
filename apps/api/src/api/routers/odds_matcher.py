@@ -96,9 +96,17 @@ async def refresh_odds(
 ) -> RefreshOddsResponse:
     """
     Manually trigger odds refresh.
-    In production, this would trigger a scraping job.
-    For now, it's a placeholder that validates entitlement.
+
+    Implements:
+    - Global cache (5 min TTL) - all users share same scraped data
+    - Per-user rate limiting (max 1 refresh per 30 seconds)
+    - Scrapes TAB for latest EPL odds on cache miss
     """
+    import redis
+    import os
+
+    redis_client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+
     # Check user exists and has access
     user = db.query(User).filter(User.clerk_user_id == user_claims.sub).first()
     if not user:
@@ -113,18 +121,75 @@ async def refresh_odds(
     if not can_access:
         raise HTTPException(status_code=403, detail=message)
 
-    # In production: trigger async scraping job
-    # For now: count current opportunities
-    opportunities_count = db.query(OddsSnapshot).filter(
-        OddsSnapshot.is_current == True
-    ).count()
+    # Global cache key (shared by all users)
+    global_cache_key = "odds_last_refresh_global"
 
-    return RefreshOddsResponse(
-        success=True,
-        message="Odds refresh initiated" if request.force else "Using cached odds",
-        opportunities_count=opportunities_count,
-        last_refresh=datetime.now(timezone.utc)
-    )
+    # Per-user rate limit key
+    user_rate_limit_key = f"odds_refresh_ratelimit:{user.id}"
+
+    # Check per-user rate limit (30 seconds between refreshes)
+    if redis_client.exists(user_rate_limit_key):
+        raise HTTPException(
+            status_code=429,
+            detail="Please wait 30 seconds between refresh requests"
+        )
+
+    # Check global cache first (unless force refresh)
+    if not request.force:
+        cached_time = redis_client.get(global_cache_key)
+        if cached_time:
+            last_refresh = datetime.fromisoformat(cached_time.decode())
+            age_seconds = (datetime.now(timezone.utc) - last_refresh).total_seconds()
+
+            if age_seconds < 300:  # 5 minutes global cache
+                # Use cached data - count current odds
+                opportunities_count = db.query(OddsSnapshot).filter(
+                    OddsSnapshot.is_current == True
+                ).count()
+
+                return RefreshOddsResponse(
+                    success=True,
+                    message=f"Using cached odds (updated {int(age_seconds)}s ago)",
+                    opportunities_count=opportunities_count,
+                    last_refresh=last_refresh
+                )
+
+    # Set user rate limit (30 seconds)
+    redis_client.setex(user_rate_limit_key, 30, "1")
+
+    # Trigger scraping (only if cache expired)
+    import sys
+    sys.path.insert(0, "apps/worker/src")
+
+    from jobs.scrape_service import trigger_scrape
+
+    try:
+        # Scrape TAB for EPL (limit to 10 events for faster response)
+        import logging
+        logging.info(f"User {user.id} triggered odds refresh")
+
+        scrape_result = await trigger_scrape(sport="soccer", limit=10)
+
+        # Update global cache
+        now = datetime.now(timezone.utc)
+        redis_client.setex(global_cache_key, 300, now.isoformat())  # 5 min TTL
+
+        # Count opportunities
+        opportunities_count = scrape_result.get("odds_saved", 0)
+
+        return RefreshOddsResponse(
+            success=scrape_result.get("success", False),
+            message=f"Refreshed {scrape_result.get('bookmakers_scraped', 0)} bookmakers - {scrape_result.get('odds_saved', 0)} odds updated",
+            opportunities_count=opportunities_count,
+            last_refresh=now
+        )
+
+    except Exception as e:
+        import logging
+        logging.error(f"Scrape failed: {e}")
+
+        # Still respect rate limit even on failure to prevent abuse
+        raise HTTPException(status_code=500, detail=f"Refresh failed: {str(e)}")
 
 
 @router.get("/matcher")
