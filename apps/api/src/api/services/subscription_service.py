@@ -260,9 +260,9 @@ class SubscriptionService:
         """
         plan = user.current_plan.lower()
 
-        # Free tier: Only TAB and Ladbrokes
+        # Free tier: Only TAB and Betfair (for testing with real data)
         if plan == "free":
-            return ["tab", "ladbrokes"]
+            return ["tab", "betfair"]
 
         # Premium tier: Free (2) + Premium (13) = 15 total
         if plan == "premium":

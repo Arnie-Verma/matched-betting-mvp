@@ -104,13 +104,32 @@ async def refresh_odds(
     """
     import redis
     import os
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info("=== REFRESH ODDS ENDPOINT CALLED ===")
+    logger.info(f"User: {user_claims.sub}")
 
     redis_client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
 
-    # Check user exists and has access
+    # Get or create user (auto-create on first access)
+    logger.info(f"Looking up user with clerk_user_id: {user_claims.sub}")
     user = db.query(User).filter(User.clerk_user_id == user_claims.sub).first()
+
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.info(f"User not found, creating new user: {user_claims.sub}")
+        user = User(
+            clerk_user_id=user_claims.sub,
+            email=user_claims.email or f"{user_claims.sub}@temp.com",
+            email_verified=user_claims.email_verified or False,
+            current_plan="free",
+            plan_status="active"
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        logger.info(f"Created new user with id: {user.id}")
+    else:
+        logger.info(f"User found: {user.id}")
 
     # Check plan entitlements
     subscription_service = SubscriptionService()
@@ -159,7 +178,7 @@ async def refresh_odds(
 
     # Trigger scraping (only if cache expired)
     import sys
-    sys.path.insert(0, "apps/worker/src")
+    sys.path.insert(0, "../worker/src")
 
     from jobs.scrape_service import trigger_scrape
 
@@ -215,10 +234,19 @@ async def get_matcher_opportunities(
     - Sport, competition, search terms
     - Minimum rating threshold
     """
-    # Get user and check entitlements
+    # Get or create user (auto-create on first access)
     user = db.query(User).filter(User.clerk_user_id == user_claims.sub).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        user = User(
+            clerk_user_id=user_claims.sub,
+            email=user_claims.email or f"{user_claims.sub}@temp.com",
+            email_verified=user_claims.email_verified or False,
+            current_plan="free",
+            plan_status="active"
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
     subscription_service = SubscriptionService()
     can_access, message = subscription_service.can_user_access_feature(
@@ -252,10 +280,10 @@ async def get_matcher_opportunities(
 
     # Build query for current odds
     # We need: Event -> Market -> Selection -> OddsSnapshot
-    # Find events happening in next 7 days
+    # Find events happening in next 14 days
     now = datetime.now(timezone.utc)
     date_from = now
-    date_to = now + timedelta(days=7)
+    date_to = now + timedelta(days=14)
 
     # Query for events with filters
     events_query = db.query(Event).join(Competition).join(Sport)
@@ -283,7 +311,13 @@ async def get_matcher_opportunities(
 
     events = events_query.limit(100).all()
 
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Matcher query found {len(events)} events in date range {date_from} to {date_to}")
+    logger.info(f"Bookmaker filter: {bookmaker_filter}")
+
     if not events:
+        logger.warning("No events found - returning empty list")
         return []
 
     # For each event, find matched betting opportunities
@@ -291,12 +325,17 @@ async def get_matcher_opportunities(
     opportunities = []
 
     for event in events:
-        # Get markets for this event (focus on match_winner markets)
+        # Get markets for this event (only H2H/Match Result markets - exclude combined markets)
         markets = db.query(Market).filter(
             and_(
                 Market.event_id == event.id,
                 Market.is_active == True,
-                Market.market_type == "match_winner"  # Start with H2H markets
+                or_(
+                    # Match "Result" but not "HTResult" or "Result-BothTmScr"
+                    and_(Market.name.ilike('%result'), Market.name.notilike('%htresult%'), Market.name.notilike('%both%')),
+                    Market.name.ilike('%match winner%'),
+                    and_(Market.name.ilike('%h2h%'), Market.name.notilike('%hth2h%'))
+                )
             )
         ).all()
 
@@ -307,12 +346,16 @@ async def get_matcher_opportunities(
             ).all()
 
             for selection in selections:
-                # Get current back odds from allowed bookmakers
+                # Get current back odds from allowed bookmakers (exclude Betfair - it's for lay only)
+                back_bookmakers = [bm for bm in bookmaker_filter if bm != "betfair"]
+                if not back_bookmakers:
+                    continue
+
                 back_odds = db.query(OddsSnapshot).join(Bookmaker).filter(
                     and_(
                         OddsSnapshot.selection_id == selection.id,
                         OddsSnapshot.is_current == True,
-                        Bookmaker.code.in_(bookmaker_filter)
+                        Bookmaker.code.in_(back_bookmakers)
                     )
                 ).all()
 
