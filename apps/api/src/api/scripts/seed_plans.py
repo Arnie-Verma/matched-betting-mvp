@@ -36,6 +36,7 @@ def seed_plans(db: Session):
             "sort_order": 1,
             "features": {
                 "bookmakers": 2,
+                "odds_matcher": True,
                 "feature_list": [
                     "Realtime odds comparison from 2 bookmakers",
                     "Make over $70",
@@ -55,6 +56,7 @@ def seed_plans(db: Session):
             "sort_order": 2,
             "features": {
                 "bookmakers": 16,
+                "odds_matcher": True,
                 "feature_list": [
                     "Realtime odds comparison from 16 bookmakers",
                     "Advanced matched betting calculators",
@@ -74,6 +76,7 @@ def seed_plans(db: Session):
             "sort_order": 3,
             "features": {
                 "bookmakers": 103,
+                "odds_matcher": True,
                 "feature_list": [
                     "Realtime odds comparison from over 100 bookmakers",
                     "$1000s of dollars in sign up bonuses",
