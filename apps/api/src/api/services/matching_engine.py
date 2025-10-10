@@ -78,25 +78,27 @@ class MatchingEngine:
         back_stake: Decimal,
         back_odds: Decimal,
         lay_odds: Decimal,
+        commission: Decimal,
         bet_type: BetType = BetType.NORMAL
     ) -> Decimal:
         """
         Calculate the required lay stake to cover the back bet.
 
         For normal bets:
-            lay_stake = (back_stake * back_odds) / lay_odds
+            lay_stake = (back_odds / (lay_odds - commission)) * back_stake
 
-        For bonus bets (stake not returned):
-            lay_stake = (back_stake * (back_odds - 1)) / lay_odds
+        For bonus bets (stake not returned - SNR):
+            lay_stake = ((back_odds - 1) / (lay_odds - commission)) * back_stake
         """
         if bet_type == BetType.BONUS:
             # Bonus bets don't return the stake
-            numerator = back_stake * (back_odds - Decimal("1"))
+            numerator = back_odds - Decimal("1")
         else:
             # Normal bets return stake + winnings
-            numerator = back_stake * back_odds
+            numerator = back_odds
 
-        lay_stake = numerator / lay_odds
+        denominator = lay_odds - commission
+        lay_stake = (numerator / denominator) * back_stake
         return lay_stake.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def calculate_lay_liability(
@@ -142,49 +144,41 @@ class MatchingEngine:
 
         # Calculate lay stake required
         lay_stake = self.calculate_lay_stake(
-            back_stake, back_odds, lay_odds, bet_type
+            back_stake, back_odds, lay_odds, commission, bet_type
         )
 
         # Calculate lay liability
         lay_liability = self.calculate_lay_liability(lay_stake, lay_odds)
 
         # Scenario 1: Back bet wins (selection wins)
+        # Bookie Return calculation
         if bet_type == BetType.BONUS:
-            # Bonus bet: only winnings returned (no stake back)
-            back_winnings = back_stake * (back_odds - Decimal("1"))
+            # Bonus bet: only winnings returned (stake not returned - SNR)
+            bookie_return = back_stake * (back_odds - Decimal("1"))
         else:
-            # Normal bet: stake + winnings
-            back_winnings = (back_stake * back_odds) - back_stake
+            # Normal bet: winnings only (stake is returned separately, nets to zero)
+            bookie_return = back_stake * (back_odds - Decimal("1"))
 
-        # Lay bet loses: we pay out the liability
-        lay_loss = lay_liability
+        # Betfair Return: we lose the liability
+        betfair_return = lay_stake * (lay_odds - Decimal("1")) * Decimal("-1")
 
         # Net profit if back wins
-        profit_if_back_wins = back_winnings - lay_loss
-        if bet_type == BetType.NORMAL:
-            # We lose the back stake at the bookmaker (it's tied up)
-            # But we get it back, so net effect is zero for stake
-            pass
-        else:
-            # Bonus bet: we lose nothing at bookmaker (free bet)
-            pass
+        profit_if_back_wins = bookie_return + betfair_return
 
-        # Scenario 2: Lay bet wins (selection loses)
-        # Lay bet wins: we keep the lay stake minus commission
-        lay_winnings = lay_stake
-        betfair_commission = self.calculate_commission(lay_winnings, commission)
-        lay_profit = lay_winnings - betfair_commission
-
-        # Back bet loses
+        # Scenario 2: Back bet loses (lay bet wins, selection loses)
+        # Bookie Return calculation
         if bet_type == BetType.BONUS:
             # Bonus bet: we lose nothing (it was free)
-            back_loss = Decimal("0")
+            bookie_return_lose = Decimal("0")
         else:
             # Normal bet: we lose our stake
-            back_loss = back_stake
+            bookie_return_lose = back_stake * Decimal("-1")
+
+        # Betfair Return: we win the lay stake minus commission
+        betfair_return_win = (Decimal("1") - commission) * lay_stake
 
         # Net profit if lay wins
-        profit_if_lay_wins = lay_profit - back_loss
+        profit_if_lay_wins = bookie_return_lose + betfair_return_win
 
         # Overall qualifying loss (average of both outcomes)
         qualifying_loss = (profit_if_back_wins + profit_if_lay_wins) / Decimal("2")
