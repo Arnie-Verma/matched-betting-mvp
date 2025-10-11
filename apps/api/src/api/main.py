@@ -47,3 +47,24 @@ async def startup_event():
     logger.info(f"Auth Audience: {os.getenv('MB_AUTH_AUDIENCE')}")
     logger.info(f"Auth JWKS URL: {os.getenv('MB_AUTH_JWKS_URL')}")
     logger.info(f"Clerk Issuer: {os.getenv('CLERK_ISSUER')}")
+
+    # Run database migrations automatically on startup (development only)
+    if os.getenv("ENVIRONMENT", "development") == "development":
+        logger.info("Running database migrations...")
+        try:
+            from alembic.config import Config
+            from alembic import command
+            import sys
+            from pathlib import Path
+
+            # Get alembic config
+            alembic_cfg = Config(str(Path(__file__).parent.parent.parent / "alembic.ini"))
+            alembic_cfg.set_main_option("script_location", str(Path(__file__).parent.parent.parent / "alembic"))
+
+            # Run migrations
+            command.upgrade(alembic_cfg, "head")
+            logger.info("✅ Database migrations completed successfully")
+        except Exception as e:
+            logger.error(f"❌ Database migration failed: {e}")
+            # Don't fail startup - let it continue for now
+            # In production, you might want to fail here

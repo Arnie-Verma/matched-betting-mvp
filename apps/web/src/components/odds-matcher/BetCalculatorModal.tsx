@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Calculator, TrendingUp, TrendingDown, Copy, Check, ChevronDown } from 'lucide-react'
+import { X, Calculator, Copy, Check, Settings, ExternalLink } from 'lucide-react'
 import { OddsMatch } from './OddsMatcherClient'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 
 interface BetCalculatorModalProps {
   odds: OddsMatch
@@ -25,19 +24,18 @@ interface CalculationResult {
 }
 
 export function BetCalculatorModal({ odds, onClose, onStakeChange }: BetCalculatorModalProps) {
-  // Editable values (only bookmaker stake and odds, plus Betfair lay odds)
+  // Editable values
   const [backStake, setBackStake] = useState(odds.back_stake)
   const [backOdds, setBackOdds] = useState(odds.back_odds)
   const [layOdds, setLayOdds] = useState(odds.lay_odds)
-
-  // Commission - default 6%, editable in advanced mode
   const [commission, setCommission] = useState(0.06)
   const [showAdvanced, setShowAdvanced] = useState(false)
 
-  // Copy state
-  const [copied, setCopied] = useState(false)
+  // Copy states
+  const [copiedStake, setCopiedStake] = useState(false)
+  const [copiedSummary, setCopiedSummary] = useState(false)
 
-  // Calculated values (lay stake is auto-calculated based on back stake and odds)
+  // Calculated values
   const [calc, setCalc] = useState<CalculationResult>({
     backStake: odds.back_stake,
     layStake: odds.lay_stake,
@@ -49,7 +47,7 @@ export function BetCalculatorModal({ odds, onClose, onStakeChange }: BetCalculat
     rating: odds.rating
   })
 
-  // Recalculate whenever inputs change (including commission)
+  // Recalculate whenever inputs change
   useEffect(() => {
     calculateMatchedBet()
   }, [backStake, backOdds, layOdds, commission])
@@ -57,51 +55,41 @@ export function BetCalculatorModal({ odds, onClose, onStakeChange }: BetCalculat
   const calculateMatchedBet = () => {
     const isBonus = odds.bet_type === 'bonus'
 
-    // Calculate lay stake (auto-calculated based on back stake and odds)
+    // Calculate lay stake
     let layStake: number
     if (isBonus) {
-      // Bonus bet: only winnings matter (stake not returned)
-      layStake = (backStake * (backOdds - 1)) / layOdds
+      layStake = (backStake * (backOdds - 1)) / (layOdds - commission)
     } else {
-      // Normal bet: stake + winnings
-      layStake = (backStake * backOdds) / layOdds
+      layStake = (backStake * backOdds) / (layOdds - commission)
     }
 
-    // Calculate lay liability
     const layLiability = layStake * (layOdds - 1)
 
-    // Scenario 1: Back wins
+    // Back wins scenario
     let backWinnings: number
     if (isBonus) {
-      backWinnings = backStake * (backOdds - 1) // Only profit, no stake returned
+      backWinnings = backStake * (backOdds - 1)
     } else {
-      backWinnings = (backStake * backOdds) - backStake // Stake + winnings - stake = just winnings
+      backWinnings = (backStake * backOdds) - backStake
     }
-
     const profitIfBackWins = backWinnings - layLiability
 
-    // Scenario 2: Lay wins
-    const layProfit = layStake - (layStake * commission) // Keep lay stake minus commission
-    const backLoss = isBonus ? 0 : backStake // Lose stake on normal bet, nothing on bonus
-
+    // Lay wins scenario
+    const layProfit = layStake - (layStake * commission)
+    const backLoss = isBonus ? 0 : backStake
     const profitIfLayWins = layProfit - backLoss
 
     // Qualifying loss (average)
     const qualifyingLoss = (profitIfBackWins + profitIfLayWins) / 2
-
-    // PnL percentage
     const pnlPercentage = (qualifyingLoss / backStake) * 100
 
-    // Calculate rating (0-100)
+    // Calculate rating
     let rating: number
     if (isBonus) {
-      // Bonus bets: rating based on profit potential (70-95% = good)
       const returnPercentage = (qualifyingLoss / backStake) * 100
       rating = Math.min(100, Math.max(0, returnPercentage))
     } else {
-      // Normal bets: rating based on closeness of odds (lower loss = higher rating)
       const lossPercentage = Math.abs(pnlPercentage)
-      // 0% loss = 100 rating, 5% loss = 0 rating
       rating = Math.max(0, 100 - (lossPercentage * 20))
     }
 
@@ -120,8 +108,27 @@ export function BetCalculatorModal({ odds, onClose, onStakeChange }: BetCalculat
   const copyLayStake = async () => {
     try {
       await navigator.clipboard.writeText(calc.layStake.toFixed(2))
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      setCopiedStake(true)
+      setTimeout(() => setCopiedStake(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  const copySummary = async () => {
+    try {
+      const summary = `Matched Bet Summary
+Event: ${odds.event_name}
+Selection: ${odds.selection_name}
+Stake: ${formatCurrency(backStake)}
+Back Odds: ${backOdds.toFixed(2)} (${odds.back_bookmaker_name})
+Lay Odds: ${layOdds.toFixed(2)} (Betfair)
+Lay Stake: ${formatCurrency(calc.layStake)}
+Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc.pnlPercentage)})`
+
+      await navigator.clipboard.writeText(summary)
+      setCopiedSummary(true)
+      setTimeout(() => setCopiedSummary(false), 2000)
     } catch (err) {
       console.error('Failed to copy:', err)
     }
@@ -140,280 +147,320 @@ export function BetCalculatorModal({ odds, onClose, onStakeChange }: BetCalculat
     return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`
   }
 
+  // Get sport emoji
+  const getSportEmoji = () => {
+    const sportName = odds.sport_name.toLowerCase()
+    if (sportName.includes('soccer') || sportName.includes('football')) return '⚽'
+    if (sportName.includes('basketball')) return '🏀'
+    if (sportName.includes('tennis')) return '🎾'
+    if (sportName.includes('cricket')) return '🏏'
+    if (sportName.includes('rugby')) return '🏉'
+    if (sportName.includes('horse')) return '🏇'
+    return '🎯'
+  }
+
+  const formatEventTime = () => {
+    try {
+      const date = new Date(odds.event_start_time)
+      return date.toLocaleString('en-AU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      })
+    } catch {
+      return ''
+    }
+  }
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
-            Bet Calculator - {odds.event_name}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Event Info */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="text-gray-600">Selection:</span>
-                <span className="font-semibold ml-2">{odds.selection_name}</span>
-              </div>
-              <div>
-                <span className="text-gray-600">Market:</span>
-                <span className="font-semibold ml-2">{odds.market_name}</span>
-              </div>
-              <div>
-                <span className="text-gray-600">Sport:</span>
-                <span className="font-semibold ml-2">{odds.sport_name}</span>
-              </div>
-              <div>
-                <span className="text-gray-600">Bet Type:</span>
-                <span className={`font-semibold ml-2 ${odds.bet_type === 'bonus' ? 'text-green-700' : 'text-blue-700'}`}>
-                  {odds.bet_type === 'bonus' ? 'Bonus Bet' : 'Normal Bet'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Editable Inputs - Only Bookmaker Stake & Odds, Betfair Lay Odds */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="back-stake" className="text-sm font-medium mb-1 block">
-                Bookmaker Stake (AUD)
-              </Label>
-              <input
-                id="back-stake"
-                type="number"
-                min="1"
-                step="10"
-                value={backStake}
-                onChange={(e) => setBackStake(parseFloat(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <div className="text-xs text-gray-500 mt-1">{odds.back_bookmaker_name}</div>
-            </div>
-
-            <div>
-              <Label htmlFor="back-odds" className="text-sm font-medium mb-1 block">
-                Bookmaker Odds
-              </Label>
-              <input
-                id="back-odds"
-                type="number"
-                min="1.01"
-                step="0.01"
-                value={backOdds}
-                onChange={(e) => setBackOdds(parseFloat(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <div className="text-xs text-gray-500 mt-1">{odds.back_bookmaker_name}</div>
-            </div>
-
-            <div>
-              <Label htmlFor="lay-odds" className="text-sm font-medium mb-1 block">
-                Betfair Lay Odds
-              </Label>
-              <input
-                id="lay-odds"
-                type="number"
-                min="1.01"
-                step="0.01"
-                value={layOdds}
-                onChange={(e) => setLayOdds(parseFloat(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <div className="text-xs text-gray-500 mt-1">Betfair ({(commission * 100).toFixed(0)}% commission)</div>
-            </div>
-          </div>
-
-          {/* Advanced Toggle */}
-          <div className="border-t pt-4">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        {/* Compact Header with improved spacing */}
+        <DialogHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <Calculator className="w-5 h-5 pl-1" />
+              Odds Matcher
+            </DialogTitle>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1.5"
+              title="Advanced Settings"
             >
-              <ChevronDown className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
-              {showAdvanced ? 'Hide' : 'Show'} Advanced Settings
+              <Settings className={`w-5 h-5 ${showAdvanced ? 'text-blue-600' : 'text-gray-600'}`} />
+              <span className={`text-sm font-medium ${showAdvanced ? 'text-blue-600' : 'text-gray-600'}`}>
+                Advanced
+              </span>
             </button>
+          </div>
+          {/* Improved breadcrumb with larger emoji and better spacing */}
+          <div className="text-sm text-gray-600 flex items-center gap-3 mt-1">
+            <span className="text-lg">{getSportEmoji()}</span>
+            <span className="font-medium text-gray-900">{odds.event_name}</span>
+            <span className="text-gray-400">•</span>
+            <span>{odds.competition_name}</span>
+            <span className="text-gray-400">•</span>
+            <span className="uppercase text-xs font-medium">{odds.market_type.replace('_', ' ')}</span>
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {formatEventTime()}
+          </div>
+          {/* Prominent outcome display - inline */}
+          <div className="mt-2 pt-2 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm text-gray-600 font-semibold">Outcome:</span>
+                <span className="text-lg text-gray-900">{odds.selection_name}</span>
+              </div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${odds.bet_type === 'bonus' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                {odds.bet_type === 'bonus' ? 'Bonus Bet' : 'Normal Bet'}
+              </div>
+            </div>
+          </div>
+        </DialogHeader>
 
-            {showAdvanced && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="commission" className="text-sm font-medium mb-1 block">
-                      Betfair Commission (%)
-                    </Label>
-                    <input
-                      id="commission"
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.5"
-                      value={commission * 100}
-                      onChange={(e) => setCommission(parseFloat(e.target.value) / 100)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <div className="text-xs text-gray-500 mt-1">
-                      Default: 6% (2% for base rate customers)
-                    </div>
+        <div className="space-y-3">
+          {/* Advanced Settings (collapsible) */}
+          {showAdvanced && (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="max-w-xs">
+                <Label htmlFor="commission" className="text-sm font-medium">
+                  Betfair Commission (%)
+                </Label>
+                <input
+                  id="commission"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  value={commission * 100}
+                  onChange={(e) => setCommission(parseFloat(e.target.value) / 100)}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <div className="text-xs text-gray-500 mt-1">
+                  Typically 5-6% (for Australian users)
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Compact Input Section with grouped styling */}
+          <div className="bg-slate-50 p-3 rounded-lg">
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label htmlFor="back-stake" className="text-sm font-medium">
+                  Stake
+                </Label>
+                <input
+                  id="back-stake"
+                  type="number"
+                  min="1"
+                  step="10"
+                  value={backStake}
+                  onChange={(e) => setBackStake(parseFloat(e.target.value))}
+                  placeholder="100"
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold placeholder:text-gray-400"
+                />
+                <div className="text-xs text-gray-500 mt-1">Your bet amount</div>
+              </div>
+
+              <div>
+                <Label htmlFor="back-odds" className="text-sm font-medium">
+                  Bookie
+                </Label>
+                <input
+                  id="back-odds"
+                  type="number"
+                  min="1.01"
+                  step="0.01"
+                  value={backOdds}
+                  onChange={(e) => setBackOdds(parseFloat(e.target.value))}
+                  placeholder="5.00"
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-400"
+                />
+                <div className="text-xs text-gray-500 mt-1">{odds.back_bookmaker_name}</div>
+              </div>
+
+              <div>
+                <Label htmlFor="lay-odds" className="text-sm font-medium">
+                  Betfair
+                </Label>
+                <input
+                  id="lay-odds"
+                  type="number"
+                  min="1.01"
+                  step="0.01"
+                  value={layOdds}
+                  onChange={(e) => setLayOdds(parseFloat(e.target.value))}
+                  placeholder="5.13"
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-400"
+                />
+                <div className="text-xs text-gray-500 mt-1">{(commission * 100).toFixed(0)}% commission</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Lay Stake - Softer blue colors */}
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-gray-600 mb-1">Betfair Lay Stake</div>
+                <div className="text-3xl font-bold text-blue-900">{formatCurrency(calc.layStake)}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Liability: {formatCurrency(calc.layLiability)}
+                </div>
+              </div>
+              <button
+                onClick={copyLayStake}
+                className="p-3 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
+                title="Copy lay stake"
+              >
+                {copiedStake ? (
+                  <Check className="w-6 h-6 text-green-600" />
+                ) : (
+                  <Copy className="w-6 h-6 text-blue-600" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Compact Results Table - White backgrounds for accessibility */}
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left py-2 px-3 font-medium text-gray-700">Winner</th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-700">Bookie</th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-700">Betfair</th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-700">Avail</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-t bg-white">
+                  <td className="py-2 px-3 font-medium">{odds.selection_name}</td>
+                  <td className="text-right py-2 px-3 text-green-700 font-semibold">
+                    +{formatCurrency(odds.bet_type === 'bonus' ? backStake * (backOdds - 1) : (backStake * backOdds) - backStake)}
+                  </td>
+                  <td className="text-right py-2 px-3 text-red-700 font-semibold">
+                    -{formatCurrency(calc.layLiability)}
+                  </td>
+                  <td className={`text-right py-2 px-3 font-bold ${calc.profitIfBackWins >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                    {formatCurrency(calc.profitIfBackWins)}
+                  </td>
+                </tr>
+                <tr className="border-t bg-white">
+                  <td className="py-2 px-3 font-medium">Other outcome</td>
+                  <td className="text-right py-2 px-3 text-red-700 font-semibold">
+                    {odds.bet_type === 'bonus' ? formatCurrency(0) : `-${formatCurrency(backStake)}`}
+                  </td>
+                  <td className="text-right py-2 px-3 text-green-700 font-semibold">
+                    +{formatCurrency(calc.layStake - (calc.layStake * commission))}
+                  </td>
+                  <td className={`text-right py-2 px-3 font-bold ${calc.profitIfLayWins >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                    {formatCurrency(calc.profitIfLayWins)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Summary Bar */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 grid grid-cols-2 gap-6">
+                <div>
+                  <div className="text-xs text-gray-600 mb-1">{calc.qualifyingLoss >= 0 ? 'Profit' : 'Loss'}</div>
+                  <div className={`text-2xl font-bold ${calc.qualifyingLoss >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                    {formatCurrency(Math.abs(calc.qualifyingLoss))}
                   </div>
+                </div>
+
+                <div>
+                  <div className="text-xs text-gray-600 mb-1">PnL %</div>
+                  <div className={`text-2xl font-bold ${calc.pnlPercentage >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                    {formatPercentage(calc.pnlPercentage)}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={copySummary}
+                className="ml-4 p-2 hover:bg-blue-100 rounded-lg transition-colors"
+                title="Copy summary"
+              >
+                {copiedSummary ? (
+                  <Check className="w-5 h-5 text-green-600" />
+                ) : (
+                  <Copy className="w-5 h-5 text-blue-600" />
+                )}
+              </button>
+            </div>
+
+            {/* Inline Warning/Info - Soft yellow with proper alignment */}
+            {odds.bet_type === 'normal' && calc.qualifyingLoss < 0 && (
+              <div className="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="flex items-start gap-2 text-xs text-yellow-900">
+                  <span className="text-base leading-none mt-0.5">⚠️</span>
+                  <span>
+                    You'll lose about <strong>{formatCurrency(Math.abs(calc.qualifyingLoss))}</strong> {formatPercentage(calc.pnlPercentage)} to unlock bonus bets worth much more.
+                  </span>
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Calculated Stakes (auto-calculated, read-only display) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">Betfair Lay Stake (Auto-calculated)</div>
-              <div className="flex items-center gap-2">
-                <div className="text-2xl font-bold text-blue-900">{formatCurrency(calc.layStake)}</div>
-                <button
-                  onClick={copyLayStake}
-                  className="p-2 hover:bg-blue-100 rounded transition-colors"
-                  title="Copy stake amount"
-                >
-                  {copied ? (
-                    <Check className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <Copy className="w-5 h-5 text-blue-600" />
-                  )}
-                </button>
-              </div>
-              <div className="text-xs text-gray-600 mt-1">
-                {copied ? 'Copied to clipboard!' : 'Place this amount at Betfair'}
-              </div>
-            </div>
-
-            <div className="bg-red-50 rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">Betfair Liability</div>
-              <div className="text-2xl font-bold text-red-900">{formatCurrency(calc.layLiability)}</div>
-              <div className="text-xs text-gray-600 mt-1">Maximum risk on exchange</div>
-            </div>
-          </div>
-
-          {/* Outcome Matrix */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Outcome Matrix</h3>
-            <div className="space-y-3">
-              {/* Outcome 1: Back wins */}
-              <div className={`border-2 rounded-lg p-4 ${calc.profitIfBackWins > calc.profitIfLayWins ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-white'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {calc.profitIfBackWins >= 0 ? (
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <TrendingDown className="w-5 h-5 text-red-600" />
-                    )}
-                    <span className="font-semibold">Selection Wins (Back bet wins)</span>
-                  </div>
-                  <span className={`text-xl font-bold ${calc.profitIfBackWins >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                    {formatCurrency(calc.profitIfBackWins)}
-                  </span>
-                </div>
-                <div className="mt-2 text-sm text-gray-600 grid grid-cols-2 gap-2">
-                  <div>
-                    Bookmaker wins: {formatCurrency(odds.bet_type === 'bonus' ? backStake * (backOdds - 1) : (backStake * backOdds) - backStake)}
-                  </div>
-                  <div>
-                    Betfair loses: -{formatCurrency(calc.layLiability)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Outcome 2: Lay wins */}
-              <div className={`border-2 rounded-lg p-4 ${calc.profitIfLayWins > calc.profitIfBackWins ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-white'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {calc.profitIfLayWins >= 0 ? (
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <TrendingDown className="w-5 h-5 text-red-600" />
-                    )}
-                    <span className="font-semibold">Selection Loses (Lay bet wins)</span>
-                  </div>
-                  <span className={`text-xl font-bold ${calc.profitIfLayWins >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                    {formatCurrency(calc.profitIfLayWins)}
-                  </span>
-                </div>
-                <div className="mt-2 text-sm text-gray-600 grid grid-cols-2 gap-2">
-                  <div>
-                    Betfair wins: {formatCurrency(calc.layStake - (calc.layStake * commission))}
-                  </div>
-                  <div>
-                    Bookmaker loses: {odds.bet_type === 'bonus' ? formatCurrency(0) : `-${formatCurrency(backStake)}`}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Summary */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <div className="text-sm text-gray-600 mb-1">Qualifying Loss/Profit</div>
-                <div className={`text-2xl font-bold ${calc.qualifyingLoss >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                  {formatCurrency(calc.qualifyingLoss)}
-                </div>
-              </div>
-
-              <div>
-                <div className="text-sm text-gray-600 mb-1">PnL Percentage</div>
-                <div className={`text-2xl font-bold ${calc.pnlPercentage >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                  {formatPercentage(calc.pnlPercentage)}
-                </div>
-              </div>
-
-              <div>
-                <div className="text-sm text-gray-600 mb-1">Rating (Dynamic)</div>
-                <div className="text-2xl font-bold text-blue-700">
-                  {calc.rating.toFixed(0)}/100
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Updates as you edit
-                </div>
-              </div>
-            </div>
 
             {odds.bet_type === 'bonus' && (
-              <div className="mt-4 p-3 bg-green-100 rounded-lg">
-                <p className="text-sm text-green-800">
-                  <strong>Bonus Bet:</strong> This is a free bet. You won't get your stake back, but you also risk nothing!
-                  Average profit: {formatCurrency(calc.qualifyingLoss)}
-                </p>
-              </div>
-            )}
-
-            {odds.bet_type === 'normal' && calc.qualifyingLoss < 0 && (
-              <div className="mt-4 p-3 bg-yellow-100 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  <strong>Qualifying Bet:</strong> You'll lose about {formatCurrency(Math.abs(calc.qualifyingLoss))} on average,
-                  but this unlocks bonus bets worth much more!
-                </p>
+              <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-start gap-2 text-xs text-green-900">
+                  <span className="text-base leading-none mt-0.5">💰</span>
+                  <span>
+                    <strong>Bonus Bet:</strong> Free bet with average profit of <strong>{formatCurrency(calc.qualifyingLoss)}</strong>
+                  </span>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Close
-            </button>
-            {onStakeChange && backStake !== odds.back_stake && (
+          {/* Action Buttons - Improved styling with shadows and spacing */}
+          <div className="flex justify-between gap-3 pt-3">
+            <div className="flex gap-2">
               <button
-                onClick={() => {
-                  onStakeChange(backStake)
-                  onClose()
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={() => window.open(`https://www.tab.com.au`, '_blank')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all hover:shadow-lg flex items-center gap-2 text-sm"
               >
-                Update Stake & Close
+                <ExternalLink className="w-4 h-4" />
+                Open {odds.back_bookmaker_name}
               </button>
-            )}
+              <button
+                onClick={() => window.open('https://www.betfair.com.au', '_blank')}
+                className="px-4 py-2 bg-yellow-500 text-white rounded-xl hover:bg-yellow-600 transition-all hover:shadow-lg flex items-center gap-2 text-sm"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Open Betfair
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              {onStakeChange && backStake !== odds.back_stake && (
+                <button
+                  onClick={() => {
+                    onStakeChange(backStake)
+                    onClose()
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all hover:shadow-lg text-sm"
+                >
+                  Update Stake
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-sm"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </DialogContent>

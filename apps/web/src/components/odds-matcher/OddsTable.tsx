@@ -46,13 +46,6 @@ export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTablePro
     }
   }
 
-  const getRatingColor = (rating: number) => {
-    if (rating >= 90) return 'text-green-700 bg-green-50'
-    if (rating >= 75) return 'text-blue-700 bg-blue-50'
-    if (rating >= 50) return 'text-yellow-700 bg-yellow-50'
-    return 'text-gray-700 bg-gray-50'
-  }
-
   if (loading && opportunities.length === 0) {
     return (
       <div className="bg-white rounded-lg border shadow-sm p-12">
@@ -102,9 +95,6 @@ export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTablePro
               </th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 PnL %
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                Rating
               </th>
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Action
@@ -162,11 +152,6 @@ export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTablePro
                   </div>
                 </td>
                 <td className="px-4 py-4 text-center">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRatingColor(opp.rating)}`}>
-                    {opp.rating.toFixed(0)}
-                  </span>
-                </td>
-                <td className="px-4 py-4 text-center">
                   <button
                     onClick={() => onSelectOdds(opp)}
                     className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium hover:bg-blue-700 transition-colors"
@@ -222,11 +207,8 @@ export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTablePro
               </div>
             </div>
 
-            {/* Rating and Action */}
-            <div className="flex items-center justify-between">
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRatingColor(opp.rating)}`}>
-                Rating: {opp.rating.toFixed(0)}
-              </span>
+            {/* Action */}
+            <div className="flex items-center justify-end">
               <button
                 onClick={() => onSelectOdds(opp)}
                 className="bg-blue-600 text-white px-4 py-2 rounded font-medium hover:bg-blue-700 transition-colors"
