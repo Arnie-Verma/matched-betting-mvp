@@ -7,9 +7,10 @@ from bookmaker scrapers into the normalized database schema.
 import sys
 sys.path.insert(0, "apps/api/src")
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Dict, Set
 from decimal import Decimal
+from difflib import SequenceMatcher
 import logging
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -22,6 +23,56 @@ from api.models.odds import (
 from scrapers.base import ScrapedEvent, ScrapedOdds, ScrapeResult
 
 logger = logging.getLogger(__name__)
+
+
+def normalize_team_name(name: str) -> str:
+    """
+    Normalize team names for better fuzzy matching.
+
+    Handles common abbreviations and variations:
+    - Nottm -> Nottingham
+    - Man Utd/Man United -> Manchester United
+    - Man City -> Manchester City
+    - Spurs -> Tottenham
+    etc.
+    """
+    replacements = {
+        "nottm": "nottingham",
+        "man utd": "manchester united",
+        "man united": "manchester united",
+        "man city": "manchester city",
+        "wolves": "wolverhampton",
+        "spurs": "tottenham",
+        "tottenham hotspur": "tottenham",
+        "west ham": "west ham united",
+        "brighton": "brighton & hove albion",
+        "brighton & hove albion": "brighton",
+        "newcastle": "newcastle united",
+        "leicester": "leicester city",
+        "norwich": "norwich city",
+        "crystal palace": "palace",
+    }
+
+    normalized = name.lower().strip()
+
+    # Apply replacements
+    for abbr, full in replacements.items():
+        if abbr in normalized:
+            normalized = normalized.replace(abbr, full)
+
+    return normalized
+
+
+def fuzzy_match_score(str1: str, str2: str) -> float:
+    """
+    Calculate fuzzy match score between two strings (0.0 to 1.0).
+
+    Uses SequenceMatcher to calculate similarity between normalized strings.
+    """
+    s1 = " ".join(normalize_team_name(str1).split())
+    s2 = " ".join(normalize_team_name(str2).split())
+
+    return SequenceMatcher(None, s1, s2).ratio()
 
 
 class OddsPersistence:
@@ -159,13 +210,17 @@ class OddsPersistence:
         return competition
 
     def _save_event(self, scraped_event: ScrapedEvent) -> Event:
-        """Save or update event"""
+        """
+        Save or update event with fuzzy name matching.
+
+        Matches events from different bookmakers (e.g., "Nottm Forest" vs "Nottingham Forest")
+        using fuzzy string matching on event names and time proximity.
+        """
         # Get sport and competition
         sport = self._get_or_create_sport(scraped_event.sport)
         competition = self._get_or_create_competition(sport, scraped_event.competition)
 
-        # Check if event already exists by name and start time
-        # (external_ids matching is complex with JSON column, use simple check)
+        # First, try exact match by name and start time
         event = self.db.scalar(
             select(Event).where(
                 Event.competition_id == competition.id,
@@ -174,25 +229,70 @@ class OddsPersistence:
             )
         )
 
-        if not event:
-            # Create new event
-            event = Event(
-                competition_id=competition.id,
-                name=scraped_event.name,
-                start_time=scraped_event.start_time,
-                external_ids={scraped_event.external_id: True},
-                status="scheduled"
+        if event:
+            # Exact match found - update external IDs if needed
+            if scraped_event.external_id not in event.external_ids:
+                event.external_ids[scraped_event.external_id] = True
+                self.db.add(event)
+                self.db.flush()
+            return event
+
+        # No exact match - try fuzzy matching
+        # Look for events in the same competition within ±3 hours of start time
+        time_window_start = scraped_event.start_time - timedelta(hours=3)
+        time_window_end = scraped_event.start_time + timedelta(hours=3)
+
+        candidate_events = self.db.scalars(
+            select(Event).where(
+                Event.competition_id == competition.id,
+                Event.start_time >= time_window_start,
+                Event.start_time <= time_window_end,
+                Event.status == "scheduled"
+            )
+        ).all()
+
+        # Find best fuzzy match
+        best_match = None
+        best_score = 0.0
+        MATCH_THRESHOLD = 0.75  # 75% similarity required
+
+        for candidate in candidate_events:
+            score = fuzzy_match_score(scraped_event.name, candidate.name)
+            if score > best_score:
+                best_score = score
+                best_match = candidate
+
+        if best_match and best_score >= MATCH_THRESHOLD:
+            # Fuzzy match found!
+            logger.info(
+                f"Fuzzy matched event: '{scraped_event.name}' -> '{best_match.name}' "
+                f"(score: {best_score:.2f})"
             )
 
-            # Add venue if available
-            if scraped_event.venue:
-                event.venue = scraped_event.venue
+            # Update external IDs
+            if scraped_event.external_id not in best_match.external_ids:
+                best_match.external_ids[scraped_event.external_id] = True
+                self.db.add(best_match)
+                self.db.flush()
 
-            self.db.add(event)
-            self.db.flush()
+            return best_match
 
-        # TODO: Add team matching logic here
-        # For now, we'll skip team resolution and just store event data
+        # No match found - create new event
+        logger.info(f"Creating new event: {scraped_event.name}")
+        event = Event(
+            competition_id=competition.id,
+            name=scraped_event.name,
+            start_time=scraped_event.start_time,
+            external_ids={scraped_event.external_id: True},
+            status="scheduled"
+        )
+
+        # Add venue if available
+        if scraped_event.venue:
+            event.venue = scraped_event.venue
+
+        self.db.add(event)
+        self.db.flush()
 
         return event
 
