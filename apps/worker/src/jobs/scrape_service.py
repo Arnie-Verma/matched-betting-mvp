@@ -12,6 +12,7 @@ from typing import List, Dict, Any, Optional
 from decimal import Decimal
 
 from scrapers.tab_scraper import TABScraper
+from scrapers.betfair_scraper import BetfairScraper
 from jobs.save_odds import save_scrape_result_to_db
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,9 @@ class ScrapeService:
     def __init__(self):
         self.scrapers = {
             "tab": TABScraper(),
+            "betfair": BetfairScraper(),
             # Add more scrapers as they're implemented
             # "ladbrokes": LadbrokesScraper(),
-            # "betfair": BetfairScraper(),
         }
 
     async def scrape_bookmaker(
@@ -107,8 +108,8 @@ class ScrapeService:
         """
         logger.info(f"Starting parallel scrape for all active bookmakers")
 
-        # For now, just scrape TAB (expand as more scrapers are added)
-        active_bookmakers = ["tab"]
+        # Scrape both TAB and Betfair
+        active_bookmakers = ["tab", "betfair"]
 
         # Run scrapers in parallel
         tasks = [
