@@ -28,7 +28,7 @@ export function BetCalculatorModal({ odds, onClose, onStakeChange }: BetCalculat
   const [backStake, setBackStake] = useState(odds.back_stake)
   const [backOdds, setBackOdds] = useState(odds.back_odds)
   const [layOdds, setLayOdds] = useState(odds.lay_odds)
-  const [commission, setCommission] = useState(0.06)
+  const [commission, setCommission] = useState(odds.lay_commission)
   const [showAdvanced, setShowAdvanced] = useState(false)
 
   // Copy states
@@ -47,8 +47,12 @@ export function BetCalculatorModal({ odds, onClose, onStakeChange }: BetCalculat
     rating: odds.rating
   })
 
-  // Recalculate whenever inputs change
+  // Only recalculate when user actually changes inputs (not on mount)
   useEffect(() => {
+    // Skip initial mount - use backend calculations
+    if (backStake === odds.back_stake && backOdds === odds.back_odds && layOdds === odds.lay_odds && commission === odds.lay_commission) {
+      return
+    }
     calculateMatchedBet()
   }, [backStake, backOdds, layOdds, commission])
 

@@ -336,6 +336,7 @@ class OddsPersistence:
                     selection_id=selection.id,
                     bookmaker_id=bookmaker.id,
                     decimal_odds=scraped_odds.decimal_odds,
+                    available_amount=scraped_odds.liquidity,  # Save liquidity for exchange odds
                     source_type=SourceType.SCRAPE,
                     source_url=scraped_odds.source_url,
                     timestamp=scraped_odds.scraped_at,

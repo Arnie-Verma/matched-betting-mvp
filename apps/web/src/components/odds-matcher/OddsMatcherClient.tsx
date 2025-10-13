@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { OddsFilters } from './OddsFilters'
 import { OddsTable } from './OddsTable'
 import { BetCalculatorModal } from './BetCalculatorModal'
@@ -64,6 +64,11 @@ export function OddsMatcherClient() {
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
 
   const [selectedOdds, setSelectedOdds] = useState<OddsMatch | null>(null)
+
+  // Auto-load odds on component mount
+  useEffect(() => {
+    fetchOpportunities()
+  }, [])
 
   const fetchOpportunities = async () => {
     setLoading(true)
