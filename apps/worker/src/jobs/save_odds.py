@@ -13,7 +13,7 @@ from decimal import Decimal
 from difflib import SequenceMatcher
 import logging
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 from api.core.database import SessionLocal
 from api.models.odds import (
@@ -314,22 +314,17 @@ class OddsPersistence:
                 # Get or create selection
                 selection = self._get_or_create_selection(market, scraped_odds)
 
-                # Mark previous odds as not current
+                # Delete old odds to prevent unbounded database growth
+                # Option 1 (MVP): Keep only current odds, delete historical data
+                # This prevents database from growing indefinitely (saves storage costs)
+                # Future: Can switch to 7-day retention if historical analysis is needed
                 self.db.execute(
-                    select(OddsSnapshot).where(
+                    delete(OddsSnapshot).where(
                         OddsSnapshot.selection_id == selection.id,
                         OddsSnapshot.bookmaker_id == bookmaker.id,
                         OddsSnapshot.is_current == True
                     )
                 )
-                for old_odds in self.db.scalars(
-                    select(OddsSnapshot).where(
-                        OddsSnapshot.selection_id == selection.id,
-                        OddsSnapshot.bookmaker_id == bookmaker.id,
-                        OddsSnapshot.is_current == True
-                    )
-                ):
-                    old_odds.is_current = False
 
                 # Create new odds snapshot
                 odds_snapshot = OddsSnapshot(

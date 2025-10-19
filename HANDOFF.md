@@ -803,6 +803,47 @@ SELECT COUNT(*) FROM odds_snapshots WHERE is_current = true;
 SELECT * FROM bookmakers WHERE is_active = true;
 ```
 
+### Database Cleanup Strategy (IMPORTANT)
+
+**Problem:** Without cleanup, the database grows infinitely as old odds accumulate.
+
+**Current Implementation: Option 1 - Delete Old Odds Immediately**
+
+The `save_odds.py` script now **deletes** old odds instead of marking them as `is_current=False`. This prevents unbounded database growth.
+
+**File:** `apps/worker/src/jobs/save_odds.py:317-327`
+
+```python
+# Delete old odds to prevent unbounded database growth
+# Option 1 (MVP): Keep only current odds, delete historical data
+# This prevents database from growing indefinitely (saves storage costs)
+self.db.execute(
+    delete(OddsSnapshot).where(
+        OddsSnapshot.selection_id == selection.id,
+        OddsSnapshot.bookmaker_id == bookmaker.id,
+        OddsSnapshot.is_current == True
+    )
+)
+```
+
+**Why this approach?**
+- ✅ **Zero storage growth** - Database stays at ~4,000 rows (current odds only)
+- ✅ **Simple implementation** - No cron jobs or background tasks needed
+- ✅ **Cost effective** - ~1 MB storage vs hundreds of MB
+- ✅ **Fast queries** - Small table = fast performance
+- ✅ **MVP appropriate** - Don't need historical data yet
+
+**What we're NOT keeping:**
+- ❌ Historical odds data
+- ❌ Odds movement charts
+- ❌ Historical analysis
+
+**Future Options (when needed):**
+- **Option 2:** Keep 7-day rolling history (adds cron job for cleanup)
+- **Option 3:** Archive to S3 Glacier (for long-term analytics)
+
+See **Appendix: Database Cleanup Strategy** for detailed analysis and future options.
+
 ---
 
 ## Recent Changes & Commits
@@ -1559,3 +1600,258 @@ Automated is now BETTER because:
 ---
 
 This analysis should be referenced whenever someone suggests "we need automated scraping" - the answer is: "Not yet, we need users first."
+
+---
+
+## Appendix: Database Cleanup Strategy
+
+### The Problem: Unbounded Database Growth
+
+Without cleanup, every scrape creates new odds snapshots. Old odds are never deleted.
+
+**Example growth without cleanup:**
+```
+Day 1:   4,000 odds → 4,000 rows
+Day 2:   4,000 odds → 8,000 rows (4k current + 4k old)
+Day 30:  4,000 odds → 120,000 rows
+Day 365: 4,000 odds → 1,460,000 rows (1.46 million!)
+```
+
+**Storage impact:**
+- At 1M rows: ~250 MB, queries slow down
+- At 10M rows: ~2.5 GB, need database optimization
+- PostgreSQL cost: ~$0.10/GB/month = growing costs
+
+---
+
+### Solution Implemented: Option 1 - Delete Old Odds Immediately
+
+**What it does:**
+- When new odds arrive, **DELETE** old odds for that selection+bookmaker
+- Only keep current odds (is_current=TRUE)
+- Database stays at constant size (~4,000 rows)
+
+**Implementation:**
+```python
+# File: apps/worker/src/jobs/save_odds.py (lines 317-327)
+
+# Delete old odds to prevent unbounded database growth
+self.db.execute(
+    delete(OddsSnapshot).where(
+        OddsSnapshot.selection_id == selection.id,
+        OddsSnapshot.bookmaker_id == bookmaker.id,
+        OddsSnapshot.is_current == True
+    )
+)
+
+# Then create new odds snapshot
+odds_snapshot = OddsSnapshot(
+    selection_id=selection.id,
+    bookmaker_id=bookmaker.id,
+    decimal_odds=scraped_odds.decimal_odds,
+    is_current=True,
+    ...
+)
+```
+
+**Storage profile:**
+```
+Always:  ~4,000 rows (current odds only)
+Storage: ~1 MB
+Cost:    ~$0.0001/month (negligible)
+```
+
+**Pros:**
+- ✅ Zero storage growth
+- ✅ Simple (no cron jobs needed)
+- ✅ Fast queries (small table)
+- ✅ Perfect for MVP
+
+**Cons:**
+- ❌ No historical odds data
+- ❌ Can't show odds movement charts
+- ❌ Can't analyze historical trends
+
+---
+
+### Future Option 2: Keep 7-Day Rolling History
+
+**When to implement:** After you have real users and want historical analysis.
+
+**Strategy:** Delete odds older than 7 days via daily cron job.
+
+```python
+# File: apps/api/src/api/jobs/cleanup_old_odds.py (create this)
+
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
+from api.models.odds import OddsSnapshot
+
+def cleanup_old_odds(db: Session, days_to_keep: int = 7):
+    """Delete odds snapshots older than X days."""
+    cutoff_date = datetime.utcnow() - timedelta(days=days_to_keep)
+
+    deleted = db.query(OddsSnapshot).filter(
+        OddsSnapshot.timestamp < cutoff_date
+    ).delete()
+
+    db.commit()
+    print(f"Deleted {deleted:,} old odds (older than {days_to_keep} days)")
+    return deleted
+```
+
+**Cron job (runs daily at 3am):**
+```bash
+# Add to production crontab
+0 3 * * * docker exec mb_api python -m api.jobs.cleanup_old_odds
+```
+
+**Storage profile:**
+```
+Steady state: ~28,000 rows (4k/day × 7 days)
+Storage:      ~7 MB
+Cost:         ~$0.0007/month (negligible)
+```
+
+**Pros:**
+- ✅ Controlled storage growth
+- ✅ Can show recent odds trends
+- ✅ Useful for debugging
+- ✅ Balance between history and cost
+
+**Cons:**
+- ❌ Requires cron/Celery setup
+- ❌ Loses long-term historical data
+
+---
+
+### Future Option 3: Archive to S3 Glacier
+
+**When to implement:** If you need long-term analytics and have budget.
+
+**Strategy:** Move odds older than 30 days to cheap S3 storage.
+
+```python
+# File: apps/api/src/api/jobs/archive_old_odds.py (create this)
+
+import boto3
+import json
+from datetime import datetime, timedelta
+
+def archive_old_odds(db: Session, days_before_archive: int = 30):
+    """Archive odds to S3, then delete from database."""
+    cutoff_date = datetime.utcnow() - timedelta(days=days_before_archive)
+
+    # Get old odds
+    old_odds = db.query(OddsSnapshot).filter(
+        OddsSnapshot.timestamp < cutoff_date
+    ).all()
+
+    # Convert to JSON
+    archive_data = [
+        {
+            'selection_id': odds.selection_id,
+            'decimal_odds': float(odds.decimal_odds),
+            'timestamp': odds.timestamp.isoformat()
+        }
+        for odds in old_odds
+    ]
+
+    # Upload to S3 Glacier
+    s3 = boto3.client('s3')
+    filename = f"odds_archive_{cutoff_date.date()}.json"
+    s3.put_object(
+        Bucket='my-odds-archive',
+        Key=f'archives/{filename}',
+        Body=json.dumps(archive_data),
+        StorageClass='GLACIER'  # Cheap storage
+    )
+
+    # Delete from database
+    deleted = db.query(OddsSnapshot).filter(
+        OddsSnapshot.timestamp < cutoff_date
+    ).delete()
+
+    db.commit()
+    return deleted
+```
+
+**Storage costs:**
+```
+PostgreSQL (hot data):  $0.10/GB/month
+S3 Glacier (cold data): $0.004/GB/month (25x cheaper!)
+
+Example:
+- 30 days hot:  ~500 MB = $0.05/month
+- 1 year cold:  ~6 GB   = $0.024/month
+Total:          ~$0.074/month for 13 months of data
+```
+
+**Pros:**
+- ✅ Keep ALL historical data
+- ✅ Very cheap long-term storage
+- ✅ Can retrieve for analytics if needed
+
+**Cons:**
+- ❌ Complex setup (AWS credentials, S3, etc.)
+- ❌ Archived data not immediately queryable
+- ❌ Overkill for early-stage startup
+
+---
+
+### Comparison Table
+
+| Strategy | Storage | Cost/Month | Complexity | Historical Data | Best For |
+|----------|---------|------------|------------|-----------------|----------|
+| **Option 1: Delete immediately** | ~1 MB | $0.0001 | Low | None | ✅ **MVP** |
+| Option 2: 7-day rolling | ~7 MB | $0.0007 | Medium | 7 days | Post-launch |
+| Option 3: S3 archive | ~500 MB + archive | $0.074 | High | Unlimited | Mature product |
+| ❌ No cleanup | Growing infinitely | Growing | N/A | All | **Never do this** |
+
+---
+
+### Decision: Option 1 is Implemented
+
+**Current status:**
+- ✅ Option 1 is implemented in `save_odds.py`
+- ✅ Old odds are deleted immediately
+- ✅ Database stays at constant size
+- ✅ Zero infrastructure complexity
+
+**When to revisit:**
+1. You have real users asking for historical charts
+2. You want to analyze odds movements
+3. You have budget for S3 or cron jobs
+
+**Until then:** Option 1 is the correct choice for MVP.
+
+---
+
+### Monitoring Database Size
+
+Check your database size regularly:
+
+```sql
+-- Total rows in odds_snapshots
+SELECT COUNT(*) FROM odds_snapshots;
+
+-- Current odds only
+SELECT COUNT(*) FROM odds_snapshots WHERE is_current = true;
+
+-- Database size
+SELECT pg_size_pretty(pg_database_size('mb_dev'));
+
+-- Table size
+SELECT pg_size_pretty(pg_total_relation_size('odds_snapshots'));
+```
+
+**Expected values with Option 1:**
+- Total rows: ~4,000
+- Current odds: ~4,000
+- Table size: ~1-2 MB
+
+**Red flags (means cleanup isn't working):**
+- Total rows: >10,000 (growing over time)
+- Table size: >10 MB (and growing)
+
+If you see this, the delete is failing - check logs!
