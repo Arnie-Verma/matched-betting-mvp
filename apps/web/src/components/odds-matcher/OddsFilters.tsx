@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Search, ChevronDown } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 
@@ -16,11 +16,28 @@ interface OddsFiltersProps {
     minRating: number | null
   }
   onFiltersChange: (filters: any) => void
-  onSearch: () => void
 }
 
-export function OddsFilters({ filters, onFiltersChange, onSearch }: OddsFiltersProps) {
+export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showBookmakers, setShowBookmakers] = useState(false)
+  const [showSports, setShowSports] = useState(false)
+  const bookmakersRef = useRef<HTMLDivElement>(null)
+  const sportsRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (bookmakersRef.current && !bookmakersRef.current.contains(event.target as Node)) {
+        setShowBookmakers(false)
+      }
+      if (sportsRef.current && !sportsRef.current.contains(event.target as Node)) {
+        setShowSports(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value)
@@ -35,11 +52,6 @@ export function OddsFilters({ filters, onFiltersChange, onSearch }: OddsFiltersP
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFiltersChange({ ...filters, search: e.target.value })
-  }
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSearch()
   }
 
   const handleBookmakerToggle = (bookmaker: string) => {
@@ -115,7 +127,7 @@ export function OddsFilters({ filters, onFiltersChange, onSearch }: OddsFiltersP
           <Label htmlFor="search" className="text-sm font-medium text-gray-700 mb-1 block">
             Search Events
           </Label>
-          <form onSubmit={handleSearchSubmit} className="relative">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               id="search"
@@ -125,7 +137,7 @@ export function OddsFilters({ filters, onFiltersChange, onSearch }: OddsFiltersP
               onChange={handleSearchChange}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
-          </form>
+          </div>
         </div>
       </div>
 
@@ -145,20 +157,37 @@ export function OddsFilters({ filters, onFiltersChange, onSearch }: OddsFiltersP
             <Label className="text-sm font-medium text-gray-700 mb-2 block">
               Bookmakers (Free tier: TAB & Ladbrokes)
             </Label>
-            <div className="flex flex-wrap gap-2">
-              {availableBookmakers.map(bookmaker => (
-                <button
-                  key={bookmaker.code}
-                  onClick={() => handleBookmakerToggle(bookmaker.code)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    filters.bookmakers.includes(bookmaker.code)
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {bookmaker.name}
-                </button>
-              ))}
+            <div ref={bookmakersRef} className="relative">
+              <button
+                onClick={() => setShowBookmakers(!showBookmakers)}
+                className="w-full md:w-64 flex items-center justify-between gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-sm text-gray-700">
+                  {filters.bookmakers.length === 0
+                    ? 'All Bookmakers'
+                    : `${filters.bookmakers.length} selected`}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showBookmakers ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showBookmakers && (
+                <div className="absolute z-10 mt-1 w-full md:w-64 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                  {availableBookmakers.map(bookmaker => (
+                    <label
+                      key={bookmaker.code}
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={filters.bookmakers.includes(bookmaker.code)}
+                        onChange={() => handleBookmakerToggle(bookmaker.code)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{bookmaker.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -167,26 +196,43 @@ export function OddsFilters({ filters, onFiltersChange, onSearch }: OddsFiltersP
             <Label className="text-sm font-medium text-gray-700 mb-2 block">
               Sports
             </Label>
-            <div className="flex flex-wrap gap-2">
-              {availableSports.map(sport => (
-                <button
-                  key={sport.code}
-                  onClick={() => {
-                    const current = filters.sports
-                    const updated = current.includes(sport.code)
-                      ? current.filter(s => s !== sport.code)
-                      : [...current, sport.code]
-                    onFiltersChange({ ...filters, sports: updated })
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    filters.sports.includes(sport.code)
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {sport.name}
-                </button>
-              ))}
+            <div ref={sportsRef} className="relative">
+              <button
+                onClick={() => setShowSports(!showSports)}
+                className="w-full md:w-64 flex items-center justify-between gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-sm text-gray-700">
+                  {filters.sports.length === 0
+                    ? 'All Sports'
+                    : `${filters.sports.length} selected`}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showSports ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showSports && (
+                <div className="absolute z-10 mt-1 w-full md:w-64 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                  {availableSports.map(sport => (
+                    <label
+                      key={sport.code}
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={filters.sports.includes(sport.code)}
+                        onChange={() => {
+                          const current = filters.sports
+                          const updated = current.includes(sport.code)
+                            ? current.filter(s => s !== sport.code)
+                            : [...current, sport.code]
+                          onFiltersChange({ ...filters, sports: updated })
+                        }}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{sport.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -212,16 +258,6 @@ export function OddsFilters({ filters, onFiltersChange, onSearch }: OddsFiltersP
           </div>
         </div>
       )}
-
-      {/* Search Button */}
-      <div>
-        <button
-          onClick={onSearch}
-          className="w-full md:w-auto bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        >
-          Search Opportunities
-        </button>
-      </div>
     </div>
   )
 }

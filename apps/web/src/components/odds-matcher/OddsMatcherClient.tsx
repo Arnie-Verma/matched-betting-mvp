@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { OddsFilters } from './OddsFilters'
 import { OddsTable } from './OddsTable'
 import { BetCalculatorModal } from './BetCalculatorModal'
@@ -75,30 +75,10 @@ export function OddsMatcherClient() {
     setError(null)
 
     try {
-      // Build query params
+      // Fetch ALL opportunities with just stake and bet type (filtering happens client-side)
       const params = new URLSearchParams()
       params.append('stake', filters.stake.toString())
       params.append('bet_type', filters.betType)
-
-      if (filters.bookmakers.length > 0) {
-        params.append('bookmaker_codes', filters.bookmakers.join(','))
-      }
-
-      if (filters.sports.length > 0) {
-        params.append('sport_codes', filters.sports.join(','))
-      }
-
-      if (filters.competitions.length > 0) {
-        params.append('competition_ids', filters.competitions.join(','))
-      }
-
-      if (filters.search) {
-        params.append('search', filters.search)
-      }
-
-      if (filters.minRating !== null) {
-        params.append('min_rating', filters.minRating.toString())
-      }
 
       // ✅ Using real TAB + Betfair odds from database
       const response = await fetch(`/api/proxy/odds/matcher?${params.toString()}`)
@@ -117,6 +97,43 @@ export function OddsMatcherClient() {
     }
   }
 
+  // Client-side filtering for instant results
+  const filteredOpportunities = useMemo(() => {
+    return opportunities.filter(opp => {
+      // Filter by bookmaker
+      if (filters.bookmakers.length > 0 && !filters.bookmakers.includes(opp.back_bookmaker_code)) {
+        return false
+      }
+
+      // Filter by sport
+      if (filters.sports.length > 0 && !filters.sports.includes(opp.sport_name.toLowerCase())) {
+        return false
+      }
+
+      // Filter by competition (if implemented)
+      if (filters.competitions.length > 0 && !filters.competitions.includes(opp.event_id)) {
+        return false
+      }
+
+      // Filter by search text
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase()
+        const matchesEvent = opp.event_name.toLowerCase().includes(searchLower)
+        const matchesSelection = opp.selection_name.toLowerCase().includes(searchLower)
+        if (!matchesEvent && !matchesSelection) {
+          return false
+        }
+      }
+
+      // Filter by minimum rating
+      if (filters.minRating !== null && opp.rating < filters.minRating) {
+        return false
+      }
+
+      return true
+    })
+  }, [opportunities, filters])
+
   const refreshOdds = async () => {
     setLoading(true)
     setError(null)
@@ -127,7 +144,7 @@ export function OddsMatcherClient() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ force: true })
+        body: JSON.stringify({ force: false })  // Respect cache!
       })
 
       if (!response.ok) {
@@ -148,7 +165,6 @@ export function OddsMatcherClient() {
       <OddsFilters
         filters={filters}
         onFiltersChange={setFilters}
-        onSearch={fetchOpportunities}
       />
 
       {/* Refresh Button */}
@@ -158,7 +174,9 @@ export function OddsMatcherClient() {
             <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
           )}
           {opportunities.length > 0 && (
-            <span className="ml-4">{opportunities.length} opportunities found</span>
+            <span className="ml-4">
+              Showing {filteredOpportunities.length} of {opportunities.length} opportunities
+            </span>
           )}
         </div>
 
@@ -181,7 +199,7 @@ export function OddsMatcherClient() {
 
       {/* Odds Table */}
       <OddsTable
-        opportunities={opportunities}
+        opportunities={filteredOpportunities}
         loading={loading}
         onSelectOdds={setSelectedOdds}
       />

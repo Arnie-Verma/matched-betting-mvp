@@ -143,17 +143,8 @@ async def refresh_odds(
     # Global cache key (shared by all users)
     global_cache_key = "odds_last_refresh_global"
 
-    # Per-user rate limit key
-    user_rate_limit_key = f"odds_refresh_ratelimit:{user.id}"
-
-    # Check per-user rate limit (30 seconds between refreshes)
-    if redis_client.exists(user_rate_limit_key):
-        raise HTTPException(
-            status_code=429,
-            detail="Please wait 30 seconds between refresh requests"
-        )
-
     # Check global cache first (unless force refresh)
+    # Cache provides natural rate limiting - no need for explicit limits
     if not request.force:
         cached_time = redis_client.get(global_cache_key)
         if cached_time:
@@ -172,9 +163,6 @@ async def refresh_odds(
                     opportunities_count=opportunities_count,
                     last_refresh=last_refresh
                 )
-
-    # Set user rate limit (30 seconds)
-    redis_client.setex(user_rate_limit_key, 30, "1")
 
     # Trigger scraping (only if cache expired)
     import sys
