@@ -170,25 +170,18 @@ class BetfairScraper(BaseScraper):
                     self.logger.info(f"Navigating to {comp_name}: {url}")
 
                     try:
-                        # OPTIMIZED: Use domcontentloaded instead of networkidle (faster)
-                        await page.goto(url, wait_until='domcontentloaded', timeout=30000)
+                        # Navigate and wait for network idle
+                        await page.goto(url, wait_until='networkidle', timeout=30000)
 
-                        # OPTIMIZED: Wait for specific content to appear instead of blind timeout
-                        # Look for common Betfair elements (body, articles, or any content)
-                        try:
-                            await page.wait_for_selector('body', state='attached', timeout=5000)
-                            self.logger.info("Page content loaded")
-                        except:
-                            self.logger.warning("Could not find body selector, continuing anyway")
+                        # Wait for odds to load
+                        await page.wait_for_timeout(5000)  # Wait 5 seconds for all data
 
-                        # OPTIMIZED: Quick scroll to trigger lazy-loaded content (no wait needed)
+                        # Scroll to load more events
                         await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+                        await page.wait_for_timeout(2000)
 
-                        # OPTIMIZED: Wait briefly for scroll-triggered requests (reduced from 2s to 500ms)
-                        await page.wait_for_timeout(500)
-
-                        # OPTIMIZED: Parallel click on events (no sequential waits)
-                        self.logger.info("Triggering price loading...")
+                        # Try to click on event cards to trigger price loading
+                        self.logger.info("Trying to trigger price loading by clicking events...")
                         try:
                             # Find event/market elements (common class patterns on Betfair)
                             event_selectors = [
@@ -204,15 +197,13 @@ class BetfairScraper(BaseScraper):
                                     elements = await page.query_selector_all(selector)
                                     if elements and len(elements) > 0:
                                         self.logger.info(f"Found {len(elements)} elements with selector {selector}")
-                                        # OPTIMIZED: Click multiple elements without waiting between clicks
-                                        for i, elem in enumerate(elements[:5]):  # Increased to 5 for more coverage
+                                        # Click first few to load their prices
+                                        for i, elem in enumerate(elements[:3]):
                                             try:
-                                                await elem.click(timeout=500, force=True)  # Force click, shorter timeout
+                                                await elem.click(timeout=2000)
+                                                await page.wait_for_timeout(1000)
                                             except:
                                                 pass
-
-                                        # OPTIMIZED: Single wait after all clicks (reduced from 3s total to 1s)
-                                        await page.wait_for_timeout(1000)
                                         break
                                 except:
                                     continue
