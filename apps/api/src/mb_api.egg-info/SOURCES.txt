@@ -19,6 +19,7 @@ src/api/routers/__init__.py
 src/api/routers/auth.py
 src/api/routers/billing.py
 src/api/routers/health.py
+src/api/routers/metadata.py
 src/api/routers/odds_matcher.py
 src/api/routers/odds_matcher_mock.py
 src/api/routers/plan_demo.py
@@ -27,6 +28,8 @@ src/api/routers/whoami.py
 src/api/scripts/create_stripe_products.py
 src/api/scripts/seed_all_bookmakers.py
 src/api/scripts/seed_bookmakers.py
+src/api/scripts/seed_competitions.py
+src/api/scripts/seed_mock_betfair_odds.py
 src/api/scripts/seed_plans.py
 src/api/services/matching_engine.py
 src/api/services/stripe_service.py

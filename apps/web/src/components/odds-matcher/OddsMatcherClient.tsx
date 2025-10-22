@@ -44,7 +44,6 @@ export interface OddsFilters {
   sports: string[]
   competitions: number[]
   search: string
-  minRating: number | null
 }
 
 export function OddsMatcherClient() {
@@ -54,8 +53,7 @@ export function OddsMatcherClient() {
     bookmakers: [],
     sports: [],
     competitions: [],
-    search: '',
-    minRating: null
+    search: ''
   })
 
   const [opportunities, setOpportunities] = useState<OddsMatch[]>([])
@@ -65,9 +63,10 @@ export function OddsMatcherClient() {
 
   const [selectedOdds, setSelectedOdds] = useState<OddsMatch | null>(null)
 
-  // Auto-load odds on component mount
+  // Auto-refresh odds on component mount (triggers scraping if cache expired)
   useEffect(() => {
-    fetchOpportunities()
+    refreshOdds()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchOpportunities = async () => {
@@ -123,11 +122,6 @@ export function OddsMatcherClient() {
         if (!matchesEvent && !matchesSelection) {
           return false
         }
-      }
-
-      // Filter by minimum rating
-      if (filters.minRating !== null && opp.rating < filters.minRating) {
-        return false
       }
 
       return true

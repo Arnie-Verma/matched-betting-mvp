@@ -13,17 +13,63 @@ interface OddsFiltersProps {
     sports: string[]
     competitions: number[]
     search: string
-    minRating: number | null
   }
   onFiltersChange: (filters: any) => void
+}
+
+interface Bookmaker {
+  code: string
+  name: string
+}
+
+interface Competition {
+  id: number
+  short_name: string
+  full_name: string
 }
 
 export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showBookmakers, setShowBookmakers] = useState(false)
-  const [showSports, setShowSports] = useState(false)
+  const [showLeagues, setShowLeagues] = useState(false)
+  const [availableBookmakers, setAvailableBookmakers] = useState<Bookmaker[]>([])
+  const [availableLeagues, setAvailableLeagues] = useState<Competition[]>([])
+  const [bookmakerSearch, setBookmakerSearch] = useState('')
+  const [leagueSearch, setLeagueSearch] = useState('')
   const bookmakersRef = useRef<HTMLDivElement>(null)
-  const sportsRef = useRef<HTMLDivElement>(null)
+  const leaguesRef = useRef<HTMLDivElement>(null)
+
+  // Fetch available bookmakers and sports on mount
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        // Fetch bookmakers from API
+        const bookmakersRes = await fetch('/api/proxy/bookmakers')
+        if (bookmakersRes.ok) {
+          const bookmakers = await bookmakersRes.json()
+          // Sort alphabetically by name
+          const sorted = bookmakers
+            .map((b: any) => ({ code: b.code, name: b.display_name }))
+            .sort((a: Bookmaker, b: Bookmaker) => a.name.localeCompare(b.name))
+          setAvailableBookmakers(sorted)
+        }
+
+        // Fetch competitions/leagues from API
+        const leaguesRes = await fetch('/api/proxy/competitions')
+        if (leaguesRes.ok) {
+          const leagues = await leaguesRes.json()
+          // Sort alphabetically by short_name
+          const sorted = leagues
+            .map((c: any) => ({ id: c.id, short_name: c.short_name, full_name: c.full_name }))
+            .sort((a: Competition, b: Competition) => a.short_name.localeCompare(b.short_name))
+          setAvailableLeagues(sorted)
+        }
+      } catch (error) {
+        console.error('Failed to fetch filter options:', error)
+      }
+    }
+    fetchOptions()
+  }, [])
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -31,8 +77,8 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
       if (bookmakersRef.current && !bookmakersRef.current.contains(event.target as Node)) {
         setShowBookmakers(false)
       }
-      if (sportsRef.current && !sportsRef.current.contains(event.target as Node)) {
-        setShowSports(false)
+      if (leaguesRef.current && !leaguesRef.current.contains(event.target as Node)) {
+        setShowLeagues(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -62,19 +108,16 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
     onFiltersChange({ ...filters, bookmakers: updated })
   }
 
-  // Available bookmakers (free tier gets TAB and Ladbrokes)
-  const availableBookmakers = [
-    { code: 'tab', name: 'TAB' },
-    { code: 'ladbrokes', name: 'Ladbrokes' }
-  ]
+  // Filter bookmakers by search term
+  const filteredBookmakers = availableBookmakers.filter(bookmaker =>
+    bookmaker.name.toLowerCase().includes(bookmakerSearch.toLowerCase())
+  )
 
-  const availableSports = [
-    { code: 'afl', name: 'AFL' },
-    { code: 'nrl', name: 'NRL' },
-    { code: 'cricket', name: 'Cricket' },
-    { code: 'tennis', name: 'Tennis' },
-    { code: 'soccer', name: 'Soccer' }
-  ]
+  // Filter leagues by search term
+  const filteredLeagues = availableLeagues.filter(league =>
+    league.short_name.toLowerCase().includes(leagueSearch.toLowerCase()) ||
+    league.full_name.toLowerCase().includes(leagueSearch.toLowerCase())
+  )
 
   return (
     <div className="bg-white rounded-lg border shadow-sm p-6 space-y-4">
@@ -171,93 +214,121 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
               </button>
 
               {showBookmakers && (
-                <div className="absolute z-10 mt-1 w-full md:w-64 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                  {availableBookmakers.map(bookmaker => (
-                    <label
-                      key={bookmaker.code}
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                    >
+                <div className="absolute z-10 mt-1 w-full md:w-64 bg-white border border-gray-300 rounded-lg shadow-lg">
+                  {/* Search input */}
+                  <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
-                        type="checkbox"
-                        checked={filters.bookmakers.includes(bookmaker.code)}
-                        onChange={() => handleBookmakerToggle(bookmaker.code)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        type="text"
+                        placeholder="Search bookmakers..."
+                        value={bookmakerSearch}
+                        onChange={(e) => setBookmakerSearch(e.target.value)}
+                        className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        onClick={(e) => e.stopPropagation()}
                       />
-                      <span className="text-sm text-gray-700">{bookmaker.name}</span>
-                    </label>
-                  ))}
+                    </div>
+                  </div>
+                  {/* Bookmaker list */}
+                  <div className="max-h-60 overflow-y-auto">
+                    {filteredBookmakers.length > 0 ? (
+                      filteredBookmakers.map(bookmaker => (
+                        <label
+                          key={bookmaker.code}
+                          className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={filters.bookmakers.includes(bookmaker.code)}
+                            onChange={() => handleBookmakerToggle(bookmaker.code)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{bookmaker.name}</span>
+                        </label>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                        No bookmakers found
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Sport Filter */}
+          {/* Leagues Filter */}
           <div>
             <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              Sports
+              Leagues
             </Label>
-            <div ref={sportsRef} className="relative">
+            <div ref={leaguesRef} className="relative">
               <button
-                onClick={() => setShowSports(!showSports)}
+                onClick={() => setShowLeagues(!showLeagues)}
                 className="w-full md:w-64 flex items-center justify-between gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <span className="text-sm text-gray-700">
                   {filters.sports.length === 0
-                    ? 'All Sports'
+                    ? 'All Leagues'
                     : `${filters.sports.length} selected`}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showSports ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showLeagues ? 'rotate-180' : ''}`} />
               </button>
 
-              {showSports && (
-                <div className="absolute z-10 mt-1 w-full md:w-64 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                  {availableSports.map(sport => (
-                    <label
-                      key={sport.code}
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                    >
+              {showLeagues && (
+                <div className="absolute z-10 mt-1 w-full md:w-64 bg-white border border-gray-300 rounded-lg shadow-lg">
+                  {/* Search input */}
+                  <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
-                        type="checkbox"
-                        checked={filters.sports.includes(sport.code)}
-                        onChange={() => {
-                          const current = filters.sports
-                          const updated = current.includes(sport.code)
-                            ? current.filter(s => s !== sport.code)
-                            : [...current, sport.code]
-                          onFiltersChange({ ...filters, sports: updated })
-                        }}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        type="text"
+                        placeholder="Search leagues..."
+                        value={leagueSearch}
+                        onChange={(e) => setLeagueSearch(e.target.value)}
+                        className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        onClick={(e) => e.stopPropagation()}
                       />
-                      <span className="text-sm text-gray-700">{sport.name}</span>
-                    </label>
-                  ))}
+                    </div>
+                  </div>
+                  {/* League list */}
+                  <div className="max-h-60 overflow-y-auto">
+                    {filteredLeagues.length > 0 ? (
+                      filteredLeagues.map(league => (
+                        <label
+                          key={league.id}
+                          className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={filters.sports.includes(league.short_name.toLowerCase())}
+                            onChange={() => {
+                              const current = filters.sports
+                              const leagueCode = league.short_name.toLowerCase()
+                              const updated = current.includes(leagueCode)
+                                ? current.filter(s => s !== leagueCode)
+                                : [...current, leagueCode]
+                              onFiltersChange({ ...filters, sports: updated })
+                            }}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{league.short_name}</span>
+                        </label>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                        No leagues found
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Minimum Rating */}
-          <div>
-            <Label htmlFor="min-rating" className="text-sm font-medium text-gray-700 mb-1 block">
-              Minimum Rating (Quality Score)
-            </Label>
-            <input
-              id="min-rating"
-              type="number"
-              min="0"
-              max="100"
-              step="5"
-              placeholder="e.g., 80"
-              value={filters.minRating ?? ''}
-              onChange={(e) => {
-                const value = e.target.value ? parseFloat(e.target.value) : null
-                onFiltersChange({ ...filters, minRating: value })
-              }}
-              className="w-full md:w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
         </div>
       )}
     </div>
   )
 }
+ 
