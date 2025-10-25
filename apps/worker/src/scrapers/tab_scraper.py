@@ -44,21 +44,22 @@ class TABScraper(BaseScraper):
             "basketball": "Basketball",
         }
 
-        # Competition mapping for popular leagues
-        self.competition_mapping = {
-            "epl": "English Premier League",
-            "ucl": "UEFA Champions League",
-            "nba": "NBA",
-        }
+        # Shared HTTP client + concurrency control (reused across requests)
+        self._http_client: Optional[httpx.AsyncClient] = None
+        self._client_lock = asyncio.Lock()
+        # Limit concurrent requests to avoid triggering WAF/rate limits
+        self._request_semaphore = asyncio.Semaphore(4)
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-    async def fetch_json(self, url: str, params: Optional[Dict] = None) -> Dict:
-        """Fetch JSON data from TAB API with retry logic and anti-bot headers"""
-        # TAB-specific headers to mimic browser requests
-        tab_headers = {
+        # Headers to mimic mobile browser (base) and API requests
+        self._browser_headers = {
             "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
-            "Accept": "application/json, text/plain, */*",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
             "Accept-Language": "en-AU,en;q=0.9",
+        }
+        self._api_headers = {
+            "User-Agent": self._browser_headers["User-Agent"],
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": self._browser_headers["Accept-Language"],
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "Origin": "https://www.tab.com.au",
             "Referer": "https://www.tab.com.au/",
@@ -71,15 +72,59 @@ class TABScraper(BaseScraper):
             "Connection": "keep-alive",
         }
 
-        async with httpx.AsyncClient(follow_redirects=True) as client:
+        # Competition mapping for popular leagues
+        self.competition_mapping = {
+            "epl": "English Premier League",
+            "ucl": "UEFA Champions League",
+            "nba": "NBA",
+        }
+
+    async def _get_http_client(self) -> httpx.AsyncClient:
+        """Create or reuse the shared HTTP client (with cookies)."""
+        async with self._client_lock:
+            if self._http_client is None or self._http_client.is_closed:
+                # httpx AsyncClient with connection pooling across requests
+                self._http_client = httpx.AsyncClient(
+                    follow_redirects=True,
+                    timeout=self.timeout_seconds,
+                    headers=self._api_headers.copy(),
+                )
+                # Prime session by visiting main site to obtain Akamai cookies
+                try:
+                    await self._http_client.get("https://www.tab.com.au/", headers=self._browser_headers)
+                except Exception as exc:
+                    self.logger.warning(f"Failed to warm TAB session: {exc}")
+        return self._http_client
+
+    async def _refresh_tab_session(self):
+        """Refresh Akamai cookies to recover from 403 responses."""
+        client = await self._get_http_client()
+        try:
+            await client.get("https://www.tab.com.au/", headers=self._browser_headers)
+        except Exception as exc:
+            self.logger.warning(f"TAB session refresh failed: {exc}")
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    async def fetch_json(self, url: str, params: Optional[Dict] = None) -> Dict:
+        """Fetch JSON data from TAB API with retry logic and anti-bot headers"""
+        client = await self._get_http_client()
+
+        async with self._request_semaphore:
             response = await client.get(
                 url,
-                headers=tab_headers,
                 params=params,
-                timeout=self.timeout_seconds
             )
+
+        try:
             response.raise_for_status()
-            return response.json()
+        except httpx.HTTPStatusError as exc:
+            # Refresh session and propagate to trigger retry for 403/401
+            if exc.response.status_code in (401, 403):
+                self.logger.warning(f"TAB API returned {exc.response.status_code}; refreshing session and retrying")
+                await self._refresh_tab_session()
+            raise
+
+        return response.json()
 
     async def scrape_sport(self, sport: str, limit: Optional[int] = None) -> ScrapeResult:
         """
@@ -120,13 +165,21 @@ class TABScraper(BaseScraper):
 
             if sport == "soccer":
                 # Hardcode EPL for now
+                import time
                 competition_name = "English%20Premier%20League"
                 matches_url = f"{self.api_base}/v1/tab-info-service/sports/{tab_sport_code}/competitions/{competition_name}/matches"
                 params = {"jurisdiction": self.jurisdiction}
 
                 try:
+                    fetch_start = time.time()
                     data = await self.fetch_json(matches_url, params)
+                    fetch_time = time.time() - fetch_start
+                    self.logger.info(f"⏱️  [TAB] Fetching matches took {fetch_time:.2f}s")
+
+                    parse_start = time.time()
                     events = await self.parse_tab_matches(data, sport, "English Premier League")
+                    parse_time = time.time() - parse_start
+                    self.logger.info(f"⏱️  [TAB] Parsing matches took {parse_time:.2f}s")
 
                     if limit:
                         events = events[:limit]
@@ -247,6 +300,7 @@ class TABScraper(BaseScraper):
         # Second pass: fetch all markets in parallel for significant speedup
         if markets_tasks:
             import asyncio
+            import time
 
             async def fetch_markets_for_event(event_and_url):
                 event, url = event_and_url
@@ -260,7 +314,10 @@ class TABScraper(BaseScraper):
                 return event
 
             # Fetch all markets concurrently - MUCH faster than sequential
+            markets_start = time.time()
             events = await asyncio.gather(*[fetch_markets_for_event(task) for task in markets_tasks])
+            markets_time = time.time() - markets_start
+            self.logger.info(f"⏱️  [TAB] Parallel market fetching took {markets_time:.2f}s for {len(markets_tasks)} events")
         else:
             events = events_temp
 

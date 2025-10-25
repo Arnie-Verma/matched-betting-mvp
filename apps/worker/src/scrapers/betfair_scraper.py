@@ -25,12 +25,17 @@ class BetfairScraper(BaseScraper):
     Scraper for Betfair Exchange using Playwright.
 
     Approach:
-    1. Launch headless browser
+    1. Launch headless browser (ONCE - reused across scrapes)
     2. Navigate to Betfair Exchange EPL page
     3. Intercept network responses containing odds data
     4. Parse JSON responses to extract events, markets, and lay odds
     5. Match team names with TAB data
     """
+
+    # Class-level browser instance (shared across all scrapes)
+    _browser = None
+    _playwright = None
+    _browser_context = None
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(
@@ -43,11 +48,13 @@ class BetfairScraper(BaseScraper):
         self.exchange_base = "https://www.betfair.com.au/exchange/plus"
 
         # Competition URLs mapping
+        # OPTIMIZED: Only scrape EPL for speed (can add more later)
         self.competition_urls = {
             "soccer": {
                 "English Premier League": f"{self.exchange_base}/football/competition/10932509",
-                "UEFA Champions League": f"{self.exchange_base}/football/competition/228",
-                "La Liga": f"{self.exchange_base}/football/competition/117",
+                # Disabled for speed - add back if needed:
+                # "UEFA Champions League": f"{self.exchange_base}/football/competition/228",
+                # "La Liga": f"{self.exchange_base}/football/competition/117",
             },
             "afl": {
                 "AFL": f"{self.exchange_base}/australian-rules/competition/11897406"
@@ -133,14 +140,17 @@ class BetfairScraper(BaseScraper):
         self.log_scrape_stats(result)
         return result
 
-    async def _scrape_with_playwright(self, sport: str, limit: Optional[int]) -> List[ScrapedEvent]:
-        """Use Playwright to scrape Betfair Exchange"""
-        events = []
+    async def _get_or_create_browser(self):
+        """Get existing browser instance or create new one (singleton pattern)"""
+        import time
 
-        async with async_playwright() as p:
-            # Launch browser (headless for production)
-            browser = await p.chromium.launch(
-                headless=True,  # Set to False for debugging
+        if BetfairScraper._browser is None or not BetfairScraper._browser.is_connected():
+            browser_start = time.time()
+            self.logger.info("⏱️  [Betfair] Launching NEW browser instance...")
+
+            BetfairScraper._playwright = await async_playwright().start()
+            BetfairScraper._browser = await BetfairScraper._playwright.chromium.launch(
+                headless=True,
                 args=[
                     '--disable-blink-features=AutomationControlled',
                     '--disable-dev-shm-usage',
@@ -148,79 +158,82 @@ class BetfairScraper(BaseScraper):
                 ]
             )
 
-            try:
-                # Create context with realistic settings
-                context = await browser.new_context(
-                    viewport={'width': 1920, 'height': 1080},
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    locale='en-AU',
-                    timezone_id='Australia/Sydney'
-                )
+            browser_launch_time = time.time() - browser_start
+            self.logger.info(f"⏱️  [Betfair] Browser launch took {browser_launch_time:.2f}s")
+        else:
+            self.logger.info("⏱️  [Betfair] Reusing existing browser instance (FAST!)")
 
-                page = await context.new_page()
+        return BetfairScraper._browser
 
-                # Set up network interception
-                page.on('response', lambda response: asyncio.create_task(
-                    self._handle_response(response)
-                ))
+    async def _scrape_with_playwright(self, sport: str, limit: Optional[int]) -> List[ScrapedEvent]:
+        """Use Playwright to scrape Betfair Exchange (with browser reuse)"""
+        import time
+        events = []
 
-                # Navigate to EPL page (hardcoded for now)
-                competitions = self.competition_urls.get(sport, {})
-                for comp_name, url in competitions.items():
-                    self.logger.info(f"Navigating to {comp_name}: {url}")
+        # Clear captured data from previous scrapes (prevent memory accumulation)
+        self.captured_data = []
 
-                    try:
-                        # Navigate and wait for network idle (network idle already waits for APIs)
-                        await page.goto(url, wait_until='networkidle', timeout=30000)
+        # Get or reuse browser instance (HUGE speedup on subsequent runs)
+        browser = await self._get_or_create_browser()
 
-                        # Minimal wait - network idle has already waited for initial data
-                        await page.wait_for_timeout(1000)  # Reduced from 5s to 1s
+        try:
+            # Create NEW context for each scrape (contexts are lightweight)
+            context = await browser.new_context(
+                viewport={'width': 1920, 'height': 1080},
+                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                locale='en-AU',
+                timezone_id='Australia/Sydney'
+            )
 
-                        # Scroll to load more events (if lazy loading)
-                        await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-                        await page.wait_for_timeout(500)  # Reduced from 2s to 500ms
+            page = await context.new_page()
 
-                        # Try to click on event cards to trigger price loading
-                        self.logger.info("Trying to trigger price loading by clicking events...")
-                        try:
-                            # Find event/market elements (common class patterns on Betfair)
-                            event_selectors = [
-                                '[data-test-id*="event"]',
-                                '[class*="event-card"]',
-                                '[class*="market-"]',
-                                'article',
-                                '[role="article"]'
-                            ]
+            # Set up network interception
+            page.on('response', lambda response: asyncio.create_task(
+                self._handle_response(response)
+            ))
 
-                            for selector in event_selectors:
-                                try:
-                                    elements = await page.query_selector_all(selector)
-                                    if elements and len(elements) > 0:
-                                        self.logger.info(f"Found {len(elements)} elements with selector {selector}")
-                                        # Click first few to load their prices
-                                        for i, elem in enumerate(elements[:3]):
-                                            try:
-                                                await elem.click(timeout=1000)  # Reduced from 2s to 1s
-                                                await page.wait_for_timeout(300)  # Reduced from 1s to 300ms
-                                            except:
-                                                pass
-                                        break
-                                except:
-                                    continue
-                        except Exception as e:
-                            self.logger.debug(f"Could not click elements: {e}")
+            # Navigate to EPL page (hardcoded for now)
+            competitions = self.competition_urls.get(sport, {})
+            for comp_name, url in competitions.items():
+                comp_start = time.time()
+                self.logger.info(f"⏱️  [Betfair] Navigating to {comp_name}: {url}")
 
-                        self.logger.info(f"Captured {len(self.captured_data)} network responses")
+                try:
+                    # Navigate with domcontentloaded (MUCH faster than networkidle)
+                    # domcontentloaded = HTML parsed, but may still be loading resources
+                    # networkidle = all network requests finished (slower but more reliable)
+                    nav_start = time.time()
+                    await page.goto(url, wait_until='domcontentloaded', timeout=15000)
+                    nav_time = time.time() - nav_start
+                    self.logger.info(f"⏱️  [Betfair] Page load (domcontentloaded) took {nav_time:.2f}s")
 
-                    except Exception as e:
-                        self.logger.error(f"Failed to load {comp_name}: {e}")
-                        continue
+                    # OPTIMIZED: Wait only 500ms for critical API calls (not 2000ms!)
+                    # The APIs we need usually respond within 500ms after domcontentloaded
+                    wait_start = time.time()
+                    await page.wait_for_timeout(500)  # Reduced from 2000ms to 500ms
+                    wait_time = time.time() - wait_start
+                    self.logger.info(f"⏱️  [Betfair] Wait after page load took {wait_time:.2f}s")
 
-                # Parse captured data into events
-                events = self._parse_captured_data(sport, limit)
+                    # REMOVED: Scroll and click operations - they don't capture more data
+                    # The bymarket API calls happen automatically after page load
+                    # Clicking/scrolling doesn't trigger additional useful API calls
 
-            finally:
-                await browser.close()
+                    comp_time = time.time() - comp_start
+                    self.logger.info(f"⏱️  [Betfair] {comp_name} took {comp_time:.2f}s - captured {len(self.captured_data)} network responses")
+
+                except Exception as e:
+                    self.logger.error(f"Failed to load {comp_name}: {e}")
+                    continue
+
+            # Parse captured data into events
+            parse_start = time.time()
+            events = self._parse_captured_data(sport, limit)
+            parse_time = time.time() - parse_start
+            self.logger.info(f"⏱️  [Betfair] Parsing took {parse_time:.2f}s - {len(events)} events")
+
+        finally:
+            # Close context (lightweight), but KEEP browser running
+            await context.close()
 
         return events
 

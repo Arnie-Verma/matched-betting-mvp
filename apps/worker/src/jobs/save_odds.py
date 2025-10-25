@@ -98,31 +98,86 @@ class OddsPersistence:
         Returns:
             Dict with counts: {events_saved, odds_saved, errors}
         """
+        import time
         stats = {"events_saved": 0, "odds_saved": 0, "errors": 0}
 
         try:
             # Get or create bookmaker
+            bookmaker_start = time.time()
             bookmaker = self._get_or_create_bookmaker(result.bookmaker_code)
+            bookmaker_time = time.time() - bookmaker_start
+            logger.info(f"⏱️  [DB] Get bookmaker took {bookmaker_time:.4f}s")
+
+            events_start = time.time()
+
+            # OPTIMIZATION: Batch process all events together instead of one-by-one
+            all_selection_ids = []
+            all_odds_to_insert = []
 
             for scraped_event in result.events:
                 try:
                     # Save event and get database ID
+                    event_save_start = time.time()
                     event = self._save_event(scraped_event)
                     stats["events_saved"] += 1
 
-                    # Save all odds for this event
-                    odds_count = self._save_event_odds(
-                        event, scraped_event.odds, bookmaker, scrape_session_id
-                    )
-                    stats["odds_saved"] += odds_count
+                    # Prepare odds for batch insert (don't insert yet)
+                    for scraped_odds in scraped_event.odds:
+                        try:
+                            market = self._get_or_create_market(event, scraped_odds)
+                            selection = self._get_or_create_selection(market, scraped_odds)
+
+                            all_selection_ids.append(selection.id)
+                            all_odds_to_insert.append({
+                                "selection_id": selection.id,
+                                "bookmaker_id": bookmaker.id,
+                                "decimal_odds": scraped_odds.decimal_odds,
+                                "available_amount": scraped_odds.liquidity,
+                                "source_type": SourceType.SCRAPE,
+                                "source_url": scraped_odds.source_url,
+                                "timestamp": scraped_odds.scraped_at,
+                                "is_current": True,
+                                "scrape_session_id": scrape_session_id,
+                                "market_status": "open"
+                            })
+                            stats["odds_saved"] += 1
+                        except Exception as e:
+                            logger.error(f"Failed to prepare odds for {scraped_odds.selection_name}: {e}")
+                            continue
 
                 except Exception as e:
                     logger.error(f"Failed to save event {scraped_event.name}: {e}")
                     stats["errors"] += 1
                     continue
 
+            # BATCH DELETE all old odds at once (single query)
+            if all_selection_ids:
+                delete_start = time.time()
+                self.db.execute(
+                    delete(OddsSnapshot).where(
+                        OddsSnapshot.selection_id.in_(all_selection_ids),
+                        OddsSnapshot.bookmaker_id == bookmaker.id,
+                        OddsSnapshot.is_current == True
+                    )
+                )
+                delete_time = time.time() - delete_start
+                logger.debug(f"⏱️  [DB] Batch delete {len(set(all_selection_ids))} selections took {delete_time:.4f}s")
+
+            # BATCH INSERT all new odds at once (single operation)
+            if all_odds_to_insert:
+                insert_start = time.time()
+                self.db.bulk_insert_mappings(OddsSnapshot, all_odds_to_insert)
+                insert_time = time.time() - insert_start
+                logger.debug(f"⏱️  [DB] Batch insert {len(all_odds_to_insert)} odds took {insert_time:.4f}s")
+
+            events_time = time.time() - events_start
+            logger.info(f"⏱️  [DB] Processing {len(result.events)} events took {events_time:.2f}s")
+
             # Commit transaction
+            commit_start = time.time()
             self.db.commit()
+            commit_time = time.time() - commit_start
+            logger.info(f"⏱️  [DB] Commit took {commit_time:.2f}s")
             logger.info(f"Saved scrape result: {stats}")
 
         except Exception as e:
@@ -303,8 +358,13 @@ class OddsPersistence:
         bookmaker: Bookmaker,
         scrape_session_id: str
     ) -> int:
-        """Save all odds for an event"""
+        """Save all odds for an event (with batching for performance)"""
+        import time
         odds_saved = 0
+
+        # Prepare batch data
+        selection_ids_to_delete = []
+        odds_to_insert = []
 
         for scraped_odds in scraped_odds_list:
             try:
@@ -314,38 +374,47 @@ class OddsPersistence:
                 # Get or create selection
                 selection = self._get_or_create_selection(market, scraped_odds)
 
-                # Delete old odds to prevent unbounded database growth
-                # Option 1 (MVP): Keep only current odds, delete historical data
-                # This prevents database from growing indefinitely (saves storage costs)
-                # Future: Can switch to 7-day retention if historical analysis is needed
-                self.db.execute(
-                    delete(OddsSnapshot).where(
-                        OddsSnapshot.selection_id == selection.id,
-                        OddsSnapshot.bookmaker_id == bookmaker.id,
-                        OddsSnapshot.is_current == True
-                    )
-                )
+                # Collect selection IDs for batch delete
+                selection_ids_to_delete.append(selection.id)
 
-                # Create new odds snapshot
-                odds_snapshot = OddsSnapshot(
-                    selection_id=selection.id,
-                    bookmaker_id=bookmaker.id,
-                    decimal_odds=scraped_odds.decimal_odds,
-                    available_amount=scraped_odds.liquidity,  # Save liquidity for exchange odds
-                    source_type=SourceType.SCRAPE,
-                    source_url=scraped_odds.source_url,
-                    timestamp=scraped_odds.scraped_at,
-                    is_current=True,
-                    scrape_session_id=scrape_session_id,
-                    market_status="open"
-                )
-
-                self.db.add(odds_snapshot)
+                # Prepare odds data for batch insert
+                odds_to_insert.append({
+                    "selection_id": selection.id,
+                    "bookmaker_id": bookmaker.id,
+                    "decimal_odds": scraped_odds.decimal_odds,
+                    "available_amount": scraped_odds.liquidity,
+                    "source_type": SourceType.SCRAPE,
+                    "source_url": scraped_odds.source_url,
+                    "timestamp": scraped_odds.scraped_at,
+                    "is_current": True,
+                    "scrape_session_id": scrape_session_id,
+                    "market_status": "open"
+                })
                 odds_saved += 1
 
             except Exception as e:
-                logger.error(f"Failed to save odds for {scraped_odds.selection_name}: {e}")
+                logger.error(f"Failed to prepare odds for {scraped_odds.selection_name}: {e}")
                 continue
+
+        # Batch delete old odds (single query instead of N queries)
+        if selection_ids_to_delete:
+            delete_start = time.time()
+            self.db.execute(
+                delete(OddsSnapshot).where(
+                    OddsSnapshot.selection_id.in_(selection_ids_to_delete),
+                    OddsSnapshot.bookmaker_id == bookmaker.id,
+                    OddsSnapshot.is_current == True
+                )
+            )
+            delete_time = time.time() - delete_start
+            logger.debug(f"⏱️  [DB] Batch delete {len(selection_ids_to_delete)} old odds took {delete_time:.4f}s")
+
+        # Batch insert new odds (single operation instead of N operations)
+        if odds_to_insert:
+            insert_start = time.time()
+            self.db.bulk_insert_mappings(OddsSnapshot, odds_to_insert)
+            insert_time = time.time() - insert_start
+            logger.debug(f"⏱️  [DB] Batch insert {len(odds_to_insert)} odds took {insert_time:.4f}s")
 
         self.db.flush()
         return odds_saved

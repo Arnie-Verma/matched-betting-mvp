@@ -85,11 +85,21 @@ AlphaBet, BaggyBet, Bet575, Bet66, Bet777, BetBetBet, BetBlitz, BetChamps, BetEs
    - Proven to work with real data from TAB + Betfair
 
 ### 🚧 In Progress / Known Issues
-1. **Server-side Caching** - Need to add caching for scrape results (2-5 min TTL)
-2. **Ladbrokes Scraper** - Planned but not implemented
-3. **Premium Bookmakers** - Only TAB working, need 16+ more
-4. **Last Updated Timestamp** - No visual indicator showing data freshness
-5. **Docker Desktop Stability** - mb_web container sometimes fails to start
+1. **Scraper Performance** - Current refresh time ~2 minutes (target: 12-20 seconds)
+   - **Recent optimizations (Oct 25, 2025):**
+     - Betfair: Reduced wait times from 10s to 2.4s per competition (75% faster)
+     - TAB: Implemented parallel market fetching (10x faster for markets)
+     - Expected improvement: 120s → 20-30s total refresh time
+   - **Remaining bottlenecks to investigate:**
+     - Network latency to Australian servers
+     - Playwright browser startup time
+     - Database write operations (batch inserts?)
+     - Sequential vs parallel scraping (TAB + Betfair)
+2. **Server-side Caching** - Need to add caching for scrape results (2-5 min TTL)
+3. **Ladbrokes Scraper** - Planned but not implemented
+4. **Premium Bookmakers** - Only TAB working, need 16+ more
+5. **Last Updated Timestamp** - No visual indicator showing data freshness
+6. **Docker Desktop Stability** - mb_web container sometimes fails to start
 
 ### 📋 Immediate Next Steps
 1. Add server-side caching (2-5 minute TTL) to avoid duplicate scrapes

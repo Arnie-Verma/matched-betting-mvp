@@ -171,11 +171,11 @@ async def refresh_odds(
     from jobs.scrape_service import trigger_scrape
 
     try:
-        # Scrape TAB for EPL (limit to 10 events for faster response)
+        # Scrape ALL EPL events (no limit) to match Outmatched's comprehensive coverage
         import logging
         logging.info(f"User {user.id} triggered odds refresh")
 
-        scrape_result = await trigger_scrape(sport="soccer", limit=10)
+        scrape_result = await trigger_scrape(sport="soccer", limit=None)
 
         # Update global cache
         now = datetime.now(timezone.utc)
@@ -223,6 +223,8 @@ async def get_matcher_opportunities(
     - Minimum rating threshold
     """
     import logging
+    import time
+    total_start = time.time()
     logger = logging.getLogger(__name__)
 
     print("\n" + "="*80)
@@ -323,8 +325,10 @@ async def get_matcher_opportunities(
         events_query = events_query.filter(Event.name.ilike(f"%{search}%"))
 
     logger.info("About to execute query...")
+    query_start = time.time()
     events = events_query.limit(100).all()
-    logger.info(f"Query executed successfully, found {len(events)} events")
+    query_time = time.time() - query_start
+    logger.info(f"⏱️  [MATCHER] Events query took {query_time:.2f}s, found {len(events)} events")
 
     print(f"\n>>> Found {len(events)} events in date range {date_from} to {date_to}")
     print(f">>> Bookmaker filter: {bookmaker_filter}\n")
@@ -374,6 +378,7 @@ async def get_matcher_opportunities(
     matching_engine = MatchingEngine()
     opportunities = []
 
+    matching_start = time.time()
     print(f"\n>>> Processing {len(event_groups)} unique events to find opportunities...")
     for norm_event_name, events_in_group in event_groups.items():
         # Use the first event for metadata
@@ -544,10 +549,20 @@ async def get_matcher_opportunities(
     # Sort by PnL percentage (most profitable first: -1% is better than -5%)
     # For normal bets: higher PnL% = less loss = better (e.g., -1% > -5%)
     # For bonus bets: higher PnL% = more profit = better (e.g., 80% > 70%)
+    matching_time = time.time() - matching_start
+    logger.info(f"⏱️  [MATCHER] Matching logic took {matching_time:.2f}s")
+
+    sort_start = time.time()
     opportunities.sort(key=lambda x: x.pnl_percentage, reverse=True)
+    sort_time = time.time() - sort_start
+    logger.info(f"⏱️  [MATCHER] Sorting took {sort_time:.2f}s")
+
+    total_time = time.time() - total_start
+    logger.info(f"⏱️  [MATCHER] TOTAL endpoint time: {total_time:.2f}s")
 
     print(f"\n{'='*80}")
     print(f"=== SUMMARY: Found {len(opportunities)} matched betting opportunities ===")
+    print(f"=== TOTAL TIME: {total_time:.2f}s ===")
     print(f"{'='*80}\n")
 
     logger.info(f"=== MATCHER SUMMARY ===")

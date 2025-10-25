@@ -46,6 +46,8 @@ class ScrapeService:
         Returns:
             Dict with scrape statistics
         """
+        import time
+
         if bookmaker_code not in self.scrapers:
             logger.error(f"Scraper not found for bookmaker: {bookmaker_code}")
             return {
@@ -57,17 +59,27 @@ class ScrapeService:
             }
 
         try:
-            logger.info(f"Starting scrape: {bookmaker_code} - {sport}")
+            total_start = time.time()
+            logger.info(f"⏱️  [{bookmaker_code}] Starting scrape: {sport}")
 
             # Run scraper
+            scrape_start = time.time()
             scraper = self.scrapers[bookmaker_code]
             result = await scraper.scrape_sport(sport, limit=limit)
+            scrape_duration = time.time() - scrape_start
 
-            logger.info(f"Scrape completed: {result.events_scraped} events, {result.odds_scraped} odds")
+            logger.info(f"⏱️  [{bookmaker_code}] Scraping took {scrape_duration:.2f}s - {result.events_scraped} events, {result.odds_scraped} odds")
 
             # Save to database
+            db_start = time.time()
             scrape_session_id = f"{bookmaker_code}_{datetime.now(timezone.utc).isoformat()}"
             save_stats = save_scrape_result_to_db(result, scrape_session_id)
+            db_duration = time.time() - db_start
+
+            total_duration = time.time() - total_start
+
+            logger.info(f"⏱️  [{bookmaker_code}] Database save took {db_duration:.2f}s")
+            logger.info(f"⏱️  [{bookmaker_code}] TOTAL: {total_duration:.2f}s (scrape: {scrape_duration:.2f}s, db: {db_duration:.2f}s)")
 
             return {
                 "bookmaker": bookmaker_code,
@@ -78,6 +90,9 @@ class ScrapeService:
                 "odds_saved": save_stats["odds_saved"],
                 "errors": result.errors + ([f"{save_stats['errors']} save errors"] if save_stats["errors"] > 0 else []),
                 "duration_seconds": result.duration_seconds,
+                "scrape_duration_seconds": scrape_duration,
+                "db_duration_seconds": db_duration,
+                "total_duration_seconds": total_duration,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
@@ -106,7 +121,10 @@ class ScrapeService:
         Returns:
             Dict with aggregate statistics
         """
-        logger.info(f"Starting parallel scrape for all active bookmakers")
+        import time
+        parallel_start = time.time()
+
+        logger.info(f"⏱️  [PARALLEL] Starting parallel scrape for all active bookmakers")
 
         # Scrape both TAB and Betfair
         active_bookmakers = ["tab", "betfair"]
@@ -118,6 +136,9 @@ class ScrapeService:
         ]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        parallel_duration = time.time() - parallel_start
+        logger.info(f"⏱️  [PARALLEL] All scrapers completed in {parallel_duration:.2f}s")
 
         # Aggregate statistics
         total_events = 0
