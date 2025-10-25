@@ -86,6 +86,7 @@ class RefreshOddsResponse(BaseModel):
     message: str
     opportunities_count: int
     last_refresh: datetime
+    used_cache: bool = Field(default=False, description="Whether cached data was used")
 
 
 @router.post("/refresh")
@@ -161,7 +162,8 @@ async def refresh_odds(
                     success=True,
                     message=f"Using cached odds (updated {int(age_seconds)}s ago)",
                     opportunities_count=opportunities_count,
-                    last_refresh=last_refresh
+                    last_refresh=last_refresh,
+                    used_cache=True
                 )
 
     # Trigger scraping (only if cache expired)
@@ -188,7 +190,8 @@ async def refresh_odds(
             success=scrape_result.get("success", False),
             message=f"Refreshed {scrape_result.get('bookmakers_scraped', 0)} bookmakers - {scrape_result.get('odds_saved', 0)} odds updated",
             opportunities_count=opportunities_count,
-            last_refresh=now
+            last_refresh=now,
+            used_cache=False
         )
 
     except Exception as e:

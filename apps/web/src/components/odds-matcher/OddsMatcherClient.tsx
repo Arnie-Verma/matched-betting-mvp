@@ -60,6 +60,7 @@ export function OddsMatcherClient() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+  const [showPerformanceNotice, setShowPerformanceNotice] = useState(false)
 
   const [selectedOdds, setSelectedOdds] = useState<OddsMatch | null>(null)
 
@@ -134,6 +135,7 @@ export function OddsMatcherClient() {
   const refreshOdds = async () => {
     setLoading(true)
     setError(null)
+    setShowPerformanceNotice(false)
 
     try {
       const response = await fetch('/api/proxy/odds/refresh', {
@@ -146,6 +148,15 @@ export function OddsMatcherClient() {
 
       if (!response.ok) {
         throw new Error('Failed to refresh odds')
+      }
+
+      const refreshData = await response.json()
+
+      // Show performance notice if cache was NOT used (fresh scrape)
+      if (refreshData.used_cache === false) {
+        setShowPerformanceNotice(true)
+        // Auto-hide after 10 seconds
+        setTimeout(() => setShowPerformanceNotice(false), 10000)
       }
 
       // After refresh, fetch new opportunities
@@ -186,6 +197,23 @@ export function OddsMatcherClient() {
           REFRESH ODDS
         </button>
       </div>
+
+      {/* Performance Notice */}
+      {showPerformanceNotice && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
+          <div className="flex items-start gap-2">
+            <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <div>
+              <p className="font-medium">Performance Notice</p>
+              <p className="text-sm mt-1">
+                Scraping fresh odds data may take 10-15 seconds. This only happens when the cache expires (every 5 minutes). Subsequent refreshes will be instant.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Error Display */}
       {error && (
