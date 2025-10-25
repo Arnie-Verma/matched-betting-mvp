@@ -193,7 +193,10 @@ class TABScraper(BaseScraper):
         """
         events = []
         matches = api_data.get("matches", [])
+        markets_tasks = []
+        events_temp = []
 
+        # First pass: create events and collect markets URLs for parallel fetching
         for match_data in matches:
             try:
                 # Parse match details
@@ -230,22 +233,36 @@ class TABScraper(BaseScraper):
                     odds=[]
                 )
 
-                # TAB uses HATEOAS - fetch markets from _links
+                # Collect markets URL for parallel fetching
                 markets_url = match_data.get("_links", {}).get("markets")
                 if markets_url:
-                    try:
-                        markets_data = await self.fetch_json(markets_url)
-                        markets = markets_data.get("markets", [])
-                        if markets:
-                            event.odds = self.parse_tab_markets(markets, event)
-                    except Exception as e:
-                        self.logger.error(f"Failed to fetch markets for {event.name}: {e}")
+                    markets_tasks.append((event, markets_url))
 
-                events.append(event)
+                events_temp.append(event)
 
             except Exception as e:
                 self.logger.error(f"Failed to parse TAB match: {e}")
                 continue
+
+        # Second pass: fetch all markets in parallel for significant speedup
+        if markets_tasks:
+            import asyncio
+
+            async def fetch_markets_for_event(event_and_url):
+                event, url = event_and_url
+                try:
+                    markets_data = await self.fetch_json(url)
+                    markets = markets_data.get("markets", [])
+                    if markets:
+                        event.odds = self.parse_tab_markets(markets, event)
+                except Exception as e:
+                    self.logger.error(f"Failed to fetch markets for {event.name}: {e}")
+                return event
+
+            # Fetch all markets concurrently - MUCH faster than sequential
+            events = await asyncio.gather(*[fetch_markets_for_event(task) for task in markets_tasks])
+        else:
+            events = events_temp
 
         return events
 

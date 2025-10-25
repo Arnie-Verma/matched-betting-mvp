@@ -170,15 +170,15 @@ class BetfairScraper(BaseScraper):
                     self.logger.info(f"Navigating to {comp_name}: {url}")
 
                     try:
-                        # Navigate and wait for network idle
+                        # Navigate and wait for network idle (network idle already waits for APIs)
                         await page.goto(url, wait_until='networkidle', timeout=30000)
 
-                        # Wait for odds to load
-                        await page.wait_for_timeout(5000)  # Wait 5 seconds for all data
+                        # Minimal wait - network idle has already waited for initial data
+                        await page.wait_for_timeout(1000)  # Reduced from 5s to 1s
 
-                        # Scroll to load more events
+                        # Scroll to load more events (if lazy loading)
                         await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-                        await page.wait_for_timeout(2000)
+                        await page.wait_for_timeout(500)  # Reduced from 2s to 500ms
 
                         # Try to click on event cards to trigger price loading
                         self.logger.info("Trying to trigger price loading by clicking events...")
@@ -200,8 +200,8 @@ class BetfairScraper(BaseScraper):
                                         # Click first few to load their prices
                                         for i, elem in enumerate(elements[:3]):
                                             try:
-                                                await elem.click(timeout=2000)
-                                                await page.wait_for_timeout(1000)
+                                                await elem.click(timeout=1000)  # Reduced from 2s to 1s
+                                                await page.wait_for_timeout(300)  # Reduced from 1s to 300ms
                                             except:
                                                 pass
                                         break

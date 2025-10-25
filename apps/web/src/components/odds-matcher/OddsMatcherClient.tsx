@@ -69,6 +69,14 @@ export function OddsMatcherClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Refetch opportunities when bet type or stake changes (recalculates with new parameters)
+  useEffect(() => {
+    if (opportunities.length > 0) {
+      fetchOpportunities()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.betType, filters.stake])
+
   const fetchOpportunities = async () => {
     setLoading(true)
     setError(null)
@@ -104,13 +112,8 @@ export function OddsMatcherClient() {
         return false
       }
 
-      // Filter by sport
-      if (filters.sports.length > 0 && !filters.sports.includes(opp.sport_name.toLowerCase())) {
-        return false
-      }
-
-      // Filter by competition (if implemented)
-      if (filters.competitions.length > 0 && !filters.competitions.includes(opp.event_id)) {
+      // Filter by league/competition
+      if (filters.sports.length > 0 && !filters.sports.includes(opp.competition_name.toLowerCase())) {
         return false
       }
 
