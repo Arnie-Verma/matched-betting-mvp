@@ -14,7 +14,7 @@ interface OddsFiltersProps {
     competitions: number[]
     search: string
   }
-  onFiltersChange: (filters: any) => void
+  onFiltersChange: (filters: OddsFiltersProps['filters']) => void
 }
 
 interface Bookmaker {
@@ -46,10 +46,10 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
         // Fetch bookmakers from API
         const bookmakersRes = await fetch('/api/proxy/bookmakers')
         if (bookmakersRes.ok) {
-          const bookmakers = await bookmakersRes.json()
+          const bookmakers = await bookmakersRes.json() as Array<{ code: string; display_name: string }>
           // Sort alphabetically by name
           const sorted = bookmakers
-            .map((b: any) => ({ code: b.code, name: b.display_name }))
+            .map((b) => ({ code: b.code, name: b.display_name }))
             .sort((a: Bookmaker, b: Bookmaker) => a.name.localeCompare(b.name))
           setAvailableBookmakers(sorted)
         }
@@ -57,10 +57,10 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
         // Fetch competitions/leagues from API
         const leaguesRes = await fetch('/api/proxy/competitions')
         if (leaguesRes.ok) {
-          const leagues = await leaguesRes.json()
+          const leagues = await leaguesRes.json() as Array<{ id: number; short_name: string; full_name: string }>
           // Sort alphabetically by short_name
           const sorted = leagues
-            .map((c: any) => ({ id: c.id, short_name: c.short_name, full_name: c.full_name }))
+            .map((c) => ({ id: c.id, short_name: c.short_name, full_name: c.full_name }))
             .sort((a: Competition, b: Competition) => a.short_name.localeCompare(b.short_name))
           setAvailableLeagues(sorted)
         }

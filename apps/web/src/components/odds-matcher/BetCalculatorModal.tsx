@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Calculator, Copy, Check, Settings, ExternalLink } from 'lucide-react'
+import { Calculator, Copy, Check, Settings, ExternalLink } from 'lucide-react'
 import { OddsMatch } from './OddsMatcherClient'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
