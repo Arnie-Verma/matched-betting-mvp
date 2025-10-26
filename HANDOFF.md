@@ -976,7 +976,78 @@ See **Appendix: Database Cleanup Strategy** for detailed analysis and future opt
 
 ## Recent Changes & Commits
 
-### Latest Development Session (October 2025)
+### Latest Development Session (October 26, 2025)
+
+**🎉 MAJOR FIXES: Betfair Reliability + Selection Matching + Performance Notice UX**
+
+**What Was Accomplished:**
+
+1. ✅ **Fixed Betfair Scraper Reliability Issue**
+   - **Problem:** Betfair scraper was failing with "No bymarket data found" errors
+   - **Root Cause:** Wait time was reduced to 500ms (too short for API calls to complete)
+   - **Fix:** Increased wait time from 500ms to 1500ms for reliable bymarket API capture
+   - **Impact:** Betfair now consistently captures 45+ odds per scrape
+   - **File:** `apps/worker/src/scrapers/betfair_scraper.py:214`
+
+2. ✅ **Fixed Selection Name Matching (Brighton HoveAlb Issue)**
+   - **Problem:** TAB "Brighton HoveAlb" wasn't matching Betfair "Brighton" selections
+   - **Result:** Missing opportunities (Brighton, Leeds selections not showing)
+   - **Fix:** Added team name normalization in selection matching logic
+   - **Impact:** Now showing ALL Brighton v Leeds opportunities (Brighton, Draw, Leeds)
+   - **File:** `apps/api/src/api/routers/odds_matcher.py:438-442`
+   - **Normalization Added:**
+     ```python
+     norm_name = norm_name.replace('brighton hovealb', 'brighton')
+     norm_name = norm_name.replace('nottinghm forest', 'nottingham forest')
+     norm_name = norm_name.replace('nottm forest', 'nottingham forest')
+     ```
+
+3. ✅ **Improved Performance Notice UX**
+   - **Problem:** Notice appeared late (mid-scrape) and stayed visible after odds loaded
+   - **Fix 1:** Added 3-second delay before showing notice (prevents flash on cached refreshes)
+   - **Fix 2:** Notice now disappears immediately when odds finish loading
+   - **File:** `apps/web/src/components/odds-matcher/OddsMatcherClient.tsx:140-180`
+   - **New Behavior:**
+     - Cached refresh (< 5min): Notice never appears (instant results)
+     - Fresh scrape (> 3sec): Notice appears with friendly message "Loading your best opportunities, hang tight, value never sleeps."
+     - Notice disappears immediately when odds load (no 10-second timer)
+
+4. ✅ **Activated Betfair in Database**
+   - **Problem:** Betfair was marked as `is_active = false` in database
+   - **Fix:** Set `is_active = true` for Betfair bookmaker
+   - **Impact:** Betfair now scraped alongside TAB
+
+**Performance Benchmarks:**
+- **Before fixes:** 0 opportunities (Betfair scraping failed)
+- **After fixes:** 40+ opportunities matching Outmatched's output
+- **Scrape time:** ~10-12 seconds for TAB + Betfair (with 1500ms wait)
+- **Match rate:** Near 100% event matching between TAB and Betfair
+
+**Files Modified This Session:**
+- `apps/worker/src/scrapers/betfair_scraper.py` - Fixed wait time reliability
+- `apps/api/src/api/routers/odds_matcher.py` - Fixed selection name matching
+- `apps/web/src/components/odds-matcher/OddsMatcherClient.tsx` - Improved performance notice UX
+
+**Test Results:**
+```
+TAB Events: 15 events
+TAB Odds: 9,123 odds
+
+Betfair Events: 15 events
+Betfair Odds: 45 odds (lay)
+
+Matched Opportunities: 40+ selections
+Match Rate: ~100% (all TAB events matched with Betfair)
+
+Example Matches:
+- Brighton v Leeds: Brighton (-7%), Draw (-12%), Leeds (-24%)
+- Arsenal v Crystal Palace: Arsenal (-9%), Draw (-11%), Crystal Palace (-19%)
+- West Ham v Newcastle: Newcastle (-6%), Draw (-12%), West Ham (-25%)
+```
+
+---
+
+### Previous Development Session (October 25, 2025)
 
 **🎉 MAJOR MILESTONE: Betfair Scraper Fully Implemented & Tested**
 

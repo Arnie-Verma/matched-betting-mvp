@@ -433,6 +433,14 @@ async def get_matcher_opportunities(
                 # Normalize selection name for matching (remove "The", spaces, lowercase, abbreviations)
                 norm_name = selection.name.lower().strip()
                 norm_name = norm_name.replace('the ', '').replace(' the ', ' ')  # Remove "the" prefix
+
+                # Team name variations - normalize before removing spaces
+                norm_name = norm_name.replace('brighton hovealb', 'brighton')
+                norm_name = norm_name.replace('brighton & hove albion', 'brighton')
+                norm_name = norm_name.replace('wolverhampton wanderers', 'wolverhampton')
+                norm_name = norm_name.replace('nottinghm forest', 'nottingham forest')
+                norm_name = norm_name.replace('nottm forest', 'nottingham forest')
+
                 norm_name = norm_name.replace('utd', 'united').replace('man ', 'manchester')  # Expand abbreviations
                 norm_name = norm_name.replace(' ', '')  # Remove all spaces
 

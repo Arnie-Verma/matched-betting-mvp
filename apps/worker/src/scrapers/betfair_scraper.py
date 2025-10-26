@@ -207,10 +207,11 @@ class BetfairScraper(BaseScraper):
                     nav_time = time.time() - nav_start
                     self.logger.info(f"⏱️  [Betfair] Page load (domcontentloaded) took {nav_time:.2f}s")
 
-                    # OPTIMIZED: Wait only 500ms for critical API calls (not 2000ms!)
-                    # The APIs we need usually respond within 500ms after domcontentloaded
+                    # Wait for bymarket API calls to complete
+                    # Increased from 500ms to 1500ms - 500ms was too short and caused "No bymarket data found" errors
+                    # Still faster than original 2000ms while being reliable
                     wait_start = time.time()
-                    await page.wait_for_timeout(500)  # Reduced from 2000ms to 500ms
+                    await page.wait_for_timeout(1500)
                     wait_time = time.time() - wait_start
                     self.logger.info(f"⏱️  [Betfair] Wait after page load took {wait_time:.2f}s")
 
