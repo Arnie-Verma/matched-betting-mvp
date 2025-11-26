@@ -4,7 +4,7 @@
 
 **Product Name**: Outmatched.com-style Matched Betting Platform (Australian Market)
 **Tech Stack**: Next.js 14 + FastAPI + PostgreSQL + Redis + Docker
-**Target Market**: Australian sports betting across multiple sports and 100+ bookmakers
+**Target Market**: Australian sports betting (EPL, AFL, NRL, etc.)
 **Business Model**: Freemium SaaS with 3 pricing tiers
 
 ### What is Matched Betting?
@@ -18,39 +18,6 @@ Build an automated matched betting platform that:
 4. Calculates optimal stake amounts for users
 5. Displays opportunities sorted by profitability
 
-### Target Sports Coverage
-The platform will eventually support all major sports covered by Australian bookmakers:
-- **A-League** (Soccer)
-- **AFL** (Australian Football League)
-- **Boxing**
-- **EPL** (English Premier League) - *Currently implemented*
-- **French Ligue 1**
-- **German Bundesliga**
-- **Italian Serie A**
-- **Major League Soccer**
-- **NBA** (Basketball)
-- **NBL** (Australian Basketball)
-- **NHL** (Ice Hockey)
-- **NRL** (Rugby League)
-- **Spanish La Liga**
-- **UEFA Champions League**
-
-**Current Focus**: EPL (English Premier League) as it's currently in season and has high liquidity on Betfair.
-
-### Target Bookmaker Coverage (103 Total)
-The platform aims to integrate all major Australian bookmakers. Currently seeded in database:
-
-**Free Tier** (2 bookmakers):
-- TAB ✅ *Scraper implemented*
-- Ladbrokes 🚧 *Planned*
-
-**Premium Tier** (adds 14 bookmakers, 16 total):
-- Betfair ✅ *Scraper implemented*
-- Sportsbet, Neds, PointsBet, UniBet, Betr, BetDeluxe, BetRight, CrossBet, Dabble, EliteBet, TABTouch, Realbookie, Picklebet
-
-**Diamond Tier** (adds 87 bookmakers, 103 total):
-AlphaBet, BaggyBet, Bet575, Bet66, Bet777, BetBetBet, BetBlitz, BetChamps, BetEstate, BetFocus, BetGalaxy, BetLocal, BetM, BetNation, BetProfessor, BetRoyale, BetYouCan, BigBet, BlondeBet, BoomBet, BoostBet, BossBet, BuffaloBet, CashCage, ChaseBet, ChromaBet, DiamondBet, DowBet, FiestaBet, GigaBet, GoldBet, GoldenBet888, GoldenRush, HavaBet, HotBet, JimmyBet, JuicyBet, JungleBet, JustBet, LetsBet, LightningBet, MarantelliBet, MidasBet, MintBet, MyBet, Noisy, OkeBet, OldGill, Palmerbet, PicnicBet, PlayUp, PlayWest, PonyBet, PremiumBet, PulseBet, Punt123, PuntCity, PuntGenie, PuntNow, PuntZone, QuestBet, ReadyBet, Rob Waterhouse, SlamBet, StarSports, SterlingParker, SugarCastle, Surge, SwiftBet, TempleBet, TerryBet, TitanBet, TopBet, TradieBet, TrueBet, UltraBet, UpCoz, VikingBet, VinBet, VolcanoBet, WellBet, WinnersBet, WishBet, WizBet, ZBet
-
 ---
 
 ## Current Status
@@ -61,52 +28,23 @@ AlphaBet, BaggyBet, Bet575, Bet66, Bet777, BetBetBet, BetBlitz, BetChamps, BetEs
 3. **Database Schema** - Full schema for events, odds, markets, subscriptions
 4. **Odds Matcher UI** - Fully functional UI with filters, calculator modal
 5. **TAB Scraper** - Working scraper for TAB (Australian bookmaker)
-   - Scrapes EPL odds via TAB API
-   - Handles anti-bot measures with proper headers
-   - ~6 second scrape time for 10 events
-   - Returns 5,000+ back odds across all markets
-6. **Betfair Scraper** ✅ **FULLY TESTED & WORKING**
-   - Uses Playwright for headless browser automation
-   - Intercepts network API calls (`navigation-aggregator`, `bymarket`)
-   - Scrapes lay odds with liquidity data
-   - Supports EPL, Champions League, La Liga
-   - ~75 second scrape time for comprehensive data
-   - Successfully matches 80%+ of TAB events
+6. **Betfair Scraper** - Working scraper for Betfair exchange
 7. **Matching Engine** - Calculates matched bets with 6% commission
-8. **Event Grouping** - Fuzzy matching to group duplicate events across bookmakers
-   - Handles variations like "Man United" vs "Man Utd"
-   - 80%+ match rate between TAB and Betfair
-9. **Liquidity Display** - Shows available Betfair liquidity for lay bets
+8. **Event Grouping** - Fuzzy matching to group duplicate events
+9. **Liquidity Display** - Shows available Betfair liquidity
 10. **Auto-Load Odds** - Odds load automatically on page mount
-11. **Integration Testing** ✅ **VERIFIED END-TO-END**
-   - Test script `test_both_scrapers.py` validates full flow
-   - Successfully finds profitable arbitrage opportunities
-   - Calculates qualifying losses and profit margins
-   - Proven to work with real data from TAB + Betfair
 
 ### 🚧 In Progress / Known Issues
-1. **Scraper Performance** - Current refresh time ~2 minutes (target: 12-20 seconds)
-   - **Recent optimizations (Oct 25, 2025):**
-     - Betfair: Reduced wait times from 10s to 2.4s per competition (75% faster)
-     - TAB: Implemented parallel market fetching (10x faster for markets)
-     - Expected improvement: 120s → 20-30s total refresh time
-   - **Remaining bottlenecks to investigate:**
-     - Network latency to Australian servers
-     - Playwright browser startup time
-     - Database write operations (batch inserts?)
-     - Sequential vs parallel scraping (TAB + Betfair)
-2. **Server-side Caching** - Need to add caching for scrape results (2-5 min TTL)
-3. **Ladbrokes Scraper** - Planned but not implemented
-4. **Premium Bookmakers** - Only TAB working, need 16+ more
-5. **Last Updated Timestamp** - No visual indicator showing data freshness
-6. **Docker Desktop Stability** - mb_web container sometimes fails to start
+1. **Scraping** - Need to ensure refresh button works
+2. **Ladbrokes Scraper** - Planned but not implemented
+3. **Premium Bookmakers** - Only TAB working, need 16+ more
+5. **Docker Desktop Stability** - mb_web container sometimes fails to start
 
 ### 📋 Immediate Next Steps
-1. Add server-side caching (2-5 minute TTL) to avoid duplicate scrapes
-2. Add "Last Updated" timestamp in UI to show data freshness
-3. Add Ladbrokes scraper to complete free tier
-4. Remove debug logging from production code
-5. Improve refresh button UX with loading states
+1. Fix refresh button to ensure when clicked it goes to scrape adn refreshes the odds
+2. Add Ladbrokes scraper to complete free tier
+3. Remove debug logging from production code
+4. Add visual indicator for stale odds
 
 ---
 
@@ -490,108 +428,40 @@ headers = {
 }
 ```
 
-### Betfair Scraper ✅ **IMPLEMENTED & TESTED**
+### Betfair Scraper
 
 **File:** `apps/worker/src/scrapers/betfair_scraper.py`
 
-**Approach:** Playwright browser automation (NOT API) - no SSL cert required!
+**API:** Uses Betfair API-NG (REST API)
 
-**Why Playwright instead of API?**
-- Betfair API-NG requires SSL certificate setup (complex)
-- Betfair Exchange website is publicly accessible
-- Network interception captures the same API data
-- No authentication required
-- Simpler implementation for MVP
+**Authentication:**
+- Requires SSL certificate (app_key + session token)
+- Need to create Betfair developer account
+- Generate SSL cert for authentication
 
-**Implementation Details:**
+**Key Methods:**
+- `listMarketCatalogue()` - Get markets for events
+- `listMarketBook()` - Get current odds and liquidity
 
-**Browser Automation:**
-```python
-# Launch headless Chromium
-browser = await playwright.chromium.launch(headless=True)
-
-# Navigate to Betfair Exchange EPL page
-url = "https://www.betfair.com.au/exchange/plus/football/competition/10932509"
-await page.goto(url, wait_until='networkidle')
-
-# Intercept network responses
-page.on('response', lambda response: handle_response(response))
-```
-
-**Network Interception:**
-Captures two key API endpoints:
-1. **`navigation-aggregator`** - Fixtures and event metadata
-2. **`bymarket`** - Live odds and liquidity data
-
-**Response Structure (bymarket):**
+**Response Structure:**
 ```json
 {
-  "eventTypes": [{
-    "eventNodes": [{
-      "eventId": 34782800,
-      "event": {
-        "eventName": "Liverpool v Man Utd",
-        "openDate": "2025-10-19T15:30:00.000Z"
-      },
-      "marketNodes": [{
-        "marketId": "1.248324306",
-        "description": {"marketType": "MATCH_ODDS"},
-        "runners": [{
-          "description": {"runnerName": "Liverpool"},
-          "exchange": {
-            "availableToLay": [
-              {"price": 1.64, "size": 2450.08}
-            ]
-          }
-        }]
-      }]
-    }]
-  }]
-}
-```
-
-**Supported Competitions:**
-- English Premier League (10932509)
-- UEFA Champions League (228)
-- La Liga (117)
-- Easily expandable to AFL, NRL, etc.
-
-**Team Name Normalization:**
-Built-in mapping for common variations:
-```python
-{
-  "man utd": "manchester united",
-  "man city": "manchester city",
-  "spurs": "tottenham hotspur",
-  "wolves": "wolverhampton wanderers",
-  "nottm forest": "nottingham forest"
+  "runners": [
+    {
+      "selectionId": 12345,
+      "ex": {
+        "availableToLay": [
+          {"price": 2.36, "size": 1450.08}
+        ]
+      }
+    }
+  ]
 }
 ```
 
 **Liquidity:**
 - `size` field = available amount to lay at that price
 - Stored in `odds_snapshots.available_amount`
-- Critical for matched betting calculations
-
-**Performance:**
-- ~75 seconds to scrape EPL + Champions League + La Liga
-- Can be optimized by reducing competitions or using parallel scraping
-- Returns 3 odds per event (home, away, draw)
-
-**Testing:**
-```bash
-# Test Betfair scraper alone
-docker exec mb_api python test_betfair_scraper.py
-
-# Test both TAB + Betfair together
-docker exec mb_api python test_both_scrapers.py
-```
-
-**Test Results:**
-- ✅ Successfully scrapes 10+ EPL events
-- ✅ 80%+ match rate with TAB events
-- ✅ Finds profitable arbitrage opportunities
-- ✅ Handles team name variations correctly
 
 ### Saving Odds to Database
 
@@ -931,167 +801,11 @@ SELECT COUNT(*) FROM odds_snapshots WHERE is_current = true;
 SELECT * FROM bookmakers WHERE is_active = true;
 ```
 
-### Database Cleanup Strategy (IMPORTANT)
-
-**Problem:** Without cleanup, the database grows infinitely as old odds accumulate.
-
-**Current Implementation: Option 1 - Delete Old Odds Immediately**
-
-The `save_odds.py` script now **deletes** old odds instead of marking them as `is_current=False`. This prevents unbounded database growth.
-
-**File:** `apps/worker/src/jobs/save_odds.py:317-327`
-
-```python
-# Delete old odds to prevent unbounded database growth
-# Option 1 (MVP): Keep only current odds, delete historical data
-# This prevents database from growing indefinitely (saves storage costs)
-self.db.execute(
-    delete(OddsSnapshot).where(
-        OddsSnapshot.selection_id == selection.id,
-        OddsSnapshot.bookmaker_id == bookmaker.id,
-        OddsSnapshot.is_current == True
-    )
-)
-```
-
-**Why this approach?**
-- ✅ **Zero storage growth** - Database stays at ~4,000 rows (current odds only)
-- ✅ **Simple implementation** - No cron jobs or background tasks needed
-- ✅ **Cost effective** - ~1 MB storage vs hundreds of MB
-- ✅ **Fast queries** - Small table = fast performance
-- ✅ **MVP appropriate** - Don't need historical data yet
-
-**What we're NOT keeping:**
-- ❌ Historical odds data
-- ❌ Odds movement charts
-- ❌ Historical analysis
-
-**Future Options (when needed):**
-- **Option 2:** Keep 7-day rolling history (adds cron job for cleanup)
-- **Option 3:** Archive to S3 Glacier (for long-term analytics)
-
-See **Appendix: Database Cleanup Strategy** for detailed analysis and future options.
-
 ---
 
 ## Recent Changes & Commits
 
-### Latest Development Session (October 26, 2025)
-
-**🎉 MAJOR FIXES: Betfair Reliability + Selection Matching + Performance Notice UX**
-
-**What Was Accomplished:**
-
-1. ✅ **Fixed Betfair Scraper Reliability Issue**
-   - **Problem:** Betfair scraper was failing with "No bymarket data found" errors
-   - **Root Cause:** Wait time was reduced to 500ms (too short for API calls to complete)
-   - **Fix:** Increased wait time from 500ms to 1500ms for reliable bymarket API capture
-   - **Impact:** Betfair now consistently captures 45+ odds per scrape
-   - **File:** `apps/worker/src/scrapers/betfair_scraper.py:214`
-
-2. ✅ **Fixed Selection Name Matching (Brighton HoveAlb Issue)**
-   - **Problem:** TAB "Brighton HoveAlb" wasn't matching Betfair "Brighton" selections
-   - **Result:** Missing opportunities (Brighton, Leeds selections not showing)
-   - **Fix:** Added team name normalization in selection matching logic
-   - **Impact:** Now showing ALL Brighton v Leeds opportunities (Brighton, Draw, Leeds)
-   - **File:** `apps/api/src/api/routers/odds_matcher.py:438-442`
-   - **Normalization Added:**
-     ```python
-     norm_name = norm_name.replace('brighton hovealb', 'brighton')
-     norm_name = norm_name.replace('nottinghm forest', 'nottingham forest')
-     norm_name = norm_name.replace('nottm forest', 'nottingham forest')
-     ```
-
-3. ✅ **Improved Performance Notice UX**
-   - **Problem:** Notice appeared late (mid-scrape) and stayed visible after odds loaded
-   - **Fix 1:** Added 3-second delay before showing notice (prevents flash on cached refreshes)
-   - **Fix 2:** Notice now disappears immediately when odds finish loading
-   - **File:** `apps/web/src/components/odds-matcher/OddsMatcherClient.tsx:140-180`
-   - **New Behavior:**
-     - Cached refresh (< 5min): Notice never appears (instant results)
-     - Fresh scrape (> 3sec): Notice appears with friendly message "Loading your best opportunities, hang tight, value never sleeps."
-     - Notice disappears immediately when odds load (no 10-second timer)
-
-4. ✅ **Activated Betfair in Database**
-   - **Problem:** Betfair was marked as `is_active = false` in database
-   - **Fix:** Set `is_active = true` for Betfair bookmaker
-   - **Impact:** Betfair now scraped alongside TAB
-
-**Performance Benchmarks:**
-- **Before fixes:** 0 opportunities (Betfair scraping failed)
-- **After fixes:** 40+ opportunities matching Outmatched's output
-- **Scrape time:** ~10-12 seconds for TAB + Betfair (with 1500ms wait)
-- **Match rate:** Near 100% event matching between TAB and Betfair
-
-**Files Modified This Session:**
-- `apps/worker/src/scrapers/betfair_scraper.py` - Fixed wait time reliability
-- `apps/api/src/api/routers/odds_matcher.py` - Fixed selection name matching
-- `apps/web/src/components/odds-matcher/OddsMatcherClient.tsx` - Improved performance notice UX
-
-**Test Results:**
-```
-TAB Events: 15 events
-TAB Odds: 9,123 odds
-
-Betfair Events: 15 events
-Betfair Odds: 45 odds (lay)
-
-Matched Opportunities: 40+ selections
-Match Rate: ~100% (all TAB events matched with Betfair)
-
-Example Matches:
-- Brighton v Leeds: Brighton (-7%), Draw (-12%), Leeds (-24%)
-- Arsenal v Crystal Palace: Arsenal (-9%), Draw (-11%), Crystal Palace (-19%)
-- West Ham v Newcastle: Newcastle (-6%), Draw (-12%), West Ham (-25%)
-```
-
----
-
-### Previous Development Session (October 25, 2025)
-
-**🎉 MAJOR MILESTONE: Betfair Scraper Fully Implemented & Tested**
-
-**What Was Accomplished:**
-1. ✅ **Betfair Scraper Complete** (`apps/worker/src/scrapers/betfair_scraper.py`)
-   - Implemented Playwright-based scraper (no API auth needed)
-   - Intercepts Betfair Exchange network calls
-   - Scrapes EPL, Champions League, La Liga odds
-   - Captures lay odds with liquidity data
-   - Built-in team name normalization
-
-2. ✅ **Integration Testing Validated**
-   - Created `test_both_scrapers.py` for end-to-end testing
-   - Successfully scrapes TAB + Betfair simultaneously
-   - Achieves 80%+ event matching rate
-   - Identifies profitable arbitrage opportunities
-   - Proven with real live data
-
-3. ✅ **Database Seeding**
-   - Seeded 103 Australian bookmakers
-   - Seeded 3 pricing plans (Free, Premium, Diamond)
-   - Database cleanup strategy implemented (Option 1)
-
-4. ✅ **Performance Benchmarks**
-   - TAB: 10 events, 5,429 odds in ~6 seconds
-   - Betfair: 10 events, 30 odds in ~75 seconds
-   - Total: 8 matched events with opportunities
-
-**Test Results:**
-```
-TAB Events: 10
-Betfair Events: 10
-Matched Events: 8 (80% match rate)
-Total Opportunities: 24 selections matched
-Example: Tottenham v Aston Villa
-  - TAB Back: 2.05 | Betfair Lay: 2.2 → 13.79% profit margin
-```
-
-**Files Modified This Session:**
-- `HANDOFF.md` - Updated with comprehensive sports/bookmaker lists
-- `apps/worker/src/scrapers/betfair_scraper.py` - Already complete
-- Database seeded with all bookmakers and plans
-
-### Previous Commits
+### Latest Commits
 
 **Commit f307cf4** - "fix: Correct Betfair commission, auto-load odds, and improve sorting"
 - Changed commission from 2% to 6% for Australian users
@@ -1264,140 +978,53 @@ docker exec mb_web pnpm type-check
 
 ## Future Architecture Recommendations
 
-### ⚠️ Important: Scraping Strategy Decision
-
-**DECISION: Manual refresh with server-side caching is the RIGHT approach for MVP**
-
-**Why automated scraping every 5-10 minutes is WRONG for this project:**
-- ❌ **Premature optimization** - You have 0-10 users, not thousands
-- ❌ **Wasted resources** - Scraping 24/7 for minimal traffic is wasteful
-- ❌ **Higher costs** - Unnecessary server usage and bandwidth
-- ❌ **Added complexity** - Celery/cron deployment is overkill
-- ❌ **Higher IP ban risk** - Constant scraping triggers anti-bot measures
-
-**The RIGHT approach (implemented):**
-- ✅ **Manual refresh** - Users click "Refresh Odds" when they want fresh data
-- ✅ **Server-side caching** - First user triggers scrape, subsequent users get cached results
-- ✅ **Smart resource usage** - Only scrape when actually needed
-- ✅ **Always fresh** - User controls when they want latest odds
-- ✅ **Simple architecture** - No background jobs needed
-
-**When you WOULD need automated scraping:**
-- You have 100+ daily active users
-- Users complain about slow refresh times
-- You have 20+ bookmakers (takes >30 seconds to scrape all)
-- You want historical odds tracking/charts
-
-**Until then, focus on:**
-1. Adding more bookmakers (value)
-2. Improving UX (perceived speed)
-3. Getting real users (validation)
-
----
-
-### 1. Server-Side Caching (PRIORITY)
-**Current:** No caching - every request triggers full scrape
-**Recommended:** Cache scrape results for 2-5 minutes
+### 1. Automated Scraping
+**Current:** Manual script only
+**Recommended:** Celery + Redis for background jobs
 
 ```python
-from functools import lru_cache
-from datetime import datetime, timedelta
+# Example Celery task
+@celery.task
+def scrape_all_bookmakers():
+    for bookmaker in ["tab", "ladbrokes", "betfair"]:
+        scrape_bookmaker.delay(bookmaker)
 
-# Global cache
-_odds_cache = {
-    'data': None,
-    'timestamp': None
+# Schedule every 5 minutes
+celery.beat_schedule = {
+    'scrape-odds': {
+        'task': 'scrape_all_bookmakers',
+        'schedule': 300.0  # 5 minutes
+    }
 }
-
-async def get_matcher_opportunities(...):
-    # Check cache validity (2 minute TTL)
-    if _odds_cache['data'] and _odds_cache['timestamp']:
-        age = datetime.utcnow() - _odds_cache['timestamp']
-        if age < timedelta(minutes=2):
-            return _odds_cache['data']  # Return cached
-
-    # Cache miss or stale - scrape fresh
-    opportunities = await scrape_and_match()
-
-    # Update cache
-    _odds_cache['data'] = opportunities
-    _odds_cache['timestamp'] = datetime.utcnow()
-
-    return opportunities
 ```
 
-**Benefits:**
-- First user triggers scrape (5-15 seconds)
-- Next users within 2 minutes get instant results
-- Reduces scraping by 90%+ for multiple concurrent users
-- Zero infrastructure complexity
-
-### 2. UI Improvements for Manual Refresh (PRIORITY)
-**Current:** No indication of data freshness
-**Recommended:** Show "Last Updated" timestamp + loading states
+### 2. Real-Time Updates
+**Current:** Manual refresh only
+**Recommended:** WebSocket or Server-Sent Events
 
 ```typescript
-// Add to OddsMatcherClient.tsx
-const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
-const [isRefreshing, setIsRefreshing] = useState(false)
-
-// Display in UI
-<div className="flex items-center gap-2 text-sm text-gray-600">
-  {lastRefresh && (
-    <>
-      Last updated: {formatDistanceToNow(lastRefresh)} ago
-      {isStale(lastRefresh) && (
-        <span className="text-amber-600">⚠️ Data may be outdated</span>
-      )}
-    </>
-  )}
-  <button onClick={refreshOdds} disabled={isRefreshing}>
-    {isRefreshing ? (
-      <><Spinner /> Updating odds...</>
-    ) : (
-      <><RefreshIcon /> Refresh Odds</>
-    )}
-  </button>
-</div>
-
-// Helper
-function isStale(lastUpdate: Date): boolean {
-  const age = Date.now() - lastUpdate.getTime()
-  return age > 5 * 60 * 1000  // 5 minutes
+// Example SSE
+const eventSource = new EventSource('/api/odds/stream')
+eventSource.onmessage = (event) => {
+  const newOdds = JSON.parse(event.data)
+  updateOpportunities(newOdds)
 }
 ```
 
-### 3. Event-Driven Updates (FUTURE - Only if needed)
-**Current:** Manual refresh only
-**Recommended:** WebSocket updates when multiple users are active
+### 3. Caching Strategy
+**Current:** No caching
+**Recommended:** Redis caching for odds data
 
 ```python
-# Only implement if you have:
-# - Multiple concurrent users (10+ at same time)
-# - Complaints about manual refresh
-# - Budget for WebSocket infrastructure
-
-# Smart background scraping - only when users are online
-active_connections = set()
-
-@websocket.on_connect
-async def on_connect(ws):
-    active_connections.add(ws)
-
-    # If data is stale and users are waiting, trigger scrape
-    if len(active_connections) > 0 and is_data_stale():
-        fresh_data = await scrape_and_match()
-        for conn in active_connections:
-            await conn.send_json(fresh_data)
-
-@websocket.on_disconnect
-async def on_disconnect(ws):
-    active_connections.remove(ws)
+# Cache odds for 30 seconds
+@cache.memoize(timeout=30)
+def get_current_odds(event_id, selection_id):
+    return db.query(OddsSnapshot).filter(...).first()
 ```
 
-### 4. Rate Limiting (FUTURE)
+### 4. Rate Limiting
 **Current:** None
-**Recommended:** Only add when you have significant traffic
+**Recommended:** Limit API requests per user
 
 ```python
 from slowapi import Limiter
@@ -1405,12 +1032,12 @@ from slowapi import Limiter
 limiter = Limiter(key_func=get_user_id)
 
 @app.get("/odds/matcher")
-@limiter.limit("10/minute")  # Prevent abuse
+@limiter.limit("10/minute")
 async def get_matcher_opportunities():
     ...
 ```
 
-### 5. Monitoring & Alerting (FUTURE)
+### 5. Monitoring & Alerting
 **Recommended:**
 - Sentry for error tracking
 - Prometheus for metrics
@@ -1522,579 +1149,5 @@ This is a **working matched betting SaaS platform** with:
 - ✅ Liquidity display
 - ✅ Auto-load functionality
 
-**Next priorities:**
-1. ✅ **Server-side caching (2-5 min TTL)** - Avoid duplicate scrapes when multiple users are active
-2. ✅ **"Last Updated" timestamp in UI** - Show data freshness to users
-3. **Ladbrokes scraper** - Complete free tier (2 bookmakers total)
-4. **Premium bookmakers** - Add Sportsbet, Neds, Pointsbet (16 total for Premium tier)
-5. **Remove debug logging** - Clean up production code
-
-**❌ DO NOT implement automated scraping (yet):**
-- Manual refresh with caching is the right approach for MVP
-- Only add automation when you have 100+ daily active users
-- Focus on adding bookmakers and getting real users first
 
 The platform is ready for user testing and iterative improvement!
-
----
-
-## Appendix: Automated vs Manual Scraping - Full Analysis
-
-### The Question
-Should we implement automated scraping every 5-10 minutes, or stick with manual refresh?
-
-### Decision: Manual Refresh + Server Caching (CORRECT for MVP)
-
-#### Why Automated Scraping is WRONG for This Project
-
-**1. Premature Optimization**
-- Current traffic: 0-10 test users
-- Automated scraping assumes: Hundreds of concurrent users
-- Reality: Most of the time, zero users are online
-- Result: Wasted scraping 99% of the time
-
-**2. Resource Waste**
-- Scraping every 5 minutes = 288 scrapes per day
-- With 2 bookmakers = 576 bookmaker API calls per day
-- If you have 5 users who each refresh 3 times = 15 scrapes per day needed
-- Waste ratio: 576/15 = **38x more scraping than needed**
-
-**3. Cost Analysis**
-```
-Automated (5 min intervals):
-- 288 scrapes/day × 30 days = 8,640 scrapes/month
-- Server must run 24/7 (even at 3am when no users)
-- ~$50-100/month in server costs
-
-Manual refresh with caching:
-- ~50 scrapes/day × 30 days = 1,500 scrapes/month
-- Server can idle when no traffic
-- ~$20-30/month in server costs
-
-Savings: $30-70/month (60-70% reduction)
-```
-
-**4. IP Ban Risk**
-- Automated scraping = predictable pattern every 5 minutes
-- Bookmakers detect and may block your IP
-- Manual refresh = irregular, human-like pattern
-- Lower detection risk
-
-**5. Complexity Overhead**
-```python
-# Automated scraping requires:
-- Celery worker setup
-- Redis broker configuration
-- Celery beat scheduler
-- Background task monitoring
-- Error handling for failed jobs
-- Dead letter queues
-- Retry logic
-- Alerting when scrapers fail
-
-# Manual refresh requires:
-- None of the above
-- Just the scraper code you already have
-```
-
-**6. Focus Dilution**
-- Time spent setting up Celery: 1-2 days
-- Time spent adding 5 more bookmakers: 1-2 days
-- Which adds more value? **More bookmakers**
-
----
-
-### The RIGHT Approach: Hybrid Manual + Caching
-
-#### Phase 1: Server-Side Caching (Implement NOW)
-
-```python
-# File: apps/api/src/api/routers/odds_matcher.py
-
-from datetime import datetime, timedelta
-
-# Simple in-memory cache
-_cache = {
-    'opportunities': None,
-    'timestamp': None,
-    'scrape_in_progress': False
-}
-
-async def get_matcher_opportunities(...):
-    # Check if cache is valid (2 minute TTL)
-    if _cache['timestamp']:
-        age = datetime.utcnow() - _cache['timestamp']
-        if age < timedelta(minutes=2):
-            logger.info(f"Cache hit - returning cached data ({age.seconds}s old)")
-            return _cache['opportunities']
-
-    # Check if another request is already scraping
-    if _cache['scrape_in_progress']:
-        # Wait a bit and check cache again
-        await asyncio.sleep(2)
-        if _cache['opportunities']:
-            return _cache['opportunities']
-
-    # Set scrape in progress flag
-    _cache['scrape_in_progress'] = True
-
-    try:
-        # Scrape fresh data
-        opportunities = await scrape_and_match()
-
-        # Update cache
-        _cache['opportunities'] = opportunities
-        _cache['timestamp'] = datetime.utcnow()
-
-        return opportunities
-    finally:
-        _cache['scrape_in_progress'] = False
-```
-
-**What this does:**
-- User 1 clicks refresh → scrapes (5-15 seconds)
-- User 2 clicks refresh 30 seconds later → instant (cached)
-- User 3 clicks refresh 1 minute later → instant (cached)
-- User 4 clicks refresh 3 minutes later → scrapes again (cache expired)
-
-**Benefits:**
-- Reduces duplicate scraping by 80-90%
-- Zero infrastructure changes
-- 20 lines of code
-- Works immediately
-
-#### Phase 2: UI Improvements (Implement NOW)
-
-```typescript
-// File: apps/web/src/components/odds-matcher/OddsMatcherClient.tsx
-
-import { formatDistanceToNow } from 'date-fns'
-
-export function OddsMatcherClient() {
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
-  const [isRefreshing, setIsRefreshing] = useState(false)
-
-  const fetchOpportunities = async () => {
-    setIsRefreshing(true)
-    try {
-      const response = await fetch('/api/proxy/odds/matcher?...')
-      const data = await response.json()
-      setOpportunities(data)
-      setLastRefresh(new Date())
-    } finally {
-      setIsRefreshing(false)
-    }
-  }
-
-  const isStale = (date: Date) => {
-    const age = Date.now() - date.getTime()
-    return age > 5 * 60 * 1000  // 5 minutes
-  }
-
-  return (
-    <div>
-      {/* Data Freshness Indicator */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-sm">
-          {lastRefresh ? (
-            <>
-              <span className="text-gray-600">
-                Last updated: {formatDistanceToNow(lastRefresh)} ago
-              </span>
-              {isStale(lastRefresh) && (
-                <span className="flex items-center gap-1 text-amber-600">
-                  <AlertCircle className="w-4 h-4" />
-                  Data may be outdated
-                </span>
-              )}
-            </>
-          ) : (
-            <span className="text-gray-500">No data loaded</span>
-          )}
-        </div>
-
-        {/* Refresh Button with Loading State */}
-        <button
-          onClick={refreshOdds}
-          disabled={isRefreshing}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
-        >
-          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Updating...' : 'Refresh Odds'}
-        </button>
-      </div>
-
-      {/* Show what's happening during refresh */}
-      {isRefreshing && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-          <div className="flex items-center gap-2 text-sm text-blue-800">
-            <Spinner className="w-4 h-4" />
-            <span>Scraping latest odds from TAB and Betfair...</span>
-          </div>
-        </div>
-      )}
-
-      <OddsTable opportunities={opportunities} loading={isRefreshing} />
-    </div>
-  )
-}
-```
-
-**What this does:**
-- Shows when data was last updated
-- Warns if data is >5 minutes old
-- Shows clear loading state during refresh
-- Users know exactly what's happening
-
----
-
-### When You WOULD Need Automated Scraping
-
-**Threshold: 100+ daily active users**
-
-**Calculation:**
-```
-If you have 100 users per day:
-- Average 3 sessions each = 300 sessions/day
-- Average 5 refreshes per session = 1,500 refreshes/day
-- With 2-min caching, each triggers ~1 scrape
-- = ~750 unique scrapes/day
-
-Automated (5 min intervals):
-- 288 scrapes/day
-
-Automated is now BETTER because:
-- 288 < 750
-- Always fresh data (<5 min old)
-- Better UX (instant load)
-```
-
-**Other triggers for automation:**
-1. **Users complain about slow refresh** - "Why do I have to wait?"
-2. **20+ bookmakers** - Scraping takes >30 seconds
-3. **Historical charts needed** - Want to show odds movements over time
-4. **Competitive advantage** - Fastest odds updates wins users
-
----
-
-### Comparison Table
-
-| Aspect | Manual + Cache (MVP) | Automated (Future) |
-|--------|---------------------|-------------------|
-| **Traffic** | 0-100 users/day | 100+ users/day |
-| **Scrapes/day** | 50-200 | 288 |
-| **Cost/month** | $20-30 | $50-100 |
-| **UX (first load)** | 5-15 seconds | Instant |
-| **UX (cached)** | Instant | Instant |
-| **Data freshness** | On-demand | Max 5 min old |
-| **Complexity** | Low | High (Celery) |
-| **IP ban risk** | Low | Medium |
-| **Resource waste** | Minimal | High (if low traffic) |
-| **Setup time** | 2 hours | 1-2 days |
-| **Best for** | ✅ MVP testing | Scale phase |
-
----
-
-### Implementation Checklist
-
-**✅ Phase 1: Server Caching (Do NOW)**
-- [ ] Add cache dictionary to odds_matcher.py
-- [ ] Implement cache check before scraping
-- [ ] Add 2-minute TTL
-- [ ] Add scrape-in-progress flag
-- [ ] Test with multiple concurrent users
-
-**✅ Phase 2: UI Improvements (Do NOW)**
-- [ ] Add lastRefresh state to OddsMatcherClient
-- [ ] Add isRefreshing loading state
-- [ ] Display "Last updated: X ago" timestamp
-- [ ] Add stale data warning (>5 min)
-- [ ] Improve refresh button with loading indicator
-- [ ] Show scraping progress during refresh
-
-**❌ Phase 3: Automated Scraping (Do LATER)**
-- Wait until you have:
-  - [ ] 100+ daily active users
-  - [ ] User complaints about manual refresh
-  - [ ] Budget for increased infrastructure costs
-  - Then revisit this decision
-
----
-
-### Final Verdict
-
-**For your current MVP stage:**
-- ✅ Manual refresh is CORRECT
-- ✅ Server caching is ESSENTIAL
-- ✅ UI improvements are HIGH PRIORITY
-- ❌ Automated scraping is PREMATURE
-
-**Focus your time on:**
-1. Adding more bookmakers (Ladbrokes, Sportsbet, Neds)
-2. Getting real users to test the platform
-3. Validating product-market fit
-4. Server caching + UI improvements (quick wins)
-
-**Don't waste time on:**
-1. Setting up Celery/background jobs
-2. Monitoring/alerting for automated scraping
-3. Infrastructure complexity you don't need yet
-
----
-
-This analysis should be referenced whenever someone suggests "we need automated scraping" - the answer is: "Not yet, we need users first."
-
----
-
-## Appendix: Database Cleanup Strategy
-
-### The Problem: Unbounded Database Growth
-
-Without cleanup, every scrape creates new odds snapshots. Old odds are never deleted.
-
-**Example growth without cleanup:**
-```
-Day 1:   4,000 odds → 4,000 rows
-Day 2:   4,000 odds → 8,000 rows (4k current + 4k old)
-Day 30:  4,000 odds → 120,000 rows
-Day 365: 4,000 odds → 1,460,000 rows (1.46 million!)
-```
-
-**Storage impact:**
-- At 1M rows: ~250 MB, queries slow down
-- At 10M rows: ~2.5 GB, need database optimization
-- PostgreSQL cost: ~$0.10/GB/month = growing costs
-
----
-
-### Solution Implemented: Option 1 - Delete Old Odds Immediately
-
-**What it does:**
-- When new odds arrive, **DELETE** old odds for that selection+bookmaker
-- Only keep current odds (is_current=TRUE)
-- Database stays at constant size (~4,000 rows)
-
-**Implementation:**
-```python
-# File: apps/worker/src/jobs/save_odds.py (lines 317-327)
-
-# Delete old odds to prevent unbounded database growth
-self.db.execute(
-    delete(OddsSnapshot).where(
-        OddsSnapshot.selection_id == selection.id,
-        OddsSnapshot.bookmaker_id == bookmaker.id,
-        OddsSnapshot.is_current == True
-    )
-)
-
-# Then create new odds snapshot
-odds_snapshot = OddsSnapshot(
-    selection_id=selection.id,
-    bookmaker_id=bookmaker.id,
-    decimal_odds=scraped_odds.decimal_odds,
-    is_current=True,
-    ...
-)
-```
-
-**Storage profile:**
-```
-Always:  ~4,000 rows (current odds only)
-Storage: ~1 MB
-Cost:    ~$0.0001/month (negligible)
-```
-
-**Pros:**
-- ✅ Zero storage growth
-- ✅ Simple (no cron jobs needed)
-- ✅ Fast queries (small table)
-- ✅ Perfect for MVP
-
-**Cons:**
-- ❌ No historical odds data
-- ❌ Can't show odds movement charts
-- ❌ Can't analyze historical trends
-
----
-
-### Future Option 2: Keep 7-Day Rolling History
-
-**When to implement:** After you have real users and want historical analysis.
-
-**Strategy:** Delete odds older than 7 days via daily cron job.
-
-```python
-# File: apps/api/src/api/jobs/cleanup_old_odds.py (create this)
-
-from datetime import datetime, timedelta
-from sqlalchemy.orm import Session
-from api.models.odds import OddsSnapshot
-
-def cleanup_old_odds(db: Session, days_to_keep: int = 7):
-    """Delete odds snapshots older than X days."""
-    cutoff_date = datetime.utcnow() - timedelta(days=days_to_keep)
-
-    deleted = db.query(OddsSnapshot).filter(
-        OddsSnapshot.timestamp < cutoff_date
-    ).delete()
-
-    db.commit()
-    print(f"Deleted {deleted:,} old odds (older than {days_to_keep} days)")
-    return deleted
-```
-
-**Cron job (runs daily at 3am):**
-```bash
-# Add to production crontab
-0 3 * * * docker exec mb_api python -m api.jobs.cleanup_old_odds
-```
-
-**Storage profile:**
-```
-Steady state: ~28,000 rows (4k/day × 7 days)
-Storage:      ~7 MB
-Cost:         ~$0.0007/month (negligible)
-```
-
-**Pros:**
-- ✅ Controlled storage growth
-- ✅ Can show recent odds trends
-- ✅ Useful for debugging
-- ✅ Balance between history and cost
-
-**Cons:**
-- ❌ Requires cron/Celery setup
-- ❌ Loses long-term historical data
-
----
-
-### Future Option 3: Archive to S3 Glacier
-
-**When to implement:** If you need long-term analytics and have budget.
-
-**Strategy:** Move odds older than 30 days to cheap S3 storage.
-
-```python
-# File: apps/api/src/api/jobs/archive_old_odds.py (create this)
-
-import boto3
-import json
-from datetime import datetime, timedelta
-
-def archive_old_odds(db: Session, days_before_archive: int = 30):
-    """Archive odds to S3, then delete from database."""
-    cutoff_date = datetime.utcnow() - timedelta(days=days_before_archive)
-
-    # Get old odds
-    old_odds = db.query(OddsSnapshot).filter(
-        OddsSnapshot.timestamp < cutoff_date
-    ).all()
-
-    # Convert to JSON
-    archive_data = [
-        {
-            'selection_id': odds.selection_id,
-            'decimal_odds': float(odds.decimal_odds),
-            'timestamp': odds.timestamp.isoformat()
-        }
-        for odds in old_odds
-    ]
-
-    # Upload to S3 Glacier
-    s3 = boto3.client('s3')
-    filename = f"odds_archive_{cutoff_date.date()}.json"
-    s3.put_object(
-        Bucket='my-odds-archive',
-        Key=f'archives/{filename}',
-        Body=json.dumps(archive_data),
-        StorageClass='GLACIER'  # Cheap storage
-    )
-
-    # Delete from database
-    deleted = db.query(OddsSnapshot).filter(
-        OddsSnapshot.timestamp < cutoff_date
-    ).delete()
-
-    db.commit()
-    return deleted
-```
-
-**Storage costs:**
-```
-PostgreSQL (hot data):  $0.10/GB/month
-S3 Glacier (cold data): $0.004/GB/month (25x cheaper!)
-
-Example:
-- 30 days hot:  ~500 MB = $0.05/month
-- 1 year cold:  ~6 GB   = $0.024/month
-Total:          ~$0.074/month for 13 months of data
-```
-
-**Pros:**
-- ✅ Keep ALL historical data
-- ✅ Very cheap long-term storage
-- ✅ Can retrieve for analytics if needed
-
-**Cons:**
-- ❌ Complex setup (AWS credentials, S3, etc.)
-- ❌ Archived data not immediately queryable
-- ❌ Overkill for early-stage startup
-
----
-
-### Comparison Table
-
-| Strategy | Storage | Cost/Month | Complexity | Historical Data | Best For |
-|----------|---------|------------|------------|-----------------|----------|
-| **Option 1: Delete immediately** | ~1 MB | $0.0001 | Low | None | ✅ **MVP** |
-| Option 2: 7-day rolling | ~7 MB | $0.0007 | Medium | 7 days | Post-launch |
-| Option 3: S3 archive | ~500 MB + archive | $0.074 | High | Unlimited | Mature product |
-| ❌ No cleanup | Growing infinitely | Growing | N/A | All | **Never do this** |
-
----
-
-### Decision: Option 1 is Implemented
-
-**Current status:**
-- ✅ Option 1 is implemented in `save_odds.py`
-- ✅ Old odds are deleted immediately
-- ✅ Database stays at constant size
-- ✅ Zero infrastructure complexity
-
-**When to revisit:**
-1. You have real users asking for historical charts
-2. You want to analyze odds movements
-3. You have budget for S3 or cron jobs
-
-**Until then:** Option 1 is the correct choice for MVP.
-
----
-
-### Monitoring Database Size
-
-Check your database size regularly:
-
-```sql
--- Total rows in odds_snapshots
-SELECT COUNT(*) FROM odds_snapshots;
-
--- Current odds only
-SELECT COUNT(*) FROM odds_snapshots WHERE is_current = true;
-
--- Database size
-SELECT pg_size_pretty(pg_database_size('mb_dev'));
-
--- Table size
-SELECT pg_size_pretty(pg_total_relation_size('odds_snapshots'));
-```
-
-**Expected values with Option 1:**
-- Total rows: ~4,000
-- Current odds: ~4,000
-- Table size: ~1-2 MB
-
-**Red flags (means cleanup isn't working):**
-- Total rows: >10,000 (growing over time)
-- Table size: >10 MB (and growing)
-
-If you see this, the delete is failing - check logs!

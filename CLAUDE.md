@@ -2,9 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+In all interactions and commit messages, be extremely concise and sacrifice grammar for the sake of conciseness. 
 ## Project Overview
 
-Monorepo for an Outmatched.com-style matched betting SaaS platform targeting Australian sports betting markets. The platform scrapes odds from 100+ Australian bookmakers, matches back/lay opportunities, and provides calculators for matched betting strategies.
+Monorepo for an Outmatched.com-style matched betting SaaS platform targeting Australian sports betting markets. The platform scrapes odds from 100+ Australian bookmakers, matches back/lay opportunities, and provides calculators for matched betting strategies. 
 
 ## Architecture
 
@@ -246,3 +247,7 @@ Required in `.env` file (repo root):
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk frontend key
 - `NEXT_PUBLIC_API_URL` - Frontend to API URL (http://localhost:8000)
 - `INTERNAL_API_URL` - Container-to-container URL (http://api:8000)
+
+
+### Plans
+- At the end of each plan, give me a list of unresolved questions to answer, if any. Make the questions extremely concise. Sacrifice grammar for the sake of concision. 

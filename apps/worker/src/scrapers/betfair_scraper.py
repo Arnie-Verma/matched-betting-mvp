@@ -208,10 +208,10 @@ class BetfairScraper(BaseScraper):
                     self.logger.info(f"⏱️  [Betfair] Page load (domcontentloaded) took {nav_time:.2f}s")
 
                     # Wait for bymarket API calls to complete
-                    # Increased from 500ms to 1500ms - 500ms was too short and caused "No bymarket data found" errors
-                    # Still faster than original 2000ms while being reliable
+                    # Increased to 5000ms - bymarket responses arrive AFTER navigation-aggregator
+                    # Debug logs showed bymarket arriving after 3s wait, so increased to 5s
                     wait_start = time.time()
-                    await page.wait_for_timeout(1500)
+                    await page.wait_for_timeout(5000)
                     wait_time = time.time() - wait_start
                     self.logger.info(f"⏱️  [Betfair] Wait after page load took {wait_time:.2f}s")
 
@@ -225,6 +225,12 @@ class BetfairScraper(BaseScraper):
                 except Exception as e:
                     self.logger.error(f"Failed to load {comp_name}: {e}")
                     continue
+
+            # Wait for async response handlers to finish processing
+            # The bymarket responses are captured asynchronously, so we need a small delay
+            # to ensure all responses are fully processed before parsing
+            await asyncio.sleep(1)
+            self.logger.info(f"⏱️  [Betfair] Captured {len(self.captured_data)} total responses")
 
             # Parse captured data into events
             parse_start = time.time()
@@ -242,6 +248,10 @@ class BetfairScraper(BaseScraper):
         """Handle intercepted network responses"""
         try:
             url = response.url
+
+            # Log ALL responses to debug what endpoints are available
+            if response.status == 200 and 'betfair' in url.lower():
+                self.logger.info(f"[DEBUG] Betfair response: {url[:150]}")
 
             # Look for the specific Betfair API endpoints we need
             if response.status == 200:
@@ -263,7 +273,7 @@ class BetfairScraper(BaseScraper):
                                 'timestamp': datetime.now(timezone.utc)
                             })
 
-                            self.logger.debug(f"Captured data from: {url[:100]}...")
+                            self.logger.info(f"✓ Captured data from: {url[:100]}...")
 
                     except Exception as e:
                         self.logger.debug(f"Could not parse response from {url[:100]}: {e}")
