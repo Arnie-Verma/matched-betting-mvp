@@ -1,253 +1,406 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Instructions for Claude Code when working in this repository. Be extremely concise. Sacrifice grammar for conciseness.
 
-In all interactions and commit messages, be extremely concise and sacrifice grammar for the sake of conciseness. 
 ## Project Overview
 
-Monorepo for an Outmatched.com-style matched betting SaaS platform targeting Australian sports betting markets. The platform scrapes odds from 100+ Australian bookmakers, matches back/lay opportunities, and provides calculators for matched betting strategies. 
+Matched betting SaaS platform (Outmatched.com-style) for Australian market.
+**Stack**: Next.js 14 + FastAPI + PostgreSQL + Redis + Docker
+**Business**: Freemium (Free: 2 bookmakers, Premium: 16, Diamond: 103)
+
+Scrapes odds from bookmakers (TAB) and exchange (Betfair) to find guaranteed profit opportunities by placing back + lay bets.
+
+---
 
 ## Architecture
 
+### Services
+- **mb_web** (3000): Next.js + Clerk auth + Tailwind
+- **mb_api** (8000): FastAPI + PostgreSQL + JWT
+- **mb_db** (5432): PostgreSQL 16 + Alembic
+- **mb_redis** (6379): Redis cache/queue
+
 ### Monorepo Structure
-- **apps/web** - Next.js 14 + Tailwind + shadcn UI components + Clerk auth
-- **apps/api** - FastAPI (Python) REST API with JWT authentication
-- **apps/worker** - Python workers for bookmaker scraping and background jobs
-- **packages/shared** - Shared types/schemas/utils (currently minimal)
-- **infra/dev** - Docker Compose for local development
+```
+apps/
+├── web/         # Next.js frontend
+├── api/         # FastAPI backend
+└── worker/      # Scrapers + background jobs
+packages/shared/ # Shared types/utils
+infra/dev/       # Docker Compose
+```
 
-### Key Services
-- **mb_web** (port 3000) - Next.js frontend with Server Components + API routes for proxying
-- **mb_api** (port 8000) - FastAPI backend with PostgreSQL + Redis
-- **mb_db** (port 5432) - PostgreSQL 16 with Alembic migrations
-- **mb_redis** (port 6379) - Redis for caching and queue management
+---
 
-## Development Commands
+## Quick Start
 
-### Docker Operations
 ```bash
-# Start all services (from repo root)
+# Start services
 pnpm dev:up
 
-# Stop and remove volumes
-pnpm dev:down
-
-# View logs for api + web
-pnpm dev:logs
-
-# Check running containers
-pnpm dev:ps
-```
-
-### Database Migrations
-```bash
-# Run migrations (inside mb_api container)
+# Migrations + seed
 docker exec mb_api alembic upgrade head
-
-# Create new migration
-docker exec mb_api alembic revision --autogenerate -m "description"
-
-# Seed database
 docker exec mb_api python -m api.scripts.seed_all_bookmakers
 docker exec mb_api python -m api.scripts.seed_plans
+
+# Manual scrape
+docker exec mb_api python ../worker/src/manual_scrape.py
+
+# Access
+# http://localhost:3000 - Frontend
+# http://localhost:8000/docs - API
 ```
 
-### Testing Scrapers
+---
+
+## Common Commands
+
 ```bash
-# Test TAB scraper (inside container where dependencies exist)
-docker exec mb_api python test_tab_scraper.py
+# Docker
+pnpm dev:down               # Stop all
+pnpm dev:logs               # View logs
+docker restart mb_web       # Restart service
 
-# Or run inside container
-docker exec -it mb_api bash
-python test_tab_scraper.py
-```
+# Database
+docker exec mb_api alembic revision --autogenerate -m "msg"
+docker exec -it mb_db psql -U postgres -d mb_dev
 
-### Web Development
-```bash
-# Linting (from apps/web)
-pnpm lint
-
-# Type checking
-pnpm type-check
-
-# These can also be run via Docker:
+# Linting
 docker exec mb_web pnpm lint
 docker exec mb_web pnpm type-check
 ```
 
+---
+
 ## Database Schema
 
-### Core Models (apps/api/src/api/models/)
+**odds.py** (main schema):
+- `Sport`, `Competition`, `Event` (matches)
+- `Market`, `Selection`, `OddsSnapshot` (time-series odds)
+- `Bookmaker` (103 seeded with tier: FREE/PREMIUM/PLATINUM)
 
-**odds.py** - Primary odds and betting schema:
-- `Sport` - Sports taxonomy (AFL, NRL, Soccer, etc.)
-- `Competition` - Leagues/tournaments within sports (EPL, NBA, etc.)
-- `Event` - Individual matches/games with team/venue data
-- `Market` - Betting markets (match_winner, handicap, total_points)
-- `Selection` - Outcomes within markets (home/away/draw)
-- `OddsSnapshot` - Time-series odds data from bookmakers
-- `Bookmaker` - Bookmaker metadata with tier structure
-
-**subscription.py** - Billing and plans:
-- `Plan` - Pricing tiers (Free: 2 bookmakers, Premium: 16, Diamond: 103)
-- `Subscription` - User subscription status with Stripe integration
-
-**user.py** - User management with Clerk integration
+**subscription.py**: `Plan`, `Subscription` (Stripe integration)
+**user.py**: User management (Clerk)
 
 ### Tier Structure
-Bookmakers are organized in cumulative tiers stored in `bookmakers.scraping_config` JSON field:
-- **FREE** (2 active): TAB, Ladbrokes
-- **PREMIUM** (14 inactive): Sportsbet, Neds, Betfair, Pointsbet, UniBet, etc.
-- **PLATINUM** (87 inactive): All remaining bookmakers
+Bookmakers stored in `bookmakers.scraping_config` JSON:
+- FREE (2): TAB, Ladbrokes
+- PREMIUM (14): Sportsbet, Neds, Betfair, Pointsbet, etc.
+- PLATINUM (87): All remaining
 
-Premium users get Free + Premium bookmakers (16 total). Diamond users get all 103.
+Premium = Free + Premium (16 total). Diamond = all 103.
 
-## Scraping Architecture
+---
 
-### Base Framework (apps/worker/src/scrapers/base.py)
+## Production Engineering
 
-All scrapers inherit from `BaseScraper` and return standardized data structures:
-- `ScrapedEvent` - Event with home/away teams, start time, sport, competition
-- `ScrapedOdds` - Individual odds with market type, selection, decimal odds
-- `ScrapeResult` - Complete scrape result with status, errors, event count
+### Monitoring & Error Handling
+**Critical for 1000+ users**: Each scraper must enable quick identification and resolution of failures.
 
-### Scraper Implementation Pattern
+**Requirements**:
+1. **Structured logging**: `logger.error(f"[{bookmaker_code}] Failed: {sport}/{competition} - {error}")` with bookmaker/sport/competition context
+2. **Error isolation**: One bookmaker failure doesn't crash entire scrape
+3. **Status tracking**: `ScrapeResult.status` (SUCCESS/PARTIAL/FAILED) + `errors[]` list
+4. **Metric logging**: Events scraped, odds count, duration per bookmaker
+5. **Alerting-ready**: Log format parseable for monitoring tools (Sentry/Datadog)
 
-Each scraper must implement:
-1. `scrape_sport(sport: str, limit: Optional[int])` - Main entry point
-2. `parse_event(event_data: Dict)` - Parse event from API/HTML
-3. `parse_odds(odds_data)` - Extract odds from bookmaker format
+**Example log output**:
+```
+[TAB] Starting scrape: soccer
+[TAB] English Premier League: 20 events, 7800 odds (6.2s)
+[TAB] ERROR: A-League failed - 403 Forbidden
+[TAB] Completed: 20 events, 7800 odds (PARTIAL)
+```
 
-### Anti-Bot Handling (TAB Example)
+### Architecture Principles
+**Simplicity for scale**:
+1. **Server-side only**: All scraping from single cloud server (not per-user)
+2. **Global cache**: 5-15 min TTL shared across all users
+3. **Two-tier scraping**: Proxy for anti-bot sites (TAB), direct for easy sites (Betfair)
+4. **Graceful degradation**: Missing bookmaker = skip silently, continue others
+5. **Idempotent operations**: Re-running scrape safe (upserts, not inserts)
 
-TAB uses extensive anti-bot protection requiring:
-- Browser-like headers (User-Agent, Origin, Referer, sec-ch-ua, sec-fetch-*)
-- Session cookies (_tgpc, bm_sz, _abck, ak_bmsc)
-- Jurisdiction parameter (VIC, NSW, QLD)
+---
 
-Reference: Outmatched.com.au successfully scrapes TAB with banner "Performance Notice: TAB may have slower loading times due to strong anti-bot measures."
+## Scrapers
 
-For TAB and similar bookmakers, use Playwright/browser automation to handle cookies automatically.
+### Base Framework (base.py)
+All inherit from `BaseScraper`. Must implement:
+- `scrape_sport(sport, limit)` - Main entry
+- `parse_event(event_data)` - Parse event
+- `parse_odds(odds_data, event)` - Extract odds
 
-### TAB API Structure
+Returns: `ScrapeResult` with `ScrapedEvent[]` + `ScrapedOdds[]`
 
-- Base: `https://api.beta.tab.com.au`
-- Endpoint: `/v1/tab-info-service/sports/{Sport}/competitions/{Competition}/matches?jurisdiction=VIC`
-- Sports use capitalized names: "Soccer", "Australian Rules", "Rugby League"
-- Response has `matches[]` with `contestants[]` (HOME/AWAY), `markets[]`, `propositions[]`
-- Odds field: `returnWin` (decimal format)
+**Production logging pattern**:
+```python
+self.logger.info(f"[{self.bookmaker_code}] Starting: {sport}")
+self.logger.info(f"[{self.bookmaker_code}] {comp}: {len(events)} events")
+self.logger.error(f"[{self.bookmaker_code}] Failed {comp}: {error}")
+```
+
+### TAB Scraper (tab_scraper.py)
+**Status**: EPL-only works (~7,800 odds, ~6s). Multi-competition blocked by Akamai without proxy.
+
+**API**: `https://api.beta.tab.com.au/v1/tab-info-service/sports/{Sport}/competitions/{Competition}/matches?jurisdiction=VIC`
+
+**Discover competition names**:
+```bash
+curl "https://api.beta.tab.com.au/v1/tab-info-service/sports/{Sport}/competitions?jurisdiction=VIC"
+# Example: sports/Soccer/competitions
+```
+
+**Sport codes**: "Soccer", "Australian Rules", "Rugby League", "Basketball", "Ice Hockey"
+
+**Competition names** (exact match):
+- Soccer: "English Premier League", "A League Men", "Italian Serie A", "Spanish Primera Division", "German Bundesliga", "French Ligue 1", "UEFA Champions League", "Major League Soccer"
+- AFL: "AFL"
+- NRL: "NRL"
+- Basketball: "NBA"
+- Hockey: "NHL"
+
+**HATEOAS pattern**: Matches endpoint returns `_links.markets` URLs. Must fetch markets separately (N+1).
+
+### Betfair Scraper (betfair_scraper.py)
+**Status**: Working (60 lay odds, ~9s)
+
+**Method**: Playwright browser automation. Intercepts network calls to capture:
+- `navigation-aggregator` (fixtures)
+- `bymarket` (odds + liquidity)
+
+**URL pattern**: `https://www.betfair.com.au/exchange/plus/{sport-category}/competition/{COMP_ID}`
+
+**Competition IDs** (verified from URLs):
+| Competition | ID | Sport Category |
+|-------------|-----|----------------|
+| EPL | 10932509 | football |
+| A-League | 12117172 | football |
+| La Liga | 117 | football |
+| Bundesliga | 59 | football |
+| Serie A | 81 | football |
+| Ligue 1 | 55 | football |
+| Champions League | 228 | football |
+| MLS | 141 | football |
+| AFL | 11897406 | australian-rules |
+| NRL | 10564377 | rugby-league |
+| NBA | 10547864 | basketball |
+| NBL | 10533436 | basketball |
+| NHL | 12550521 | ice-hockey |
+| Boxing | 10817625 | boxing |
+
+**Critical timing**: Wait 5s after page load + 1s async delay for response handlers. Responses arrive asynchronously.
+
+---
+
+## CRITICAL: TAB Scraping Constraints
+
+**Production scale**: 1000+ users sharing same cached odds. Scraper IP/proxy reputation is shared resource.
+
+### Golden Rules
+1. **1-3 sec delays** between requests to same domain
+2. **Cache 5-15 min TTL** minimum
+3. **Sequential requests only** without proxy - never parallel to same bookmaker
+4. **Test conservatively** - failed tests burn IP reputation
+5. **Rate limit globally** - all users share cache
+
+### What Fails for TAB
+**Without proxy**:
+- ❌ Sequential multi-competition → Blocked after 3-4 requests (Akamai detects scanning pattern)
+- ❌ Parallel requests → First 3-4 work, rest 403 (same detection)
+- ❌ Repeated use from same IP → IP blocked after hours/days of use
+
+**Always fails** (even with proxy):
+- ❌ Playwright → TRIGGERS Akamai immediately (worse than direct httpx)
+- ❌ Cloudflare Workers → Edge IP ranges blocked by TAB
+
+**With rotating proxy**:
+- ✅ Parallel OK → Different IP per request prevents pattern detection
+- ✅ Sequential OK → Can scrape all competitions reliably
+
+**Root cause**: Akamai detects "bot scanning multiple endpoints from same IP" pattern.
+
+### Outmatched.com Owner (Patrick) - Direct Quotes
+
+**Context**: Reached out to Outmatched.com owner to understand their production architecture.
+
+**On scraping approach**:
+> "currently scraping the data myself"
+
+**On cloud infrastructure**:
+> "I'm not using my own personal home IP address of course, I'm using a server in the cloud. But even still if you use the same IP they can ban you."
+
+**On rotating proxies for TAB**:
+> "So for the websites with more anti bot prevention I have to use a proxy. That's basically somewhere I can send my request and they send it to TAB instead of my IP sending it. That way the IP address appears different to them every time and they can't ban me."
+
+**Confirmed architecture**:
+1. Cloud server (not personal IP) - Likely VPS/cloud instance
+2. **Rotating residential proxy** for anti-bot sites (TAB, etc.)
+3. Direct scraping for easy bookmakers (Betfair)
+4. Shows "Performance Notice: TAB may have slower loading times" (acknowledges proxy latency)
+5. Legal stance: Scraping generally legal, bookies have "bigger fish to fry"
+
+**Key insight**: Two-tier approach minimizes cost (proxy only for ~20% of bookmakers).
+
+### Recommended Solution
+**Option A** (Production): Cloud server + rotating proxy ($15-30/mo)
+- SmartProxy/Bright Data for TAB
+- Direct requests for Betfair/easy bookmakers
+- Two-tier approach minimizes cost
+
+**Option B** (MVP): EPL-only, accept blocking risk, rotate cloud providers
+
+**Option C** (Free): Betfair-only until revenue justifies proxy
+
+### Proxy Decision Framework
+**NEEDS PROXY** (403/429 after 3-5 requests):
+- TAB (confirmed), Ladbrokes, Sportsbet (likely)
+
+**NO PROXY** (consistent 200 OK):
+- Betfair (designed for API access)
+
+Test protocol: 5 sequential requests → 10 burst requests. If any 403 → needs proxy.
+
+**Cost optimization**: 20% bookmakers need proxy (~$30/mo), 80% direct (free) vs 100% proxy ($144/mo).
+
+---
+
+## API Architecture
+
+### Key Routers (apps/api/src/api/routers/)
+- `odds_matcher.py` - Main matching endpoint
+- `billing.py` - Stripe checkout
+- `auth.py` - Clerk webhooks
+- `odds_matcher_mock.py` - DELETE when scraping works
+
+### Matching Engine (matching_engine.py)
+1. Query events (next 14 days, filtered)
+2. Filter markets: Only Result/Match Odds/H2H (exclude HTResult, H2Result, combined)
+3. Group events by normalized name ("Man Utd" → "manutd")
+4. Find best back (highest) + lay odds (Betfair)
+5. Calculate PnL (6% commission)
+6. Sort by PnL% (best first: -7% > -10%)
+
+**Market filter**:
+```python
+Market.name.ilike('%result')
+  AND NOT ('%htresult%' OR '%h2result%' OR '%both%' OR '%rou%')
+```
+
+### Subscription Service (subscription_service.py)
+`get_allowed_bookmakers(user_id)` - Returns bookmakers based on user plan.
+
+---
+
+## Frontend Architecture
+
+### Structure (apps/web/src/)
+```
+app/
+├── dashboard/odds-matcher/   # Main UI
+├── billing/                  # Pricing plans
+└── api/proxy/               # Backend proxying
+
+components/
+├── odds-matcher/
+│   ├── OddsMatcherClient.tsx     # Main table + filters
+│   └── BetCalculatorModal.tsx    # PnL calculator
+└── billing/PricingPlans.tsx
+```
+
+### API Proxying
+Next.js routes proxy to FastAPI:
+```typescript
+// Browser → API
+NEXT_PUBLIC_API_URL=http://localhost:8000
+
+// Container → Container
+INTERNAL_API_URL=http://api:8000
+```
+
+---
 
 ## Authentication
 
 ### Clerk Integration
-- Frontend: `@clerk/nextjs` with middleware protection
-- Backend: JWT validation via `api.core.auth.verify_clerk_jwt()`
-- Environment variables: `CLERK_SECRET_KEY`, `CLERK_ISSUER`, `MB_AUTH_JWKS_URL`, `MB_AUTH_AUDIENCE`
+- Frontend: `@clerk/nextjs` with middleware
+- Backend: JWT via `verify_clerk_jwt()`
+- Env: `CLERK_SECRET_KEY`, `CLERK_ISSUER`, `MB_AUTH_JWKS_URL`, `MB_AUTH_AUDIENCE`
 
-### Protected Routes
-API routes use `verify_clerk_jwt()` dependency to extract user ID from JWT.
+---
 
-## API Architecture
+## Environment Variables
 
-### Router Organization (apps/api/src/api/routers/)
-- `auth.py` - Clerk webhook handlers
-- `billing.py` - Stripe checkout, plans, subscriptions
-- `stripe_webhooks.py` - Stripe webhook handlers
-- `odds_matcher.py` - Real odds matching endpoint
-- `odds_matcher_mock.py` - Mock data (DELETE when scraping works)
-- `plan_demo.py` - Plan enforcement demo
+```bash
+# Database
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mb_dev
+REDIS_URL=redis://localhost:6379
 
-### Subscription Service (apps/api/src/api/services/subscription_service.py)
-- `get_allowed_bookmakers(user_id)` - Returns cumulative bookmaker list based on plan
-- Plan enforcement at API level for odds filtering
+# Clerk
+CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 
-### Matching Engine (apps/api/src/api/services/matching_engine.py)
-Calculates matched betting opportunities:
-- Filters by minimum profit, stake range, bet type
-- Calculates commission-adjusted lay stakes
-- Returns sorted opportunities by profit percentage
+# Stripe
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 
-## Frontend Architecture
+# API URLs
+NEXT_PUBLIC_API_URL=http://localhost:8000
+INTERNAL_API_URL=http://api:8000
 
-### Next.js App Router Structure (apps/web/src/app/)
-- `dashboard/` - Protected dashboard pages
-- `dashboard/odds-matcher/` - Main odds matching UI
-- `billing/` - Pricing plans and subscription management
-- `api/proxy/` - API route handlers for backend proxying
-
-### Key Components (apps/web/src/components/)
-- `odds-matcher/OddsMatcherClient.tsx` - Main odds table with filters
-- `odds-matcher/BetCalculatorModal.tsx` - Interactive bet calculator
-- `billing/PricingPlans.tsx` - Clean pricing cards matching Outmatched style
-- `navigation/PostLoginHeader.tsx` - Dashboard navigation
-
-### API Proxying Pattern
-Frontend uses Next.js API routes to proxy to FastAPI:
-```typescript
-// apps/web/src/app/api/proxy/odds/matcher/route.ts
-const response = await fetch(`${INTERNAL_API_URL}/odds/matcher`, {
-  headers: { Authorization: `Bearer ${token}` }
-});
+# Future: Proxy (when scaling multi-competition)
+# RESIDENTIAL_PROXY_URL=http://user:pass@proxy:port
 ```
 
-Uses `INTERNAL_API_URL=http://api:8000` for container-to-container communication.
+---
 
-## Current Development Status
+## Current Status
 
-### Completed
-- Database schema with 103 bookmakers + 3 pricing plans seeded
-- Billing UI with Stripe integration
-- Odds Matcher UI with mock data
-- Worker scraping framework with BaseScraper
-- TAB scraper updated with real API structure
+### ✅ Working
+- TAB scraper: EPL-only, ~7,800 odds
+- Betfair scraper: ~60 lay odds with liquidity
+- Odds matcher UI + auto-load + filters
+- Matching engine (6% commission)
+- Auth (Clerk) + Billing (Stripe)
 
-### In Progress
-- TAB scraper anti-bot handling (needs Playwright or similar)
-- Real odds data integration (currently using mock endpoint)
+### 🚧 Next
+- Rotating proxy for TAB multi-competition scaling
+- Ladbrokes scraper (complete free tier)
+- Premium bookmakers (14 more)
+- Refresh button integration
 
-### Pending
-- Ladbrokes scraper API discovery
-- Betfair API setup (requires SSL cert authentication)
-- Database integration (save_odds.py to persist scraped data)
-- Switch UI from /matcher-mock to /matcher endpoint
-- Activate additional bookmakers for Premium/Diamond tiers
+---
 
 ## Important Notes
 
 ### Seasonality
-- AFL is out of season (October) - focus on EPL/Soccer which is currently active
-- All Australian bookmakers heavily cover EPL with high Betfair liquidity
+- AFL out of season (Oct-Mar)
+- Focus on EPL/soccer (currently active)
+- All AU bookmakers heavily cover EPL
 
-### Mock Data
-The Odds Matcher currently uses `/api/proxy/odds/matcher-mock` endpoint. When real scraping works:
-1. Update `apps/web/src/components/odds-matcher/OddsMatcherClient.tsx` to use `/matcher`
-2. Delete `apps/api/src/api/routers/odds_matcher_mock.py`
-3. Remove router from `apps/api/src/api/main.py`
+### Database Cleanup
+Old odds deleted immediately to prevent growth (`save_odds.py:317`).
 
 ### Scraper Testing
-Always test scrapers inside Docker containers where dependencies (httpx, playwright, tenacity) are installed. Don't run locally unless you've installed all dependencies.
+Always test inside Docker containers where dependencies exist.
 
-### Database Naming
-The database is named `mb_dev`, not `matched_betting`. Use:
+Database name: `mb_dev` (not `matched_betting`)
+
+---
+
+## Troubleshooting
+
+**No odds showing**:
 ```bash
-docker exec -it mb_db psql -U postgres -d mb_dev
+docker exec mb_db psql -U postgres -d mb_dev -c "SELECT COUNT(*) FROM odds_snapshots WHERE is_current = true;"
+docker exec mb_api python ../worker/src/manual_scrape.py
 ```
 
-## Environment Variables
+**Betfair fails**: Increase wait time if "No bymarket data found". Check logs: `docker logs mb_api | grep -i betfair`
 
-Required in `.env` file (repo root):
-- `DATABASE_URL` - PostgreSQL connection string
-- `REDIS_URL` - Redis connection string
-- `CLERK_SECRET_KEY` - Clerk authentication
-- `CLERK_ISSUER` - Clerk JWT issuer
-- `MB_AUTH_JWKS_URL` - Clerk JWKS endpoint
-- `MB_AUTH_AUDIENCE` - Clerk audience
-- `STRIPE_SECRET_KEY` - Stripe API key
-- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk frontend key
-- `NEXT_PUBLIC_API_URL` - Frontend to API URL (http://localhost:8000)
-- `INTERNAL_API_URL` - Container-to-container URL (http://api:8000)
+**Web not starting**: `docker logs mb_web --tail 50 && docker restart mb_web`
 
+---
 
-### Plans
-- At the end of each plan, give me a list of unresolved questions to answer, if any. Make the questions extremely concise. Sacrifice grammar for the sake of concision. 
+## Plans
+
+At plan end, list unresolved questions. Extremely concise. Sacrifice grammar for concision.

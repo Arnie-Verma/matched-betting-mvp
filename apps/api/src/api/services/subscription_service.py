@@ -254,13 +254,13 @@ class SubscriptionService:
         Get list of bookmaker codes allowed for user's plan.
 
         Tier structure is CUMULATIVE:
-        - Free tier: TAB, Ladbrokes (2 bookmakers)
-        - Premium tier: Free + 13 more = 15 total
-        - Platinum tier: Premium + all others = 100+ total
+        - Free tier: TAB (bookmaker) + Betfair (exchange for lay bets)
+        - Premium tier: Free + 14 more bookmakers = 16 total
+        - Platinum tier: All 103 bookmakers
         """
         plan = user.current_plan.lower()
 
-        # Free tier: Only TAB and Betfair (for testing with real data)
+        # Free tier: TAB (bookmaker) + Betfair (exchange - required for lay bets)
         if plan == "free":
             return ["tab", "betfair"]
 
