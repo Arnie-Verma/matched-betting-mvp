@@ -253,34 +253,41 @@ class SubscriptionService:
         """
         Get list of bookmaker codes allowed for user's plan.
 
-        Tier structure is CUMULATIVE:
-        - Free tier: TAB (bookmaker) + Betfair (exchange for lay bets)
-        - Premium tier: Free + 14 more bookmakers = 16 total
-        - Platinum tier: All 103 bookmakers
+        Tier structure is CUMULATIVE (bookmakers only - Betfair always included as exchange):
+        - Free tier: 2 bookmakers (Ladbrokes + Neds) + Betfair (exchange)
+        - Premium tier: Free (2) + 14 more bookmakers = 16 total + Betfair
+        - Platinum tier: All 103 bookmakers + Betfair
+
+        Note: Betfair is ALWAYS included as it's the exchange (provides lay odds), not a bookmaker.
         """
         plan = user.current_plan.lower()
 
-        # Free tier: TAB (bookmaker) + Betfair (exchange - required for lay bets)
+        # Free tier: 2 bookmakers (Ladbrokes + Neds) + Betfair (exchange - always included)
         if plan == "free":
-            return ["tab", "betfair"]
+            return ["ladbrokes", "neds", "betfair"]
 
-        # Premium tier: Free (2) + Premium (13) = 15 total
+        # Premium tier: Free bookmakers (2) + Premium bookmakers (14) = 16 total + Betfair
         if plan == "premium":
             return [
-                # Free tier bookmakers
-                "tab", "ladbrokes",
-                # Premium tier bookmakers (13)
-                "sportsbet", "neds", "betfair", "pointsbet", "unibet",
+                # Free tier bookmakers (2)
+                "ladbrokes", "neds",
+                # Premium tier bookmakers (14)
+                "tab", "sportsbet", "pointsbet", "unibet",
                 "betr", "betdeluxe", "betright", "crossbet", "dabble",
-                "elitebet", "tabtouch", "realbookie", "picklebet"
+                "elitebet", "tabtouch", "realbookie", "picklebet", "bluebet",
+                # Exchange (always included)
+                "betfair"
             ]
 
-        # Platinum tier: All bookmakers (active + inactive)
-        # Platinum users get everything
+        # Platinum tier: All bookmakers + Betfair
         if plan == "platinum" or plan == "diamond":
-            # Return ALL bookmakers in the database
+            # Return ALL bookmakers in the database + Betfair
             bookmakers = db.query(Bookmaker).all()
-            return [bm.code for bm in bookmakers]
+            bookmaker_codes = [bm.code for bm in bookmakers]
+            # Ensure Betfair is included
+            if "betfair" not in bookmaker_codes:
+                bookmaker_codes.append("betfair")
+            return bookmaker_codes
 
         # Default: free tier
-        return ["tab", "ladbrokes"]
+        return ["ladbrokes", "neds", "betfair"]

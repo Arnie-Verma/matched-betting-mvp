@@ -21,7 +21,6 @@ src/api/routers/billing.py
 src/api/routers/health.py
 src/api/routers/metadata.py
 src/api/routers/odds_matcher.py
-src/api/routers/odds_matcher_mock.py
 src/api/routers/plan_demo.py
 src/api/routers/stripe_webhooks.py
 src/api/routers/whoami.py

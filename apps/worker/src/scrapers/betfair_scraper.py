@@ -47,20 +47,33 @@ class BetfairScraper(BaseScraper):
         # Betfair Exchange URLs
         self.exchange_base = "https://www.betfair.com.au/exchange/plus"
 
-        # Competition URLs mapping
-        # OPTIMIZED: Only scrape EPL for speed (can add more later)
+        # Competition URLs mapping - All 14 target sports
         self.competition_urls = {
             "soccer": {
                 "English Premier League": f"{self.exchange_base}/football/competition/10932509",
-                # Disabled for speed - add back if needed:
-                # "UEFA Champions League": f"{self.exchange_base}/football/competition/228",
-                # "La Liga": f"{self.exchange_base}/football/competition/117",
+                "A-League Men": f"{self.exchange_base}/football/competition/12117172",
+                "Spanish La Liga": f"{self.exchange_base}/football/competition/117",
+                "German Bundesliga": f"{self.exchange_base}/football/competition/59",
+                "Italian Serie A": f"{self.exchange_base}/football/competition/81",
+                "French Ligue 1": f"{self.exchange_base}/football/competition/55",
+                "UEFA Champions League": f"{self.exchange_base}/football/competition/228",
+                "Major League Soccer": f"{self.exchange_base}/football/competition/141",
             },
             "afl": {
                 "AFL": f"{self.exchange_base}/australian-rules/competition/11897406"
             },
             "nrl": {
-                "NRL": f"{self.exchange_base}/rugby-league/competition/10139818"
+                "NRL": f"{self.exchange_base}/rugby-league/competition/10564377"
+            },
+            "basketball": {
+                "NBA": f"{self.exchange_base}/basketball/competition/10547864",
+                "NBL": f"{self.exchange_base}/basketball/competition/10533436",
+            },
+            "ice_hockey": {
+                "NHL": f"{self.exchange_base}/ice-hockey/competition/12550521"
+            },
+            "boxing": {
+                "Boxing": f"{self.exchange_base}/boxing/competition/10817625"
             }
         }
 
@@ -173,6 +186,9 @@ class BetfairScraper(BaseScraper):
         # Clear captured data from previous scrapes (prevent memory accumulation)
         self.captured_data = []
 
+        # Track current competition for proper labeling
+        self._current_competition = None
+
         # Get or reuse browser instance (HUGE speedup on subsequent runs)
         browser = await self._get_or_create_browser()
 
@@ -192,11 +208,14 @@ class BetfairScraper(BaseScraper):
                 self._handle_response(response)
             ))
 
-            # Navigate to EPL page (hardcoded for now)
+            # Navigate to each competition page
             competitions = self.competition_urls.get(sport, {})
             for comp_name, url in competitions.items():
                 comp_start = time.time()
                 self.logger.info(f"⏱️  [Betfair] Navigating to {comp_name}: {url}")
+
+                # Track current competition for proper labeling
+                self._current_competition = comp_name
 
                 try:
                     # Navigate with domcontentloaded (MUCH faster than networkidle)
@@ -270,10 +289,12 @@ class BetfairScraper(BaseScraper):
                             self.captured_data.append({
                                 'url': url,
                                 'data': data,
-                                'timestamp': datetime.now(timezone.utc)
+                                'timestamp': datetime.now(timezone.utc),
+                                'competition': getattr(self, '_current_competition', 'Unknown')
                             })
 
-                            self.logger.info(f"✓ Captured data from: {url[:100]}...")
+                            comp = getattr(self, '_current_competition', 'Unknown')
+                            self.logger.info(f"✓ Captured data from {comp}: {url[:80]}...")
 
                     except Exception as e:
                         self.logger.debug(f"Could not parse response from {url[:100]}: {e}")
@@ -285,7 +306,7 @@ class BetfairScraper(BaseScraper):
         """Parse captured network data into ScrapedEvent objects"""
         events_dict: Dict[str, ScrapedEvent] = {}  # Key by event ID
         fixtures_data = None
-        bymarket_events = {}  # event_id -> event_data with markets
+        bymarket_events = {}  # event_id -> {event_data, competition}
 
         self.logger.info(f"Parsing {len(self.captured_data)} captured responses")
 
@@ -294,6 +315,7 @@ class BetfairScraper(BaseScraper):
             try:
                 url = capture['url']
                 data = capture['data']
+                competition = capture.get('competition', 'Unknown')
 
                 # Check if this is the navigation-aggregator (fixtures)
                 if 'navigation-aggregator' in url:
@@ -311,20 +333,24 @@ class BetfairScraper(BaseScraper):
                             for event_node in event_nodes:
                                 event_id = str(event_node.get('eventId', ''))
                                 if event_id:
+                                    # Store event with competition info
                                     # Only store if we don't already have this event, OR if this one has better data
-                                    # Some bymarket responses have full event data, others just have market prices
                                     if event_id not in bymarket_events:
-                                        bymarket_events[event_id] = event_node
-                                        self.logger.debug(f"Stored new event {event_id}")
+                                        bymarket_events[event_id] = {
+                                            'node': event_node,
+                                            'competition': competition
+                                        }
+                                        self.logger.debug(f"Stored new event {event_id} from {competition}")
                                     else:
                                         # If existing entry has no 'event' key but new one does, replace it
-                                        existing_has_event = 'event' in bymarket_events[event_id]
+                                        existing_has_event = 'event' in bymarket_events[event_id]['node']
                                         new_has_event = 'event' in event_node
                                         if new_has_event and not existing_has_event:
-                                            bymarket_events[event_id] = event_node
-                                            self.logger.debug(f"Updated event {event_id} with better data")
-                                        else:
-                                            self.logger.debug(f"Skipped duplicate event {event_id}")
+                                            bymarket_events[event_id] = {
+                                                'node': event_node,
+                                                'competition': competition
+                                            }
+                                            self.logger.debug(f"Updated event {event_id} with better data from {competition}")
 
             except Exception as e:
                 self.logger.debug(f"Could not parse captured data: {e}")
@@ -349,20 +375,19 @@ class BetfairScraper(BaseScraper):
         """
         Parse events directly from bymarket data.
 
-        bymarket_events structure:
+        bymarket_events structure (after our update):
         {
             "34782800": {
-                "eventId": 34782800,
-                "event": {
-                    "eventName": "Man City v Everton",
-                    "countryCode": "GB",
-                    "openDate": "2025-10-18T14:00:00.000Z"
+                "node": {
+                    "eventId": 34782800,
+                    "event": {
+                        "eventName": "Man City v Everton",
+                        "countryCode": "GB",
+                        "openDate": "2025-10-18T14:00:00.000Z"
+                    },
+                    "marketNodes": [...]
                 },
-                "marketNodes": [{
-                    "marketId": "1.248324306",
-                    "description": {"marketName": "Match Odds"},
-                    "runners": [{"description": {"runnerName": "Man City"}, "exchange": {"availableToLay": [...]}}]
-                }]
+                "competition": "English Premier League"
             }
         }
         """
@@ -370,12 +395,16 @@ class BetfairScraper(BaseScraper):
 
         self.logger.info(f"Parsing {len(bymarket_events)} events from bymarket data")
 
-        for event_id, event_node in bymarket_events.items():
+        for event_id, event_data in bymarket_events.items():
             try:
+                # Extract node and competition from our structure
+                event_node = event_data.get('node', event_data)  # Fallback for old structure
+                competition = event_data.get('competition', 'Unknown')
+
                 # Extract event metadata
-                event_data = event_node.get('event', {})
-                event_name = event_data.get('eventName', '')
-                open_date = event_data.get('openDate', '')
+                event_meta = event_node.get('event', {})
+                event_name = event_meta.get('eventName', '')
+                open_date = event_meta.get('openDate', '')
 
                 if not event_name:
                     self.logger.debug(f"Skipping event {event_id} - no name")
@@ -390,8 +419,10 @@ class BetfairScraper(BaseScraper):
                 # Extract teams from event name
                 home_team, away_team = self._extract_teams_from_name(event_name)
 
-                # Get competition from fixtures data if available
-                competition = self._get_competition_for_event(event_id, fixtures_data)
+                # Use the competition we tracked during navigation (much more reliable!)
+                # Only fall back to fixtures_data lookup if competition is still Unknown
+                if competition == 'Unknown':
+                    competition = self._get_competition_for_event(event_id, fixtures_data)
 
                 # Create event
                 event = ScrapedEvent(
@@ -417,7 +448,8 @@ class BetfairScraper(BaseScraper):
 
                     self.logger.debug(f"Market type: {market_type}, name: {market_name}")
 
-                    if market_type == 'MATCH_ODDS':
+                    # Accept MATCH_ODDS (soccer), MONEY_LINE (NHL/NBA), WIN (boxing/other)
+                    if market_type in ('MATCH_ODDS', 'MONEY_LINE', 'WIN'):
                         # Parse odds from this market
                         market_odds = self._parse_market_prices(market_node, event, market_name)
                         self.logger.debug(f"Parsed {len(market_odds)} odds from {market_name}")
@@ -442,21 +474,38 @@ class BetfairScraper(BaseScraper):
         if not fixtures_data:
             return "Unknown"
 
+        # Competition ID to name mapping for all 14 target sports
+        competition_map = {
+            # Soccer
+            10932509: "English Premier League",
+            12117172: "A-League Men",
+            117: "Spanish La Liga",
+            59: "German Bundesliga",
+            81: "Italian Serie A",
+            55: "French Ligue 1",
+            228: "UEFA Champions League",
+            141: "Major League Soccer",
+            # AFL
+            11897406: "AFL",
+            # NRL
+            10564377: "NRL",
+            # Basketball
+            10547864: "NBA",
+            10533436: "NBL",
+            # Ice Hockey
+            12550521: "NHL",
+            # Boxing
+            10817625: "Boxing"
+        }
+
         # Look through fixtures by date to find matching event
         fixtures_by_date = fixtures_data.get("fixtures", {})
         for date_str, date_fixtures in fixtures_by_date.items():
             for fixture in date_fixtures:
                 if str(fixture.get("eventId", "")) == event_id:
-                    # Try to map competition ID to name
+                    # Map competition ID to name
                     comp_id = fixture.get("competitionId")
-                    if comp_id == 10932509:
-                        return "English Premier League"
-                    elif comp_id == 228:
-                        return "UEFA Champions League"
-                    elif comp_id == 117:
-                        return "La Liga"
-                    else:
-                        return f"Competition {comp_id}"
+                    return competition_map.get(comp_id, f"Competition {comp_id}")
 
         return "Unknown"
 
@@ -508,7 +557,7 @@ class BetfairScraper(BaseScraper):
             event_id = str(market_info.get("eventId", ""))
             market_type = market_info.get("marketType", "")
 
-            if event_id and market_type == "MATCH_ODDS":
+            if event_id and market_type in ("MATCH_ODDS", "MONEY_LINE", "WIN"):
                 if event_id not in event_markets:
                     event_markets[event_id] = []
                 event_markets[event_id].append({

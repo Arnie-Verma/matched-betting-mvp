@@ -32,7 +32,7 @@ class OddsMatcherFilters(BaseModel):
     min_rating: Optional[Decimal] = Field(default=None, ge=Decimal("0"), le=Decimal("100"))
     date_from: Optional[datetime] = None
     date_to: Optional[datetime] = None
-    limit: int = Field(default=50, ge=1, le=200)
+    limit: int = Field(default=200, ge=1, le=500)
 
 
 class OddsMatchResponse(BaseModel):
@@ -177,7 +177,7 @@ async def refresh_odds(
         import logging
         logging.info(f"User {user.id} triggered odds refresh")
 
-        scrape_result = await trigger_scrape(sport="soccer", limit=None)
+        scrape_result = await trigger_scrape(sport="all", limit=None)
 
         # Update global cache
         now = datetime.now(timezone.utc)
@@ -211,7 +211,7 @@ async def get_matcher_opportunities(
     competition_ids: Optional[str] = Query(default=None, description="Comma-separated competition IDs"),
     search: Optional[str] = Query(default=None, description="Search event names"),
     min_rating: Optional[Decimal] = Query(default=None, ge=Decimal("0"), le=Decimal("100")),
-    limit: int = Query(default=50, ge=1, le=200),
+    limit: int = Query(default=200, ge=1, le=500),
     user_claims: UserClaims = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> List[OddsMatchResponse]:
@@ -219,7 +219,7 @@ async def get_matcher_opportunities(
     Get matched betting opportunities with filtering.
 
     Filters available odds to show only best opportunities based on:
-    - User's plan (free tier = TAB + Ladbrokes only)
+    - User's plan (free tier = 2 bookmakers: Ladbrokes + Neds, plus Betfair exchange)
     - Stake amount
     - Bet type (normal vs bonus)
     - Sport, competition, search terms
@@ -329,7 +329,9 @@ async def get_matcher_opportunities(
 
     logger.info("About to execute query...")
     query_start = time.time()
-    events = events_query.limit(100).all()
+    # Fetch all events - we need to group duplicates across bookmakers
+    # 500 limit should cover all sports for next 14 days
+    events = events_query.limit(500).all()
     query_time = time.time() - query_start
     logger.info(f"⏱️  [MATCHER] Events query took {query_time:.2f}s, found {len(events)} events")
 
@@ -346,34 +348,305 @@ async def get_matcher_opportunities(
 
     # Group events by normalized name to handle duplicate events from different bookmakers
     print(f"\n>>> Grouping {len(events)} events by normalized name...")
+
+    def normalize_competition_name(name: str) -> str:
+        """Normalize competition name for cross-bookmaker matching"""
+        if not name:
+            return ""
+        norm = name.lower().strip()
+        # Map competition name variations to canonical form
+        competition_map = {
+            # EPL variations
+            'premier league': 'epl',
+            'english premier league': 'epl',
+            'epl': 'epl',
+            # Bundesliga
+            'german bundesliga': 'bundesliga',
+            'bundesliga': 'bundesliga',
+            # La Liga
+            'spanish la liga': 'laliga',
+            'la liga': 'laliga',
+            'spanish primera division': 'laliga',
+            # Serie A
+            'italian serie a': 'seriea',
+            'serie a': 'seriea',
+            # Ligue 1
+            'french ligue 1': 'ligue1',
+            'ligue 1': 'ligue1',
+            # A-League
+            'a-league men': 'aleague',
+            'a-league': 'aleague',
+            # NBA
+            'nba': 'nba',
+            # NBL
+            'nbl': 'nbl',
+            # NHL
+            'nhl': 'nhl',
+            # AFL
+            'afl': 'afl',
+            # NRL
+            'nrl': 'nrl',
+            # Boxing
+            'boxing': 'boxing',
+            'upcoming fights': 'boxing',
+            # Champions League
+            'uefa champions league': 'ucl',
+            'champions league': 'ucl',
+            # MLS
+            'major league soccer': 'mls',
+            'mls': 'mls',
+        }
+        return competition_map.get(norm, norm)
+
+    def normalize_event_name(name: str) -> str:
+        """Normalize event name for cross-bookmaker matching"""
+        import re
+        norm = name.lower().strip()
+
+        # Remove common prefixes like "1. " (e.g., "1. FC Heidenheim")
+        norm = re.sub(r'^\d+\.\s*', '', norm)
+
+        # Standardize separators: "vs", "v", "@", "-" all become "v"
+        norm = re.sub(r'\s+vs\s+', ' v ', norm)
+        norm = re.sub(r'\s+@\s+', ' v ', norm)
+        norm = re.sub(r'\s+-\s+', ' v ', norm)
+
+        # Remove common team suffixes/prefixes
+        for pattern in [' fc', ' cf', ' bc', ' sc', ' ac', ' afc', ' cfc']:
+            norm = norm.replace(pattern, '')
+        for pattern in ['fc ', 'cf ', 'ac ', 'sc ', 'as ', 'afc ', 'rcd ', 'cd ', 'ca ']:
+            norm = norm.replace(pattern, '')
+
+        # Team name normalizations (handles full names AND abbreviations used by Betfair)
+        replacements = {
+            # EPL
+            'wolverhampton wanderers': 'wolves',
+            'wolverhampton': 'wolves',
+            'nottinghm forest': 'nottingham',
+            'nottm forest': 'nottingham',
+            'nottingham forest': 'nottingham',
+            'brighton hovealb': 'brighton',
+            'brighton & hove albion': 'brighton',
+            'brighton hove albion': 'brighton',
+            'manchester united': 'manutd',
+            'man united': 'manutd',
+            'man utd': 'manutd',
+            'manchester city': 'mancity',
+            'man city': 'mancity',
+            'tottenham hotspur': 'tottenham',
+            'west ham united': 'westham',
+            'west ham': 'westham',
+            'newcastle united': 'newcastle',
+            'leicester city': 'leicester',
+            # German Bundesliga (including Betfair abbreviations)
+            'borussia dortmund': 'dortmund',
+            'borussia monchengladbach': 'gladbach',
+            'monchengladbach': 'gladbach',
+            'mgladbach': 'gladbach',  # Betfair abbreviation
+            'bayer leverkusen': 'leverkusen',
+            'bayern munich': 'bayern',
+            'bayern munchen': 'bayern',
+            'rb leipzig': 'leipzig',
+            'vfl wolfsburg': 'wolfsburg',
+            'vfb stuttgart': 'stuttgart',
+            'union berlin': 'unionberlin',
+            '1899 hoffenheim': 'hoffenheim',
+            'tsg hoffenheim': 'hoffenheim',
+            'eintracht frankfurt': 'frankfurt',
+            '1. fc cologne': 'koln',
+            '1. fc koln': 'koln',
+            'fc koln': 'koln',
+            'fc cologne': 'koln',
+            'cologne': 'koln',
+            'werder bremen': 'bremen',
+            'sc freiburg': 'freiburg',
+            'fc augsburg': 'augsburg',
+            'hamburger sv': 'hamburg',
+            # Spanish La Liga
+            'atletico madrid': 'atletico',
+            'real sociedad': 'sociedad',
+            'athletic bilbao': 'bilbao',
+            'athletic club': 'bilbao',
+            'real oviedo': 'oviedo',
+            'rc celta de vigo': 'celtavigo',
+            'celta vigo': 'celtavigo',
+            'celta de vigo': 'celtavigo',
+            'valencia cf': 'valencia',
+            'rcd mallorca': 'mallorca',
+            'villarreal cf': 'villarreal',
+            'real valladolid': 'valladolid',
+            'deportivo alaves': 'alaves',
+            'ca osasuna': 'osasuna',
+            'levante ud': 'levante',
+            # Italian Serie A
+            'inter milan': 'inter',
+            'internazionale': 'inter',
+            'atalanta bc': 'atalanta',
+            'genoa cfc': 'genoa',
+            'ss lazio': 'lazio',
+            'us cremonese': 'cremonese',
+            # French Ligue 1
+            'paris saint-germain': 'psg',
+            'paris st-g': 'psg',
+            'paris sg': 'psg',
+            'olympique marseille': 'marseille',
+            'olympique lyon': 'lyon',
+            # UEFA Champions League
+            'union saint-gilloise': 'unionsg',
+            'sporting lisbon': 'sporting',
+            'sporting cp': 'sporting',
+            'sl benfica': 'benfica',
+            'slavia prague': 'slavia',
+            'galatasaray sk': 'galatasaray',
+            'pafos fc': 'pafos',
+            'fc copenhagen': 'copenhagen',
+            'ssc napoli': 'napoli',
+            'fc kairat almaty': 'kairat',
+            'club brugge': 'brugge',
+            'qarabag fk': 'qarabag',
+            'juventus fc': 'juventus',
+            'olympique marseille': 'marseille',
+            'fc barcelona': 'barcelona',
+            'arsenal fc': 'arsenal',
+            'bodo/glimt': 'bodoglimt',
+            # A-League
+            'melbourne city': 'melbournecity',
+            'melbourne victory': 'melbournevictory',
+            'macarthur fc': 'macarthur',
+            'newcastle jets': 'newcastlejets',
+            'sydney fc': 'sydney',
+            'adelaide united': 'adelaideunited',
+            'perth glory': 'perthglory',
+            'brisbane roar': 'brisbaneroar',
+            'wellington phoenix': 'wellingtonphoenix',
+            'central coast mariners': 'coastmariners',
+            # NBA Teams
+            'los angeles lakers': 'lalakers',
+            'la lakers': 'lalakers',
+            'lakers': 'lalakers',
+            'los angeles clippers': 'laclippers',
+            'la clippers': 'laclippers',
+            'clippers': 'laclippers',
+            'golden state warriors': 'warriors',
+            'warriors': 'warriors',
+            'phoenix suns': 'suns',
+            'boston celtics': 'celtics',
+            'miami heat': 'heat',
+            'milwaukee bucks': 'bucks',
+            'philadelphia 76ers': 'sixers',
+            'phila 76ers': 'sixers',
+            '76ers': 'sixers',
+            'denver nuggets': 'nuggets',
+            'dallas mavericks': 'mavericks',
+            'memphis grizzlies': 'grizzlies',
+            'sacramento kings': 'kings',
+            'orlando magic': 'magic',
+            'indiana pacers': 'pacers',
+            'oklahoma city thunder': 'thunder',
+            'okc thunder': 'thunder',
+            'new orleans pelicans': 'pelicans',
+            'portland trail blazers': 'blazers',
+            'trail blazers': 'blazers',
+            'minnesota timberwolves': 'wolves',
+            'houston rockets': 'rockets',
+            'toronto raptors': 'raptors',
+            'cleveland cavaliers': 'cavaliers',
+            'brooklyn nets': 'nets',
+            'new york knicks': 'knicks',
+            'atlanta hawks': 'hawks',
+            'chicago bulls': 'bulls',
+            'detroit pistons': 'pistons',
+            'charlotte hornets': 'hornets',
+            'washington wizards': 'wizards',
+            'utah jazz': 'jazz',
+            'san antonio spurs': 'spurs',
+            # NBL Teams (Australian)
+            'sydney kings': 'sydneykings',
+            'melbourne united': 'melbunited',
+            'perth wildcats': 'wildcats',
+            'brisbane bullets': 'bullets',
+            'south east melbourne phoenix': 'semphoenix',
+            'se melbourne phoenix': 'semphoenix',
+            'cairns taipans': 'taipans',
+            'tasmania jackjumpers': 'jackjumpers',
+            'new zealand breakers': 'breakers',
+            'nz breakers': 'breakers',
+            'illawarra hawks': 'illawarrahawks',
+            'adelaide 36ers': '36ers',
+            # NHL Teams
+            'edmonton oilers': 'oilers',
+            'toronto maple leafs': 'mapleleafs',
+            'maple leafs': 'mapleleafs',
+            'montreal canadiens': 'canadiens',
+            'winnipeg jets': 'jets',
+            'vancouver canucks': 'canucks',
+            'calgary flames': 'flames',
+            'ottawa senators': 'senators',
+            'new york rangers': 'rangers',
+            'ny rangers': 'rangers',
+            'new york islanders': 'islanders',
+            'ny islanders': 'islanders',
+            'boston bruins': 'bruins',
+            'pittsburgh penguins': 'penguins',
+            'washington capitals': 'capitals',
+            'philadelphia flyers': 'flyers',
+            'chicago blackhawks': 'blackhawks',
+            'detroit red wings': 'redwings',
+            'colorado avalanche': 'avalanche',
+            'minnesota wild': 'wild',
+            'st. louis blues': 'blues',
+            'st louis blues': 'blues',
+            'dallas stars': 'stars',
+            'vegas golden knights': 'goldenknights',
+            'seattle kraken': 'kraken',
+            'tampa bay lightning': 'lightning',
+            'florida panthers': 'panthers',
+            'carolina hurricanes': 'hurricanes',
+            'nashville predators': 'predators',
+            'san jose sharks': 'sharks',
+            'anaheim ducks': 'ducks',
+            'los angeles kings': 'lakings',
+            'la kings': 'lakings',
+            'columbus blue jackets': 'bluejackets',
+            'buffalo sabres': 'sabres',
+            'new jersey devils': 'devils',
+            'arizona coyotes': 'coyotes',
+            # Boxing - normalize fighter names (common ones)
+            'naoya inoue': 'inoue',
+            'junto nakatani': 'nakatani',
+            'callum simpson': 'csimpson',
+        }
+
+        for old, new in replacements.items():
+            norm = norm.replace(old, new)
+
+        # Remove all spaces for final comparison
+        norm = norm.replace(' v ', 'v').replace(' ', '')
+
+        # CRITICAL: Sort teams alphabetically to handle reversed order
+        # Betfair: "Boston Celtics @ Toronto Raptors" → "celticsvraptors"
+        # Ladbrokes: "Toronto Raptors vs Boston Celtics" → "raptorsvsceltics"
+        # After sorting both become: "celticsvraptors"
+        if 'v' in norm:
+            parts = norm.split('v')
+            if len(parts) == 2:
+                # Sort alphabetically so order doesn't matter
+                norm = 'v'.join(sorted(parts))
+
+        return norm
+
     event_groups = {}
     for event in events:
-        # Normalize event name to group similar events from different bookmakers
-        norm_event_name = event.name.lower().strip()
+        norm_event_name = normalize_event_name(event.name)
+        # Also normalize competition to handle "Premier League" vs "English Premier League"
+        norm_comp = normalize_competition_name(event.competition.name if event.competition else "")
+        # Create composite key: normalized_event_name + normalized_competition
+        # This ensures events from same match but different bookmaker competition names are grouped
+        group_key = f"{norm_event_name}_{norm_comp}"
 
-        # Team name variations
-        norm_event_name = norm_event_name.replace('wolverhampton', 'wolves')
-        norm_event_name = norm_event_name.replace('nottinghm', 'nottm')
-        norm_event_name = norm_event_name.replace('nottingham', 'nottm')
-        norm_event_name = norm_event_name.replace('brighton hovealb', 'brighton')
-        norm_event_name = norm_event_name.replace('brighton & hove albion', 'brighton')
-        norm_event_name = norm_event_name.replace('leeds united', 'leeds')
-        norm_event_name = norm_event_name.replace('manchester united', 'manutd')
-        norm_event_name = norm_event_name.replace('manchester city', 'mancity')
-        norm_event_name = norm_event_name.replace('man united', 'manutd')
-        norm_event_name = norm_event_name.replace('man city', 'mancity')
-        norm_event_name = norm_event_name.replace('man utd', 'manutd')
-        norm_event_name = norm_event_name.replace('tottenham hotspur', 'tottenham')
-        norm_event_name = norm_event_name.replace('west ham united', 'westham')
-        norm_event_name = norm_event_name.replace('newcastle united', 'newcastle')
-        norm_event_name = norm_event_name.replace('leicester city', 'leicester')
-
-        # Remove all spaces and 'v' separator
-        norm_event_name = norm_event_name.replace(' v ', 'v').replace(' ', '')
-
-        if norm_event_name not in event_groups:
-            event_groups[norm_event_name] = []
-        event_groups[norm_event_name].append(event)
+        if group_key not in event_groups:
+            event_groups[group_key] = []
+        event_groups[group_key].append(event)
 
     print(f">>> Found {len(event_groups)} unique events (from {len(events)} total events)")
 
@@ -408,6 +681,9 @@ async def get_matcher_opportunities(
                     ),
                     Market.name.ilike('%match winner%'),
                     Market.name.ilike('%match odds%'),  # Betfair calls it "Match Odds"
+                    Market.name.ilike('%moneyline%'),  # NBA/NHL use "Moneyline"
+                    Market.name.ilike('%head to head%'),  # Ladbrokes uses "Head To Head"
+                    Market.name.ilike('%fight betting%'),  # Boxing uses "Fight Betting"
                     and_(Market.name.ilike('%h2h%'), Market.name.notilike('%hth2h%'))
                 )
             )
@@ -416,80 +692,274 @@ async def get_matcher_opportunities(
         print(f"    Markets found across all events: {len(markets)}")
         logger.info(f"  Found {len(markets)} markets across event group {event_names}")
 
-        # Group ALL selections across ALL markets in this event group
-        selection_groups = {}
+        # PHASE 1: Collect ALL selections across ALL markets in this event group
+        # Then group them by normalized team name
+        all_selections = []
         for market in markets:
-            logger.info(f"    Market: {market.name} (ID: {market.id})")
+            selections = db.query(Selection).filter(Selection.market_id == market.id).all()
+            all_selections.extend(selections)
 
-            # Get selections for this market
-            selections = db.query(Selection).filter(
-                Selection.market_id == market.id
-            ).all()
+        # Group selections by normalized name
+        selection_groups = {}
 
-            logger.info(f"      Found {len(selections)} selections")
+        def normalize_selection_name(name: str) -> str:
+            """Normalize team/selection name for cross-bookmaker matching"""
+            norm = name.lower().strip()
 
-            # Group selections by normalized name across ALL markets in this event group
-            for selection in selections:
-                # Normalize selection name for matching (remove "The", spaces, lowercase, abbreviations)
-                norm_name = selection.name.lower().strip()
-                norm_name = norm_name.replace('the ', '').replace(' the ', ' ')  # Remove "the" prefix
+            # Handle draw variations first
+            if norm in ["draw", "the draw", "tie", "the tie"]:
+                return "draw"
 
-                # Team name variations - normalize before removing spaces
-                norm_name = norm_name.replace('brighton hovealb', 'brighton')
-                norm_name = norm_name.replace('brighton & hove albion', 'brighton')
-                norm_name = norm_name.replace('wolverhampton wanderers', 'wolverhampton')
-                norm_name = norm_name.replace('nottinghm forest', 'nottingham forest')
-                norm_name = norm_name.replace('nottm forest', 'nottingham forest')
+            # Remove common prefixes
+            norm = norm.replace('the ', '')
+            for prefix in ['as ', 'ac ', 'fc ', 'cf ', 'sc ', 'ss ', 'us ', 'afc ', 'rcd ', 'cd ']:
+                if norm.startswith(prefix):
+                    norm = norm[len(prefix):]
 
-                norm_name = norm_name.replace('utd', 'united').replace('man ', 'manchester')  # Expand abbreviations
-                norm_name = norm_name.replace(' ', '')  # Remove all spaces
+            # Remove common suffixes
+            for suffix in [' fc', ' cf', ' bc', ' sc', ' ac', ' afc', ' united', ' utd', ' city']:
+                if norm.endswith(suffix):
+                    norm = norm[:-len(suffix)]
 
-                if norm_name not in selection_groups:
-                    selection_groups[norm_name] = {
-                        'selections': [],
-                        'back_odds': [],
-                        'lay_odds': []
-                    }
+            # Specific team name normalizations (same as event normalizer)
+            replacements = {
+                # EPL
+                'wolverhampton wanderers': 'wolves',
+                'wolverhampton': 'wolves',
+                'nottinghm forest': 'nottingham',
+                'nottm forest': 'nottingham',
+                'nottingham forest': 'nottingham',
+                'brighton hovealb': 'brighton',
+                'brighton & hove albion': 'brighton',
+                'brighton hove albion': 'brighton',
+                'manchester united': 'manutd',
+                'man united': 'manutd',
+                'man utd': 'manutd',
+                'manchester city': 'mancity',
+                'man city': 'mancity',
+                'tottenham hotspur': 'tottenham',
+                'west ham united': 'westham',
+                'west ham': 'westham',
+                'newcastle united': 'newcastle',
+                'leicester city': 'leicester',
+                # German Bundesliga (including Betfair abbreviations)
+                'borussia dortmund': 'dortmund',
+                'borussia monchengladbach': 'gladbach',
+                'monchengladbach': 'gladbach',
+                'mgladbach': 'gladbach',
+                'bayer leverkusen': 'leverkusen',
+                'bayern munich': 'bayern',
+                'bayern munchen': 'bayern',
+                'rb leipzig': 'leipzig',
+                'vfl wolfsburg': 'wolfsburg',
+                'vfb stuttgart': 'stuttgart',
+                'union berlin': 'unionberlin',
+                '1899 hoffenheim': 'hoffenheim',
+                'tsg hoffenheim': 'hoffenheim',
+                'eintracht frankfurt': 'frankfurt',
+                'werder bremen': 'bremen',
+                'sc freiburg': 'freiburg',
+                'fc augsburg': 'augsburg',
+                'hamburger sv': 'hamburg',
+                # Spanish La Liga
+                'atletico madrid': 'atletico',
+                'real sociedad': 'sociedad',
+                'athletic bilbao': 'bilbao',
+                'athletic club': 'bilbao',
+                'real oviedo': 'oviedo',
+                'valencia cf': 'valencia',
+                'rcd mallorca': 'mallorca',
+                'villarreal cf': 'villarreal',
+                'deportivo alaves': 'alaves',
+                'ca osasuna': 'osasuna',
+                'levante ud': 'levante',
+                # Italian Serie A
+                'inter milan': 'inter',
+                'internazionale': 'inter',
+                'atalanta bc': 'atalanta',
+                'genoa cfc': 'genoa',
+                'ss lazio': 'lazio',
+                # French Ligue 1
+                'paris saint-germain': 'psg',
+                'paris st-g': 'psg',
+                'paris sg': 'psg',
+                'olympique marseille': 'marseille',
+                'olympique lyon': 'lyon',
+                # A-League
+                'melbourne city': 'melbournecity',
+                'melbourne victory': 'melbournevictory',
+                'newcastle jets': 'newcastlejets',
+                'sydney fc': 'sydney',
+                'adelaide united': 'adelaideunited',
+                'perth glory': 'perthglory',
+                'brisbane roar': 'brisbaneroar',
+                'wellington phoenix': 'wellingtonphoenix',
+                'central coast mariners': 'coastmariners',
+                # NBA Teams
+                'los angeles lakers': 'lalakers',
+                'la lakers': 'lalakers',
+                'lakers': 'lalakers',
+                'los angeles clippers': 'laclippers',
+                'la clippers': 'laclippers',
+                'clippers': 'laclippers',
+                'golden state warriors': 'warriors',
+                'phoenix suns': 'suns',
+                'boston celtics': 'celtics',
+                'miami heat': 'heat',
+                'milwaukee bucks': 'bucks',
+                'philadelphia 76ers': 'sixers',
+                'phila 76ers': 'sixers',
+                'denver nuggets': 'nuggets',
+                'dallas mavericks': 'mavericks',
+                'memphis grizzlies': 'grizzlies',
+                'sacramento kings': 'kings',
+                'orlando magic': 'magic',
+                'indiana pacers': 'pacers',
+                'oklahoma city thunder': 'thunder',
+                'okc thunder': 'thunder',
+                'new orleans pelicans': 'pelicans',
+                'portland trail blazers': 'blazers',
+                'trail blazers': 'blazers',
+                'minnesota timberwolves': 'wolves',
+                'houston rockets': 'rockets',
+                'toronto raptors': 'raptors',
+                'cleveland cavaliers': 'cavaliers',
+                'brooklyn nets': 'nets',
+                'new york knicks': 'knicks',
+                'atlanta hawks': 'hawks',
+                'chicago bulls': 'bulls',
+                'detroit pistons': 'pistons',
+                'charlotte hornets': 'hornets',
+                'washington wizards': 'wizards',
+                'utah jazz': 'jazz',
+                'san antonio spurs': 'spurs',
+                # NBL Teams (Australian)
+                'sydney kings': 'sydneykings',
+                'melbourne united': 'melbunited',
+                'perth wildcats': 'wildcats',
+                'brisbane bullets': 'bullets',
+                'south east melbourne phoenix': 'semphoenix',
+                'se melbourne phoenix': 'semphoenix',
+                'cairns taipans': 'taipans',
+                'tasmania jackjumpers': 'jackjumpers',
+                'new zealand breakers': 'breakers',
+                'nz breakers': 'breakers',
+                'illawarra hawks': 'illawarrahawks',
+                'adelaide 36ers': '36ers',
+                # NHL Teams
+                'edmonton oilers': 'oilers',
+                'toronto maple leafs': 'mapleleafs',
+                'maple leafs': 'mapleleafs',
+                'montreal canadiens': 'canadiens',
+                'winnipeg jets': 'jets',
+                'vancouver canucks': 'canucks',
+                'calgary flames': 'flames',
+                'ottawa senators': 'senators',
+                'new york rangers': 'rangers',
+                'ny rangers': 'rangers',
+                'new york islanders': 'islanders',
+                'ny islanders': 'islanders',
+                'boston bruins': 'bruins',
+                'pittsburgh penguins': 'penguins',
+                'washington capitals': 'capitals',
+                'philadelphia flyers': 'flyers',
+                'chicago blackhawks': 'blackhawks',
+                'detroit red wings': 'redwings',
+                'colorado avalanche': 'avalanche',
+                'minnesota wild': 'wild',
+                'st. louis blues': 'blues',
+                'st louis blues': 'blues',
+                'dallas stars': 'stars',
+                'vegas golden knights': 'goldenknights',
+                'seattle kraken': 'kraken',
+                'tampa bay lightning': 'lightning',
+                'florida panthers': 'panthers',
+                'carolina hurricanes': 'hurricanes',
+                'nashville predators': 'predators',
+                'san jose sharks': 'sharks',
+                'anaheim ducks': 'ducks',
+                'los angeles kings': 'lakings',
+                'la kings': 'lakings',
+                'columbus blue jackets': 'bluejackets',
+                'buffalo sabres': 'sabres',
+                'new jersey devils': 'devils',
+                'arizona coyotes': 'coyotes',
+                # Boxing - normalize fighter names (common ones)
+                'naoya inoue': 'inoue',
+                'junto nakatani': 'nakatani',
+                'callum simpson': 'csimpson',
+            }
 
-                selection_groups[norm_name]['selections'].append(selection)
+            for old, new in replacements.items():
+                if old in norm:
+                    norm = norm.replace(old, new)
 
-                # Get back odds for this selection
-                back_bookmakers = [bm for bm in bookmaker_filter if bm != "betfair"]
-                if back_bookmakers:
-                    back = db.query(OddsSnapshot).join(Bookmaker).filter(
-                        and_(
-                            OddsSnapshot.selection_id == selection.id,
-                            OddsSnapshot.is_current == True,
-                            Bookmaker.code.in_(back_bookmakers)
-                        )
-                    ).all()
-                    selection_groups[norm_name]['back_odds'].extend(back)
+            # Remove all spaces for final comparison
+            norm = norm.replace(' ', '')
 
-                # Get lay odds for this selection
-                lay = db.query(OddsSnapshot).join(Bookmaker).filter(
+            return norm
+
+        # PHASE 2: Group selections by normalized name
+        for selection in all_selections:
+            norm_name = normalize_selection_name(selection.name)
+
+            if norm_name not in selection_groups:
+                selection_groups[norm_name] = {
+                    'selections': [],
+                    'selection_ids': [],
+                    'back_odds': [],
+                    'lay_odds': []
+                }
+
+            selection_groups[norm_name]['selections'].append(selection)
+            selection_groups[norm_name]['selection_ids'].append(selection.id)
+
+        logger.info(f"  Grouped {len(all_selections)} selections into {len(selection_groups)} normalized groups")
+
+        # PHASE 3: For each selection group, query odds for ALL selection IDs in the group
+        # This is the key fix - we query across all selections with the same normalized name
+        back_bookmakers = [bm for bm in bookmaker_filter if bm != "betfair"]
+
+        for norm_name, group in selection_groups.items():
+            selection_ids = group['selection_ids']
+
+            # Get back odds for ALL selections in this group
+            if back_bookmakers:
+                back = db.query(OddsSnapshot).join(Bookmaker).filter(
                     and_(
-                        OddsSnapshot.selection_id == selection.id,
+                        OddsSnapshot.selection_id.in_(selection_ids),
                         OddsSnapshot.is_current == True,
-                        Bookmaker.code == "betfair"
+                        Bookmaker.code.in_(back_bookmakers)
                     )
                 ).all()
-                selection_groups[norm_name]['lay_odds'].extend(lay)
+                group['back_odds'] = back
+
+            # Get lay odds for ALL selections in this group
+            lay = db.query(OddsSnapshot).join(Bookmaker).filter(
+                and_(
+                    OddsSnapshot.selection_id.in_(selection_ids),
+                    OddsSnapshot.is_current == True,
+                    Bookmaker.code == "betfair"
+                )
+            ).all()
+            group['lay_odds'] = lay
 
         # Now check each selection group for matched opportunities
         for norm_name, group in selection_groups.items():
             back_odds = group['back_odds']
-            lay_odds = group['lay_odds']
+            # Filter out invalid lay odds (odds >= 100 are Betfair placeholders meaning no liquidity)
+            lay_odds = [lo for lo in group['lay_odds'] if lo.decimal_odds < Decimal("100")]
             selection = group['selections'][0]  # Use first selection for metadata
 
             # Show all original names in this group
             all_names = [s.name for s in group['selections']]
-            print(f"    Selection group '{norm_name}' (original names: {all_names}): {len(back_odds)} back, {len(lay_odds)} lay")
+            print(f"    Selection group '{norm_name}' (names: {all_names}): {len(back_odds)} back, {len(lay_odds)} lay (valid)")
 
             if not back_odds or not lay_odds:
                 if not back_odds:
                     print(f"      SKIP: no back odds")
                 if not lay_odds:
-                    print(f"      SKIP: no lay odds")
+                    print(f"      SKIP: no valid lay odds (filtered out odds >= 100)")
                 continue
 
             print(f"      MATCH FOUND! Creating opportunity...")
@@ -497,8 +967,8 @@ async def get_matcher_opportunities(
             # Find best back odds (highest)
             best_back = max(back_odds, key=lambda x: x.decimal_odds)
 
-            # Use first lay odds (in production, handle multiple lay prices)
-            best_lay = lay_odds[0]
+            # Find best lay odds (lowest is best for laying)
+            best_lay = min(lay_odds, key=lambda x: x.decimal_odds)
 
             # Calculate matched bet
             back_bet = BackBet(

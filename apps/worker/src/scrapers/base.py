@@ -191,7 +191,7 @@ class BaseScraper(ABC):
         """
         market_name_lower = market_name.lower()
 
-        if any(x in market_name_lower for x in ["head to head", "h2h", "match winner", "winner"]):
+        if any(x in market_name_lower for x in ["head to head", "h2h", "match winner", "winner", "match result", "result", "fight betting", "bout betting"]):
             return "match_winner"
         elif any(x in market_name_lower for x in ["line", "handicap", "spread"]):
             return "handicap"

@@ -2,6 +2,43 @@
 
 Instructions for Claude Code when working in this repository. Be extremely concise. Sacrifice grammar for conciseness.
 
+## Progress Tracking
+
+**REQUIRED**: Update DAILY.md at start and end of each session.
+
+**At session start**:
+1. Read DAILY.md to understand current state
+2. Add new date section if first session of day
+3. Reference previous blockers/next steps
+
+**During session**:
+- Add completed tasks under `### Completed`
+- Document blockers under `### Blockers`
+- Note decisions made (architecture, technical approach, tool choices)
+
+**At session end**:
+- Summarize progress
+- List next steps for future sessions
+- Update blockers if resolved
+
+**Weekly** (Sunday): Compress old entries to keep file focused on current work.
+
+**Format**:
+```markdown
+## YYYY-MM-DD (Day)
+
+### Completed
+- Task with outcome
+
+### Blockers
+- Current issues preventing progress
+
+### Next Steps
+- Priority tasks for next session
+```
+
+---
+
 ## Project Overview
 
 Matched betting SaaS platform (Outmatched.com-style) for Australian market.

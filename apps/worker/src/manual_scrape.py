@@ -11,9 +11,9 @@ from jobs.scrape_service import trigger_scrape
 
 async def main():
     print("=== Starting manual scrape ===")
-    print("Scraping TAB and Betfair for Soccer (EPL)...")
+    print("Scraping all bookmakers for all sports...")
 
-    result = await trigger_scrape(sport="soccer", limit=None)  # Scrape all events
+    result = await trigger_scrape(sport="all", limit=None)  # Scrape all sports
 
     print("\n=== Scrape Complete ===")
     print(f"Success: {result['success']}")

@@ -13,6 +13,7 @@ from decimal import Decimal
 
 from scrapers.tab_scraper import TABScraper
 from scrapers.betfair_scraper import BetfairScraper
+from scrapers.ladbrokes_scraper import LadbrokesScraper
 from jobs.save_odds import save_scrape_result_to_db
 
 logger = logging.getLogger(__name__)
@@ -23,10 +24,11 @@ class ScrapeService:
 
     def __init__(self):
         self.scrapers = {
-            "tab": TABScraper(),
+            # "tab": TABScraper(),  # Disabled - needs rotating proxy for production
             "betfair": BetfairScraper(),
+            "ladbrokes": LadbrokesScraper(),
             # Add more scrapers as they're implemented
-            # "ladbrokes": LadbrokesScraper(),
+            # "neds": NedsScraper(),
         }
 
     async def scrape_bookmaker(
@@ -108,15 +110,15 @@ class ScrapeService:
 
     async def scrape_all_active_bookmakers(
         self,
-        sport: str = "soccer",
+        sport: str = "all",
         limit: Optional[int] = None
     ) -> Dict[str, Any]:
         """
-        Scrape all active bookmakers in parallel.
+        Scrape all active bookmakers in parallel for all sports.
 
         Args:
-            sport: Sport to scrape
-            limit: Optional limit on events per bookmaker
+            sport: Sport to scrape ("all" for all sports, or specific sport code)
+            limit: Optional limit on events per bookmaker per sport
 
         Returns:
             Dict with aggregate statistics
@@ -124,21 +126,34 @@ class ScrapeService:
         import time
         parallel_start = time.time()
 
-        logger.info(f"⏱️  [PARALLEL] Starting parallel scrape for all active bookmakers")
+        # All 6 sports we support
+        ALL_SPORTS = ["soccer", "afl", "nrl", "basketball", "ice_hockey", "boxing"]
 
-        # Scrape both TAB and Betfair
-        active_bookmakers = ["tab", "betfair"]
+        # Determine which sports to scrape
+        sports_to_scrape = ALL_SPORTS if sport == "all" else [sport]
 
-        # Run scrapers in parallel
-        tasks = [
-            self.scrape_bookmaker(bookmaker, sport, limit)
-            for bookmaker in active_bookmakers
-        ]
+        logger.info(f"⏱️  [PARALLEL] Starting parallel scrape for all active bookmakers across {len(sports_to_scrape)} sports")
 
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Scrape Betfair and Ladbrokes (TAB disabled - needs rotating proxy)
+        active_bookmakers = ["betfair", "ladbrokes"]
+
+        # Run scrapers in parallel - all bookmakers x all sports
+        # NOTE: Betfair/Ladbrokes share browser instances with captured_data
+        # Running them in parallel causes race conditions. Run sequentially per bookmaker.
+        all_results = []
+
+        for bookmaker in active_bookmakers:
+            # Run each bookmaker's sports sequentially to avoid race conditions
+            # (captured_data is shared within a bookmaker's scraper instance)
+            for s in sports_to_scrape:
+                result = await self.scrape_bookmaker(bookmaker, s, limit)
+                all_results.append(result)
+
+        results = all_results
 
         parallel_duration = time.time() - parallel_start
-        logger.info(f"⏱️  [PARALLEL] All scrapers completed in {parallel_duration:.2f}s")
+        num_tasks = len(active_bookmakers) * len(sports_to_scrape)
+        logger.info(f"⏱️  [SEQUENTIAL] All scrapers completed in {parallel_duration:.2f}s ({num_tasks} tasks)")
 
         # Aggregate statistics
         total_events = 0

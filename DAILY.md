@@ -4,111 +4,110 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
-## 2025-12-08 (Sunday)
+## 2025-12-20 (Friday) - Session 3
 
 ### Completed
-1. **Documentation consolidation**
-   - Merged CLAUDE.md + HANDOFF.md + CLAUDE_TAB_SCRAPER_CONTEXT.md → Single CLAUDE.md
-   - Deleted 10 old session docs
-   - Added production engineering section, Betfair competition IDs, Patrick's quotes, TAB failure modes
 
-2. **Code revert to working state**
-   - Reverted to commit f149538 (working TAB EPL + Betfair)
+- ✅ **FIXED EVENT NAME MATCHING** - Alphabetical team sorting
+  - Root cause: Betfair uses "Team A @ Team B" (away @ home), Ladbrokes uses "Team A vs Team B" (home vs away)
+  - Fix: Sort team names alphabetically → both become same normalized key
+  - Modified `normalize_event_name()` in [odds_matcher.py:575-583](apps/api/src/api/routers/odds_matcher.py#L575-L583)
 
-3. **Full codebase analysis** - Key findings below
+- ✅ **FIXED ODDS GROUPING QUERY** - Query across all selection IDs
+  - Root cause: Odds queried per-selection, but Betfair/Ladbrokes have separate selection IDs for same team
+  - Fix: Group selections by normalized name first, then query odds for ALL selection IDs in group
+  - Modified [odds_matcher.py:733-776](apps/api/src/api/routers/odds_matcher.py#L733-L776)
 
-4. **Code cleanup complete**
-   - ✅ Fixed plan enforcement comment (TAB + Betfair for free tier makes sense)
-   - ✅ Deleted odds_matcher_mock.py + frontend mock route
-   - ✅ Removed mock router from main.py
-   - Prints → logging deferred (not critical)
+### Testing Complete ✅
 
-### Codebase Analysis Summary
+- **API restarted** and fresh scrape run (5,846 odds)
+- **19 matched opportunities found!**
+  - NBA: 6 games, 9 opportunities (Bulls/Hawks, Heat/Knicks, Raptors/Nets, etc.)
+  - NHL: 5 games, 10 opportunities (Canadiens/Penguins, Maple Leafs/Stars, etc.)
+  - Both Ladbrokes (back) + Betfair (lay) working correctly
+- Alphabetical sorting fix confirmed working
+- Cross-selection odds grouping fix confirmed working
 
-#### Working Components
-| Component | Status | Notes |
-|-----------|--------|-------|
-| TAB Scraper | ✅ EPL-only | ~7,800 odds, ~6s, parallel market fetch |
-| Betfair Scraper | ✅ EPL-only | ~60 lay odds, ~9s, Playwright |
-| Odds Matcher API | ✅ Complete | Complex grouping, plan enforcement |
-| Matching Engine | ✅ Complete | Normal + bonus bet calculations |
-| Database Models | ✅ Complete | Comprehensive schema |
-| Frontend UI | ✅ Functional | Real data, auto-refresh, filters |
-| Auth (Clerk) | ✅ Complete | JWT validation |
-| Billing (Stripe) | ✅ Complete | Checkout integration |
-| Docker Setup | ✅ Complete | Auto-migrations, health checks |
+### Current State
 
-#### Critical Issues Found
+| Sport | Ladbrokes | Betfair | Status |
+|-------|-----------|---------|--------|
+| NBA | 23 events, 50 odds | ✅ | **19 opportunities found** |
+| NHL | 21 events, 132 odds | ✅ | **19 opportunities found** |
+| EPL | 17 events, 68 odds | 22 events, 5080 odds (TAB+Betfair) | ✅ |
+| Boxing | 16 events, 48 odds | 22 events, 64 odds | ✅ |
+| Soccer (other) | ~100 events, 400+ odds | ✅ | ✅ |
+| NRL | 17 odds | Off-season | ❌ |
+| AFL | Off-season | 10 odds | ❌ |
 
-**1. Plan Enforcement "Bug" (actually intentional)**
-- Free tier returns `["tab", "betfair"]`
-- Comment says "TAB, Ladbrokes" but Betfair needed for lay bets (exchange)
-- **Action**: Update comment to match code - TAB (bookmaker) + Betfair (exchange)
+### Next Steps
 
-**2. Mock Endpoints Still Active**
-- `odds_matcher_mock.py` still in main.py (line 40)
-- Has `# DELETE when scraping works` comment
-- **Action**: Delete mock router since real scraping works
+1. **Test frontend UI** - Login at `localhost:3000` to verify NBA/NHL appear in odds matcher
+2. **Implement Neds scraper** - Complete free tier (Ladbrokes + Neds + Betfair)
 
-**3. Print Statements in Production Code**
-- odds_matcher.py lines 233-236, 272-282 have print()
-- Should use logger.debug() for consistency
-- **Action**: Replace prints with logging
+---
 
-**4. Team Name Normalization Inconsistent**
-- Hardcoded replacements in odds_matcher.py (lines 355-372)
-- save_odds.py has normalize_team_name() function
-- **Action**: Centralize normalization in one place
+## 2025-12-20 (Friday) - Sessions 1-2 (Compressed)
 
-**5. Ladbrokes Scraper = Skeleton Only**
-- 80 lines, no actual implementation
-- API endpoints unknown
-- **Action**: Defer until TAB multi-competition working
+### Major Achievements
 
-#### Not Bugs (Intentional Design)
+- ✅ **LADBROKES SCRAPER COMPLETE** - All 6 sports working (Soccer, NBA, NBL, NHL, NRL, Boxing)
+  - Converted to Playwright (API blocks direct httpx for non-soccer)
+  - Fixed race condition in parallel scraping
+  - Expanded from 8 soccer leagues to 14+ competitions across all sports
 
-- **TAB EPL-only**: Blocked by Akamai without proxy (documented)
-- **Betfair EPL-only**: Can expand when TAB multi-sport works
-- **Selection "other" key**: Fallback for unmatched teams (acceptable)
+- ✅ **ODDS MATCHER INTEGRATION** - Cross-bookmaker matching working
+  - Competition name normalization ("Premier League" ↔ "English Premier League")
+  - Added 100+ NBA/NHL/NBL team mappings
+  - Increased limit from 50 to 200 opportunities
+  - Fixed Ladbrokes "Fight Betting" market type
+  - Fixed Betfair MONEY_LINE market type (NHL/NBA)
+  - Database cleanup (removed 31,856 corrupt odds from race condition)
 
-### Current Blockers
+---
 
-1. **TAB Multi-Competition** - Needs rotating proxy ($15-30/mo)
-2. **Ladbrokes Scraper** - API discovery not done
-3. **Test Coverage** - Only 3 small tests exist
+## 2025-12-19 (Thursday) - Ladbrokes Implementation
 
-### Prioritized Next Steps
+### Completed
+- ✅ Discovered Ladbrokes REST API v2 (`/v2/sport/event-request`)
+- ✅ Implemented complete Ladbrokes scraper
+- ✅ Fixed critical bug: Ladbrokes prices dict uses hidden market IDs
+  - Root cause: `prices_data` keys use `{entrant_id}:{hidden_market_id}:` format
+  - Solution: Search by entrant_id prefix instead of composite key
+  - Result: **0 → 558 events with odds** (100% success!)
+- ✅ Updated free tier: Changed from TAB+Betfair to **Ladbrokes+Neds+Betfair**
+- ✅ End-to-end integration: 3 bookmakers, 116 events, 13,207 odds
 
-**Immediate (cleanup)** - ✅ DONE:
-1. ✅ Fixed plan enforcement comment
-2. ✅ Deleted mock endpoints
-3. Prints → logging (deferred)
+---
 
-**DECISION MADE**: ✅ Option A - Full Production with Proxy
+## 2025-12-08 (Sunday) - Documentation & Analysis
 
-Building for 1000+ users from day one. Next steps:
-1. Sign up for SmartProxy or Bright Data (rotating residential proxy)
-2. Add RESIDENTIAL_PROXY_URL to env
-3. Implement TAB multi-competition (14 sports across 5 categories)
-4. Implement Betfair multi-competition (14 sports)
-5. Test all sports end-to-end
-6. Add proxy cost monitoring/logging
+### Completed
+- Documentation consolidation (merged 3 docs → CLAUDE.md)
+- Full codebase analysis
+- Code cleanup (deleted mocks, fixed comments)
+- **Decision**: Full production with rotating proxy for scaling
 
-**Medium-term** (after decision):
-- Ladbrokes scraper (API discovery)
-- Test coverage (integration tests)
-- CI/CD pipeline
-- Monitoring/alerting (Sentry)
+### Key Findings
+- TAB EPL-only works (~7,800 odds) - multi-sport blocked by Akamai
+- Betfair EPL-only works (~60 lay odds) - can expand easily
+- Free tier strategy: 2 bookmakers (Ladbrokes + Neds) + Betfair exchange
 
 ---
 
 ## Week of 2025-12-02 (Compressed)
 
-**Major work**:
 - Betfair scraper timing fix (5s wait + 1s async delay)
 - Selection matching improvements (team normalization)
 - TAB multi-competition attempts (blocked, reverted)
-- Outmatched.com owner outreach (confirmed proxy approach)
+- Outmatched.com owner outreach (confirmed rotating proxy approach)
+
+---
+
+## Blockers
+
+1. **NRL/AFL off-season** - No matching until season starts
+2. **Neds scraper not implemented** - Required to complete free tier
 
 ---
 
