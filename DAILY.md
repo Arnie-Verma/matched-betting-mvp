@@ -4,6 +4,37 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2025-12-21 (Saturday) - Session 1
+
+### Completed
+
+- ✅ **EXPANDED TEAM NAME NORMALIZATIONS** - Italian Serie A + German Bundesliga
+  - Added: Pisa Sporting Club → pisa, US Sassuolo Calcio → sassuolo, Torino FC → torino
+  - Added: 1. FSV Mainz 05 → mainz, FC St. Pauli → stpauli, Heidenheim variations
+  - Both `normalize_event_name()` and `normalize_selection_name()` updated
+  - Verified all 3 problem matches now group correctly
+
+- ✅ **PREVIOUS SESSION FIXES** applied:
+  - Changed refresh to scrape all sports (not just soccer)
+  - Disabled TAB scraper (needs rotating proxy)
+  - Added market types: Moneyline, Head To Head, Fight Betting
+  - Increased event limit to 500
+  - Added EPL team normalizations (Leeds United, Sunderland AFC, etc.)
+
+### Current State
+
+- 92+ opportunities vs Outmatched's 127 (goal: match their output)
+- Betfair scraper intermittent - timing issue with network capture
+- All normalizations tested and confirmed working
+
+### Next Steps
+
+1. Fix Betfair scraper reliability (increase wait time or retry)
+2. Continue testing UI to verify opportunity count
+3. Add any remaining team normalizations as discovered
+
+---
+
 ## 2025-12-20 (Friday) - Session 3
 
 ### Completed

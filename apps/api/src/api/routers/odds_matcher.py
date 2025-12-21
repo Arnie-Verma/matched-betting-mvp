@@ -419,7 +419,7 @@ async def get_matcher_opportunities(
 
         # Team name normalizations (handles full names AND abbreviations used by Betfair)
         replacements = {
-            # EPL
+            # EPL - order matters: longer strings first
             'wolverhampton wanderers': 'wolves',
             'wolverhampton': 'wolves',
             'nottinghm forest': 'nottingham',
@@ -437,7 +437,16 @@ async def get_matcher_opportunities(
             'west ham united': 'westham',
             'west ham': 'westham',
             'newcastle united': 'newcastle',
+            'newcastle jets': 'newcastlejets',
             'leicester city': 'leicester',
+            'leeds united': 'leeds',
+            'sunderland afc': 'sunderland',
+            'afc bournemouth': 'bournemouth',
+            'everton fc': 'everton',
+            'arsenal fc': 'arsenal',
+            'crystal palace': 'crystalpalace',
+            'aston villa': 'astonvilla',
+            'adelaide united': 'adelaide',
             # German Bundesliga (including Betfair abbreviations)
             'borussia dortmund': 'dortmund',
             'borussia monchengladbach': 'gladbach',
@@ -462,6 +471,18 @@ async def get_matcher_opportunities(
             'sc freiburg': 'freiburg',
             'fc augsburg': 'augsburg',
             'hamburger sv': 'hamburg',
+            # Mainz and St. Pauli variations
+            '1. fsv mainz 05': 'mainz',
+            'fsv mainz 05': 'mainz',
+            'mainz 05': 'mainz',
+            'fc st. pauli': 'stpauli',
+            'fc st pauli': 'stpauli',
+            'st. pauli': 'stpauli',
+            'st pauli': 'stpauli',
+            # Heidenheim variations
+            '1. fc heidenheim 1846': 'heidenheim',
+            'fc heidenheim': 'heidenheim',
+            'heidenheim 1846': 'heidenheim',
             # Spanish La Liga
             'atletico madrid': 'atletico',
             'real sociedad': 'sociedad',
@@ -485,6 +506,11 @@ async def get_matcher_opportunities(
             'genoa cfc': 'genoa',
             'ss lazio': 'lazio',
             'us cremonese': 'cremonese',
+            'pisa sporting club': 'pisa',
+            'us sassuolo calcio': 'sassuolo',
+            'sassuolo calcio': 'sassuolo',
+            'torino fc': 'torino',
+            'cagliari calcio': 'cagliari',
             # French Ligue 1
             'paris saint-germain': 'psg',
             'paris st-g': 'psg',
@@ -723,7 +749,7 @@ async def get_matcher_opportunities(
 
             # Specific team name normalizations (same as event normalizer)
             replacements = {
-                # EPL
+                # EPL - order matters: longer strings first
                 'wolverhampton wanderers': 'wolves',
                 'wolverhampton': 'wolves',
                 'nottinghm forest': 'nottingham',
@@ -741,7 +767,16 @@ async def get_matcher_opportunities(
                 'west ham united': 'westham',
                 'west ham': 'westham',
                 'newcastle united': 'newcastle',
+                'newcastle jets': 'newcastlejets',
                 'leicester city': 'leicester',
+                'leeds united': 'leeds',
+                'sunderland afc': 'sunderland',
+                'afc bournemouth': 'bournemouth',
+                'everton fc': 'everton',
+                'arsenal fc': 'arsenal',
+                'crystal palace': 'crystalpalace',
+                'aston villa': 'astonvilla',
+                'adelaide united': 'adelaide',
                 # German Bundesliga (including Betfair abbreviations)
                 'borussia dortmund': 'dortmund',
                 'borussia monchengladbach': 'gladbach',
@@ -761,6 +796,18 @@ async def get_matcher_opportunities(
                 'sc freiburg': 'freiburg',
                 'fc augsburg': 'augsburg',
                 'hamburger sv': 'hamburg',
+                # Mainz and St. Pauli variations
+                '1. fsv mainz 05': 'mainz',
+                'fsv mainz 05': 'mainz',
+                'mainz 05': 'mainz',
+                'fc st. pauli': 'stpauli',
+                'fc st pauli': 'stpauli',
+                'st. pauli': 'stpauli',
+                'st pauli': 'stpauli',
+                # Heidenheim variations
+                '1. fc heidenheim 1846': 'heidenheim',
+                'fc heidenheim': 'heidenheim',
+                'heidenheim 1846': 'heidenheim',
                 # Spanish La Liga
                 'atletico madrid': 'atletico',
                 'real sociedad': 'sociedad',
@@ -779,6 +826,11 @@ async def get_matcher_opportunities(
                 'atalanta bc': 'atalanta',
                 'genoa cfc': 'genoa',
                 'ss lazio': 'lazio',
+                'pisa sporting club': 'pisa',
+                'us sassuolo calcio': 'sassuolo',
+                'sassuolo calcio': 'sassuolo',
+                'torino fc': 'torino',
+                'cagliari calcio': 'cagliari',
                 # French Ligue 1
                 'paris saint-germain': 'psg',
                 'paris st-g': 'psg',
