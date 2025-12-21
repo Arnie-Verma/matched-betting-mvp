@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Search, ChevronDown } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { LEAGUE_DISPLAY_NAMES, LEAGUE_ORDER, normalizeLeagueName } from './leagueNormalization'
 
 interface OddsFiltersProps {
   filters: {
@@ -26,6 +27,7 @@ interface Competition {
   id: number
   short_name: string
   full_name: string
+  code: string
 }
 
 export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
@@ -36,6 +38,7 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
   const [availableLeagues, setAvailableLeagues] = useState<Competition[]>([])
   const [bookmakerSearch, setBookmakerSearch] = useState('')
   const [leagueSearch, setLeagueSearch] = useState('')
+  const [stakeInput, setStakeInput] = useState(filters.stake.toString())
   const bookmakersRef = useRef<HTMLDivElement>(null)
   const leaguesRef = useRef<HTMLDivElement>(null)
 
@@ -58,10 +61,24 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
         const leaguesRes = await fetch('/api/proxy/competitions')
         if (leaguesRes.ok) {
           const leagues = await leaguesRes.json() as Array<{ id: number; short_name: string; full_name: string }>
-          // Sort alphabetically by short_name
+          // Normalize, label, and sort leagues by our preferred order
           const sorted = leagues
-            .map((c) => ({ id: c.id, short_name: c.short_name, full_name: c.full_name }))
-            .sort((a: Competition, b: Competition) => a.short_name.localeCompare(b.short_name))
+            .map((c) => {
+              const code = normalizeLeagueName(c.short_name)
+              const label = LEAGUE_DISPLAY_NAMES[code] ?? c.short_name
+              return { id: c.id, short_name: label, full_name: c.full_name, code }
+            })
+            .filter((c, index, arr) => arr.findIndex(other => other.code === c.code) === index)
+            .sort((a: Competition, b: Competition) => {
+              const aIdx = LEAGUE_ORDER.indexOf(a.code)
+              const bIdx = LEAGUE_ORDER.indexOf(b.code)
+              if (aIdx === -1 && bIdx === -1) {
+                return a.short_name.localeCompare(b.short_name)
+              }
+              if (aIdx === -1) return 1
+              if (bIdx === -1) return -1
+              return aIdx - bIdx
+            })
           setAvailableLeagues(sorted)
         }
       } catch (error) {
@@ -70,6 +87,11 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
     }
     fetchOptions()
   }, [])
+
+  // Keep local stake input in sync when filters change externally
+  useEffect(() => {
+    setStakeInput(filters.stake.toString())
+  }, [filters.stake])
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -86,9 +108,21 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
   }, [])
 
   const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value)
+    const raw = e.target.value
+    setStakeInput(raw)
+
+    const value = parseFloat(raw)
     if (!isNaN(value) && value > 0) {
       onFiltersChange({ ...filters, stake: value })
+    }
+  }
+
+  const handleStakeBlur = () => {
+    const value = parseFloat(stakeInput)
+    if (isNaN(value) || value <= 0) {
+      const fallback = filters.stake || 100
+      setStakeInput(fallback.toString())
+      onFiltersChange({ ...filters, stake: fallback })
     }
   }
 
@@ -135,8 +169,9 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
               type="number"
               min="1"
               step="10"
-              value={filters.stake}
+              value={stakeInput}
               onChange={handleStakeChange}
+              onBlur={handleStakeBlur}
               className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -301,10 +336,10 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
                         >
                           <input
                             type="checkbox"
-                            checked={filters.sports.includes(league.short_name.toLowerCase())}
+                            checked={filters.sports.includes(league.code)}
                             onChange={() => {
                               const current = filters.sports
-                              const leagueCode = league.short_name.toLowerCase()
+                              const leagueCode = league.code
                               const updated = current.includes(leagueCode)
                                 ? current.filter(s => s !== leagueCode)
                                 : [...current, leagueCode]

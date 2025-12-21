@@ -94,7 +94,7 @@ export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTablePro
                 Liquidity
               </th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                PnL %
+                PnL
               </th>
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Action
@@ -140,15 +140,20 @@ export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTablePro
                   )}
                 </td>
                 <td className="px-4 py-4 text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    {opp.pnl_percentage >= 0 ? (
-                      <TrendingUp className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4 text-red-600" />
-                    )}
-                    <span className={`text-sm font-semibold ${opp.pnl_percentage >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                  <div className="flex flex-col items-end justify-center gap-1 leading-tight">
+                    <div className="flex items-center gap-2">
+                      {opp.pnl_percentage >= 0 ? (
+                        <TrendingUp className="w-4 h-4 text-green-700" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 text-red-700" />
+                      )}
+                      <span className={`text-sm font-semibold ${opp.pnl_percentage >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                        {formatCurrency(opp.qualifying_loss)}
+                      </span>
+                    </div>
+                    <div className={`text-xs ${opp.pnl_percentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatPercentage(opp.pnl_percentage)}
-                    </span>
+                    </div>
                   </div>
                 </td>
                 <td className="px-4 py-4 text-center">
@@ -200,9 +205,21 @@ export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTablePro
                 <div className="font-semibold text-red-700">{formatOdds(opp.lay_odds)}</div>
               </div>
               <div>
-                <div className="text-xs text-gray-500 mb-1">PnL %</div>
-                <div className={`font-semibold ${opp.pnl_percentage >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                  {formatPercentage(opp.pnl_percentage)}
+                <div className="text-xs text-gray-500 mb-1">PnL</div>
+                <div className="flex flex-col items-start leading-tight gap-1">
+                  <div className="flex items-center gap-2">
+                    {opp.pnl_percentage >= 0 ? (
+                      <TrendingUp className="w-4 h-4 text-green-700" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 text-red-700" />
+                    )}
+                    <span className={`text-sm font-semibold ${opp.pnl_percentage >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                      {formatCurrency(opp.qualifying_loss)}
+                    </span>
+                  </div>
+                  <span className={`text-xs ${opp.pnl_percentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatPercentage(opp.pnl_percentage)}
+                  </span>
                 </div>
               </div>
             </div>

@@ -5,6 +5,7 @@ import { OddsFilters } from './OddsFilters'
 import { OddsTable } from './OddsTable'
 import { BetCalculatorModal } from './BetCalculatorModal'
 import { RefreshCw } from 'lucide-react'
+import { normalizeLeagueName } from './leagueNormalization'
 
 export type BetType = 'normal' | 'bonus'
 
@@ -61,6 +62,7 @@ export function OddsMatcherClient() {
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [showPerformanceNotice, setShowPerformanceNotice] = useState(false)
+  const [debouncedStake, setDebouncedStake] = useState(100)
 
   const [selectedOdds, setSelectedOdds] = useState<OddsMatch | null>(null)
 
@@ -70,13 +72,19 @@ export function OddsMatcherClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Refetch opportunities when bet type or stake changes (recalculates with new parameters)
+  // Debounce stake changes to avoid multiple rapid recalculations
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedStake(filters.stake), 300)
+    return () => clearTimeout(handle)
+  }, [filters.stake])
+
+  // Refetch opportunities when bet type or debounced stake changes (recalculates with new parameters)
   useEffect(() => {
     if (opportunities.length > 0) {
       fetchOpportunities()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.betType, filters.stake])
+  }, [filters.betType, debouncedStake])
 
   const fetchOpportunities = async () => {
     setLoading(true)
@@ -85,7 +93,7 @@ export function OddsMatcherClient() {
     try {
       // Fetch ALL opportunities with just stake and bet type (filtering happens client-side)
       const params = new URLSearchParams()
-      params.append('stake', filters.stake.toString())
+      params.append('stake', debouncedStake.toString())
       params.append('bet_type', filters.betType)
 
       // ✅ Using real TAB + Betfair odds from database
@@ -107,6 +115,7 @@ export function OddsMatcherClient() {
 
   // Client-side filtering for instant results
   const filteredOpportunities = useMemo(() => {
+    const selectedLeagues = new Set(filters.sports.map(normalizeLeagueName))
     return opportunities.filter(opp => {
       // Filter by bookmaker
       if (filters.bookmakers.length > 0 && !filters.bookmakers.includes(opp.back_bookmaker_code)) {
@@ -114,7 +123,7 @@ export function OddsMatcherClient() {
       }
 
       // Filter by league/competition
-      if (filters.sports.length > 0 && !filters.sports.includes(opp.competition_name.toLowerCase())) {
+      if (selectedLeagues.size > 0 && !selectedLeagues.has(normalizeLeagueName(opp.competition_name))) {
         return false
       }
 

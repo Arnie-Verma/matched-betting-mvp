@@ -16,6 +16,69 @@ from api.models import Bookmaker, Sport, Competition
 router = APIRouter(prefix="/metadata", tags=["metadata"])
 
 
+def _normalize_competition_name(name: str) -> str:
+    return (name or "").strip().lower()
+
+
+# Only expose the leagues we actively support in the odds matcher UI
+ALLOWED_COMPETITIONS = [
+    {
+        "key": "a-league",
+        "display": "A-League",
+        "aliases": ["a-league", "a league", "a-league men", "a-league women"],
+    },
+    {"key": "afl", "display": "AFL", "aliases": ["afl"]},
+    {"key": "boxing", "display": "Boxing", "aliases": ["boxing", "upcoming fights"]},
+    {
+        "key": "epl",
+        "display": "EPL",
+        "aliases": ["epl", "premier league", "english premier league"],
+    },
+    {
+        "key": "ligue 1",
+        "display": "French Ligue 1",
+        "aliases": ["ligue 1", "french ligue 1"],
+    },
+    {
+        "key": "bundesliga",
+        "display": "German Bundesliga",
+        "aliases": ["bundesliga", "german bundesliga", "german bundesliga women"],
+    },
+    {
+        "key": "serie a",
+        "display": "Italian Serie A",
+        "aliases": ["serie a", "italian serie a"],
+    },
+    {
+        "key": "mls",
+        "display": "Major League Soccer",
+        "aliases": ["mls", "major league soccer"],
+    },
+    {"key": "nba", "display": "NBA", "aliases": ["nba"]},
+    {"key": "nbl", "display": "NBL", "aliases": ["nbl"]},
+    {"key": "nhl", "display": "NHL", "aliases": ["nhl"]},
+    {"key": "nrl", "display": "NRL", "aliases": ["nrl"]},
+    {
+        "key": "la liga",
+        "display": "Spanish La Liga",
+        "aliases": ["la liga", "spanish la liga", "spanish la-liga"],
+    },
+    {
+        "key": "ucl",
+        "display": "UEFA Champions League",
+        "aliases": ["ucl", "champions league", "uefa champions league"],
+    },
+]
+
+ALLOWED_ORDER = [item["key"] for item in ALLOWED_COMPETITIONS]
+ALIAS_LOOKUP = {
+    alias: item["key"]
+    for item in ALLOWED_COMPETITIONS
+    for alias in item["aliases"]
+}
+DISPLAY_LOOKUP = {item["key"]: item["display"] for item in ALLOWED_COMPETITIONS}
+
+
 class BookmakerResponse(BaseModel):
     id: int
     code: str
@@ -86,18 +149,28 @@ async def get_competitions(
 ) -> List[CompetitionResponse]:
     """
     Get all competitions/leagues for filter dropdowns.
-    Returns all competitions sorted alphabetically by short_name.
+    Returns only supported competitions, deduped and sorted in preferred order.
     """
-    competitions = db.query(Competition).filter(
-        Competition.is_active == True
-    ).order_by(Competition.short_name).all()
+    competitions = db.query(Competition).filter(Competition.is_active == True).all()
 
-    return [
-        CompetitionResponse(
+    filtered: dict[str, CompetitionResponse] = {}
+    for comp in competitions:
+        norm_short = _normalize_competition_name(comp.short_name)
+        norm_full = _normalize_competition_name(comp.name)
+        key = ALIAS_LOOKUP.get(norm_short) or ALIAS_LOOKUP.get(norm_full)
+        if not key:
+            continue
+
+        if key in filtered:
+            continue  # Dedupe by canonical key
+
+        filtered[key] = CompetitionResponse(
             id=comp.id,
             sport_id=comp.sport_id,
-            short_name=comp.short_name,
-            full_name=comp.name  # Use 'name' field, not 'full_name'
+            short_name=DISPLAY_LOOKUP.get(key, comp.short_name),
+            full_name=comp.name
         )
-        for comp in competitions
-    ]
+
+    # Preserve preferred order; ignore missing leagues quietly
+    ordered = [filtered[key] for key in ALLOWED_ORDER if key in filtered]
+    return ordered
