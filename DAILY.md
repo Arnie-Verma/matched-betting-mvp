@@ -4,6 +4,94 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2025-12-26 (Thursday)
+
+### Session 2: Phase 0 Testing - ALL TESTS PASSED
+
+Executed all tests from [PHASE_0_COMPLETE.md](PHASE_0_COMPLETE.md) and verified expected behavior.
+
+**Test Results Summary:**
+
+| Test | Expected | Actual | Status |
+|------|----------|--------|--------|
+| Migration | `20251226_idempotent (head)` | `20251226_idempotent (head)` | ✅ PASS |
+| Circuit Breaker | `{"state": "open", "failures": 5}` after 5 failures | Exact match | ✅ PASS |
+| Idempotent Writes | No duplicates on repeated scrape | 2 scrapes, same count | ✅ PASS |
+| Timeout Protection | `Scrape timed out after 25s` + failure recorded | Betfair timeout, `failures: 1` | ✅ PASS |
+| End-to-End Refresh | Job enqueue → worker → success status | `{"status": "success", "odds_saved": 700}` | ✅ PASS |
+
+**Bug Fixes During Testing:**
+
+1. **`user.id` before definition** ([odds_matcher.py:137](apps/api/src/api/routers/odds_matcher.py#L137))
+   - Rate limit key used `user.id` before user was fetched
+   - Fix: Moved user query before rate limit check
+
+2. **Batch duplicate selection** ([save_odds.py](apps/worker/src/jobs/save_odds.py))
+   - Error: `ON CONFLICT DO UPDATE cannot affect row a second time`
+   - Cause: Same selection_id appeared multiple times in upsert batch
+   - Fix: Added dedupe logic before upsert (keeps last per constraint key)
+
+**Database State After Testing:**
+- 16,953 current odds in database
+- timestamp_bucket column populated correctly (5-min buckets)
+- Circuit breaker keys in Redis working
+
+---
+
+### Session 1: Phase 0 Implementation
+
+**✅ Circuit Breaker & Timeout Protection** ([scrape_service.py](apps/worker/src/jobs/scrape_service.py))
+- Redis-based circuit breaker with 3 states: closed → open → half-open
+- Threshold: 5 failures → opens breaker
+- Cooldown: 60s before half-open retry
+- Timeout wrapper: 25s max per scraper call (asyncio.wait_for)
+
+**✅ Idempotent Writes** ([save_odds.py](apps/worker/src/jobs/save_odds.py))
+- Added `timestamp_bucket` column (5-min buckets for deduplication)
+- PostgreSQL INSERT ... ON CONFLICT DO UPDATE (true upsert)
+- Unique constraint: `(selection_id, bookmaker_id, timestamp_bucket, scrape_session_id)`
+
+**✅ Database Migration** ([20251226_add_idempotent_writes_support.py](apps/api/alembic/versions/20251226_add_idempotent_writes_support.py))
+- Add timestamp_bucket column + index
+- Drop old constraint, add new dedupe constraint
+
+### Infrastructure Status
+
+**Phase 0 (Queue/Cache/Backpressure): 100% COMPLETE AND TESTED**
+| Component | Status |
+|-----------|--------|
+| Redis job queue | ✅ Working |
+| Non-blocking refresh | ✅ Working |
+| Per-user rate limiting | ✅ Working |
+| ETag/Last-Modified | ✅ Working |
+| Circuit breaker | ✅ Working + Tested |
+| Timeout protection | ✅ Working (25s) |
+| Idempotent writes | ✅ Working + Tested |
+
+### Next Steps
+1. **Phase 1**: Fix scraper race conditions for parallelization
+   - Fix `captured_data` closure pattern in betfair_scraper.py and ladbrokes_scraper.py
+   - Add `scrape_all_sports_parallel()` method
+   - Expected: 72-96s → 10-15s (6-8x faster)
+
+---
+
+## 2025-12-23 (Tuesday)
+
+### Completed
+- Session start: reviewed CLAUDE.md instructions and optimization plan for upcoming production work
+- Implemented non-blocking refresh enqueue path with job IDs and fast/slow TTL config
+- Added Redis-backed refresh worker consumer stub plus job status endpoint and ETag/Last-Modified caching headers for matcher responses
+- Syntax-checked updated modules via `python -m py_compile` for odds_matcher, refresh_queue, refresh_worker
+
+### Blockers
+- None yet identified; need to validate scrapers once parallel changes begin
+
+### Next Steps
+- Outline execution steps for production optimization (queue/cache, parallel scraping, dynamic waits, cleanup/indexes, normalization service)
+
+---
+
 ## 2025-12-21 (Saturday) - Session 1
 
 ### Completed

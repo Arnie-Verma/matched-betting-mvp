@@ -358,6 +358,7 @@ class OddsSnapshot(Base):
 
     # Temporal data
     timestamp = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    timestamp_bucket = Column(DateTime(timezone=True), nullable=True)  # Rounded timestamp for deduplication (e.g., floor to nearest 5min)
     is_current = Column(Boolean, default=True, index=True)  # Latest odds for this selection/bookmaker
 
     # Market context at time of snapshot
@@ -390,8 +391,13 @@ class OddsSnapshot(Base):
         Index("idx_odds_selection_current", "selection_id", "is_current"),
         Index("idx_odds_bookmaker_current", "bookmaker_id", "is_current"),
         Index("idx_odds_timestamp", "timestamp"),
+        Index("idx_odds_timestamp_bucket", "timestamp_bucket"),  # For cleanup queries
         Index("idx_odds_selection_bookmaker_current", "selection_id", "bookmaker_id", "is_current"),
-        UniqueConstraint("selection_id", "bookmaker_id", "timestamp", name="uq_odds_selection_bookmaker_time"),
+        # Old constraint - will be dropped in migration
+        # UniqueConstraint("selection_id", "bookmaker_id", "timestamp", name="uq_odds_selection_bookmaker_time"),
+        # New idempotent constraint - prevents duplicates on retries
+        UniqueConstraint("selection_id", "bookmaker_id", "timestamp_bucket", "scrape_session_id",
+                        name="uq_odds_dedupe"),
     )
 
 

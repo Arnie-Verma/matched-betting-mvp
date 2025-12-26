@@ -7,6 +7,8 @@ sys.path.insert(0, "apps/api/src")
 
 import asyncio
 import logging
+import os
+import redis
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from decimal import Decimal
@@ -30,6 +32,91 @@ class ScrapeService:
             # Add more scrapers as they're implemented
             # "neds": NedsScraper(),
         }
+        self.redis_client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+        self.breaker_threshold = int(os.getenv("BOOKMAKER_BREAKER_THRESHOLD", "5"))
+        self.breaker_cooldown = int(os.getenv("BOOKMAKER_BREAKER_COOLDOWN_SECONDS", "60"))
+        self.bookmaker_timeout = int(os.getenv("BOOKMAKER_TIMEOUT_SECONDS", "25"))
+
+    def _get_breaker_state(self, bookmaker_code: str) -> Dict[str, Any]:
+        """Get circuit breaker state from Redis."""
+        breaker_key = f"breaker:{bookmaker_code}"
+        data = self.redis_client.get(breaker_key)
+        if not data:
+            return {"state": "closed", "failures": 0, "opened_at": None}
+        import json
+        return json.loads(data)
+
+    def _set_breaker_state(self, bookmaker_code: str, state: str, failures: int = 0):
+        """Update circuit breaker state in Redis."""
+        import json
+        breaker_key = f"breaker:{bookmaker_code}"
+        breaker_data = {
+            "state": state,
+            "failures": failures,
+            "opened_at": datetime.now(timezone.utc).isoformat() if state == "open" else None,
+        }
+        ttl = self.breaker_cooldown + 60  # Extra buffer for cooldown
+        self.redis_client.setex(breaker_key, ttl, json.dumps(breaker_data))
+
+    def _record_success(self, bookmaker_code: str):
+        """Record successful scrape - reset circuit breaker."""
+        self._set_breaker_state(bookmaker_code, "closed", 0)
+
+    def _record_failure(self, bookmaker_code: str):
+        """Record failed scrape - increment failure counter and open breaker if threshold reached."""
+        breaker_state = self._get_breaker_state(bookmaker_code)
+        failures = breaker_state.get("failures", 0) + 1
+
+        if failures >= self.breaker_threshold:
+            logger.warning(
+                f"[{bookmaker_code}] Circuit breaker OPEN after {failures} failures "
+                f"(threshold: {self.breaker_threshold}). Cooldown: {self.breaker_cooldown}s"
+            )
+            self._set_breaker_state(bookmaker_code, "open", failures)
+        else:
+            logger.info(f"[{bookmaker_code}] Failure {failures}/{self.breaker_threshold}")
+            self._set_breaker_state(bookmaker_code, "closed", failures)
+
+    def _check_breaker(self, bookmaker_code: str) -> bool:
+        """
+        Check if circuit breaker allows scraping.
+
+        Returns True if scraping allowed, False if breaker is open.
+        Implements half-open state after cooldown period.
+        """
+        breaker_state = self._get_breaker_state(bookmaker_code)
+        state = breaker_state.get("state", "closed")
+
+        if state == "closed":
+            return True
+
+        if state == "open":
+            opened_at_str = breaker_state.get("opened_at")
+            if not opened_at_str:
+                # No timestamp, allow retry
+                return True
+
+            from datetime import datetime
+            opened_at = datetime.fromisoformat(opened_at_str)
+            cooldown_elapsed = (datetime.now(timezone.utc) - opened_at).total_seconds()
+
+            if cooldown_elapsed >= self.breaker_cooldown:
+                # Enter half-open state - allow one retry
+                logger.info(f"[{bookmaker_code}] Circuit breaker entering HALF-OPEN state (cooldown elapsed)")
+                self._set_breaker_state(bookmaker_code, "half-open", breaker_state.get("failures", 0))
+                return True
+            else:
+                logger.warning(
+                    f"[{bookmaker_code}] Circuit breaker OPEN - skipping scrape "
+                    f"(cooldown: {int(self.breaker_cooldown - cooldown_elapsed)}s remaining)"
+                )
+                return False
+
+        if state == "half-open":
+            # Allow one retry in half-open state
+            return True
+
+        return True
 
     async def scrape_bookmaker(
         self,
@@ -39,6 +126,10 @@ class ScrapeService:
     ) -> Dict[str, Any]:
         """
         Scrape a single bookmaker and save to database.
+
+        Implements:
+        - Circuit breaker pattern (skip after N failures, retry after cooldown)
+        - Timeout protection (asyncio.wait_for)
 
         Args:
             bookmaker_code: Bookmaker to scrape (e.g., "tab")
@@ -60,14 +151,42 @@ class ScrapeService:
                 "odds_scraped": 0
             }
 
+        # Circuit breaker check
+        if not self._check_breaker(bookmaker_code):
+            return {
+                "bookmaker": bookmaker_code,
+                "success": False,
+                "error": "Circuit breaker OPEN - skipping scrape",
+                "events_scraped": 0,
+                "odds_scraped": 0,
+                "breaker_state": "open"
+            }
+
         try:
             total_start = time.time()
             logger.info(f"⏱️  [{bookmaker_code}] Starting scrape: {sport}")
 
-            # Run scraper
+            # Run scraper WITH TIMEOUT
             scrape_start = time.time()
             scraper = self.scrapers[bookmaker_code]
-            result = await scraper.scrape_sport(sport, limit=limit)
+
+            try:
+                result = await asyncio.wait_for(
+                    scraper.scrape_sport(sport, limit=limit),
+                    timeout=self.bookmaker_timeout
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"[{bookmaker_code}] Scrape timed out after {self.bookmaker_timeout}s")
+                self._record_failure(bookmaker_code)
+                return {
+                    "bookmaker": bookmaker_code,
+                    "success": False,
+                    "error": f"Timeout after {self.bookmaker_timeout}s",
+                    "events_scraped": 0,
+                    "odds_scraped": 0,
+                    "timeout": True
+                }
+
             scrape_duration = time.time() - scrape_start
 
             logger.info(f"⏱️  [{bookmaker_code}] Scraping took {scrape_duration:.2f}s - {result.events_scraped} events, {result.odds_scraped} odds")
@@ -82,6 +201,9 @@ class ScrapeService:
 
             logger.info(f"⏱️  [{bookmaker_code}] Database save took {db_duration:.2f}s")
             logger.info(f"⏱️  [{bookmaker_code}] TOTAL: {total_duration:.2f}s (scrape: {scrape_duration:.2f}s, db: {db_duration:.2f}s)")
+
+            # Record success - reset circuit breaker
+            self._record_success(bookmaker_code)
 
             return {
                 "bookmaker": bookmaker_code,
@@ -100,6 +222,8 @@ class ScrapeService:
 
         except Exception as e:
             logger.exception(f"Scrape failed for {bookmaker_code}: {e}")
+            # Record failure - increment circuit breaker counter
+            self._record_failure(bookmaker_code)
             return {
                 "bookmaker": bookmaker_code,
                 "success": False,

@@ -101,5 +101,44 @@ services:
       timeout: 3s
       retries: 30
 
+  worker:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile.dev
+    container_name: mb_worker
+    env_file:
+      - ../../.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://postgres:postgres@db:5432/mb_dev}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - ACTIVE_BOOKMAKERS=${ACTIVE_BOOKMAKERS:-betfair,ladbrokes}
+      - SLOW_BOOKMAKERS=${SLOW_BOOKMAKERS:-}
+      - BOOKMAKER_CONCURRENCY_CAP=${BOOKMAKER_CONCURRENCY_CAP:-1}
+      - BOOKMAKER_BREAKER_THRESHOLD=${BOOKMAKER_BREAKER_THRESHOLD:-5}
+      - BOOKMAKER_BREAKER_COOLDOWN_SECONDS=${BOOKMAKER_BREAKER_COOLDOWN_SECONDS:-60}
+      - BOOKMAKER_TIMEOUT_SECONDS=${BOOKMAKER_TIMEOUT_SECONDS:-25}
+      - ODDS_REFRESH_MAX_RETRIES=${ODDS_REFRESH_MAX_RETRIES:-3}
+      - ODDS_CACHE_TTL_FAST_SECONDS=${ODDS_CACHE_TTL_FAST_SECONDS:-60}
+      - ODDS_CACHE_TTL_SLOW_SECONDS=${ODDS_CACHE_TTL_SLOW_SECONDS:-300}
+    working_dir: /workspace
+    volumes:
+      - ../..:/workspace
+    command: >
+      bash -lc "
+        pip install -r /workspace/apps/api/requirements.txt &&
+        playwright install chromium &&
+        export PYTHONPATH=/workspace/apps/api/src:/workspace/apps/worker/src &&
+        cd /workspace/apps/worker/src &&
+        python -m jobs.refresh_worker
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   pgdata:

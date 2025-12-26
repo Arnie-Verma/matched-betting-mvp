@@ -6,10 +6,11 @@ Supports filtering by stake, bet type, bookmakers, leagues, and search.
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
+from email.utils import format_datetime, parsedate_to_datetime
 
 from api.core.database import get_db
 from api.core.auth import get_current_user, UserClaims
@@ -86,7 +87,20 @@ class RefreshOddsResponse(BaseModel):
     message: str
     opportunities_count: int
     last_refresh: datetime
+    job_id: Optional[str] = Field(default=None, description="Queued job id if a refresh was enqueued")
     used_cache: bool = Field(default=False, description="Whether cached data was used")
+
+
+class RefreshJobStatusResponse(BaseModel):
+    """Status payload for a queued refresh job"""
+    job_id: str
+    status: str
+    enqueued_at: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    message: Optional[str] = None
+    errors: Optional[List[str]] = None
+    result: Optional[dict] = None
 
 
 @router.post("/refresh")
@@ -111,6 +125,13 @@ async def refresh_odds(
     logger.info(f"User: {user_claims.sub}")
 
     redis_client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+    job_queue_key = os.getenv("ODDS_REFRESH_QUEUE_KEY", "odds_refresh_jobs")
+    job_prefix = os.getenv("ODDS_REFRESH_JOB_PREFIX", "odds_refresh_job:")
+    fast_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_FAST_SECONDS", "60"))
+    slow_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_SLOW_SECONDS", "300"))
+    max_queue_length = int(os.getenv("ODDS_REFRESH_MAX_QUEUE_LENGTH", "50"))
+    merge_if_pending = os.getenv("ODDS_REFRESH_MERGE_IF_PENDING", "1") == "1"
+    per_user_refresh_seconds = int(os.getenv("ODDS_REFRESH_PER_USER_SECONDS", "30"))
 
     # Get or create user (auto-create on first access)
     logger.info(f"Looking up user with clerk_user_id: {user_claims.sub}")
@@ -132,6 +153,12 @@ async def refresh_odds(
     else:
         logger.info(f"User found: {user.id}")
 
+    # Per-user rate limit independent of cache (now that user is defined)
+    user_rate_key = f"odds_refresh_rl:{user.id}"
+    if redis_client.exists(user_rate_key):
+        raise HTTPException(status_code=429, detail="Too many refreshes, try again soon")
+    redis_client.setex(user_rate_key, per_user_refresh_seconds, "1")
+
     # Check plan entitlements
     subscription_service = SubscriptionService()
     can_access, message = subscription_service.can_user_access_feature(
@@ -146,64 +173,119 @@ async def refresh_odds(
 
     # Check global cache first (unless force refresh)
     # Cache provides natural rate limiting - no need for explicit limits
-    if not request.force:
-        cached_time = redis_client.get(global_cache_key)
-        if cached_time:
-            last_refresh = datetime.fromisoformat(cached_time.decode())
-            age_seconds = (datetime.now(timezone.utc) - last_refresh).total_seconds()
+    cached_time = redis_client.get(global_cache_key)
+    if cached_time and not request.force:
+        last_refresh = datetime.fromisoformat(cached_time.decode())
+        age_seconds = (datetime.now(timezone.utc) - last_refresh).total_seconds()
 
-            if age_seconds < 300:  # 5 minutes global cache
-                # Use cached data - count current odds
-                opportunities_count = db.query(OddsSnapshot).filter(
-                    OddsSnapshot.is_current == True
-                ).count()
+        if age_seconds < fast_ttl_seconds:
+            # Use cached data - count current odds
+            opportunities_count = db.query(OddsSnapshot).filter(
+                OddsSnapshot.is_current == True
+            ).count()
 
-                return RefreshOddsResponse(
-                    success=True,
-                    message=f"Using cached odds (updated {int(age_seconds)}s ago)",
-                    opportunities_count=opportunities_count,
-                    last_refresh=last_refresh,
-                    used_cache=True
-                )
+            return RefreshOddsResponse(
+                success=True,
+                message=f"Using cached odds (updated {int(age_seconds)}s ago)",
+                opportunities_count=opportunities_count,
+                last_refresh=last_refresh,
+                used_cache=True
+            )
 
-    # Trigger scraping (only if cache expired)
-    import sys
-    sys.path.insert(0, "../worker/src")
+    # Enqueue refresh job instead of blocking the request
+    from api.services.refresh_queue import enqueue_refresh_job
 
-    from jobs.scrape_service import trigger_scrape
+    payload = {
+        "requested_by": user.id,
+        "requested_at": datetime.now(timezone.utc).isoformat(),
+        "sports": "all",
+        "bookmakers": None,
+        "force": request.force,
+    }
 
-    try:
-        # Scrape ALL EPL events (no limit) to match Outmatched's comprehensive coverage
-        import logging
-        logging.info(f"User {user.id} triggered odds refresh")
+    enqueue_result = enqueue_refresh_job(
+        redis_client,
+        payload,
+        queue_key=job_queue_key,
+        job_prefix=job_prefix,
+        ttl_seconds=900,
+        max_queue_length=max_queue_length,
+        merge_if_pending=merge_if_pending,
+    )
+    job_id = enqueue_result["job_id"]
 
-        scrape_result = await trigger_scrape(sport="all", limit=None)
+    # Mark cache intent to prevent stampede; worker will set actual refresh time
+    now = datetime.now(timezone.utc)
+    redis_client.setex(global_cache_key, fast_ttl_seconds, now.isoformat())  # soft hold while job runs
 
-        # Update global cache
-        now = datetime.now(timezone.utc)
-        redis_client.setex(global_cache_key, 300, now.isoformat())  # 5 min TTL
+    opportunities_count = db.query(OddsSnapshot).filter(
+        OddsSnapshot.is_current == True
+    ).count()
 
-        # Count opportunities
-        opportunities_count = scrape_result.get("odds_saved", 0)
-
+    if enqueue_result.get("merged"):
         return RefreshOddsResponse(
-            success=scrape_result.get("success", False),
-            message=f"Refreshed {scrape_result.get('bookmakers_scraped', 0)} bookmakers - {scrape_result.get('odds_saved', 0)} odds updated",
+            success=True,
+            message="Refresh already queued; merged request",
             opportunities_count=opportunities_count,
             last_refresh=now,
-            used_cache=False
+            used_cache=True,
+            job_id=job_id,
         )
 
-    except Exception as e:
-        import logging
-        logging.error(f"Scrape failed: {e}")
+    return RefreshOddsResponse(
+        success=True,
+        message=f"Refresh job queued (job_id={job_id}); returning current cached odds",
+        opportunities_count=opportunities_count,
+        last_refresh=now,
+        used_cache=bool(cached_time),
+        job_id=job_id,
+    )
 
-        # Still respect rate limit even on failure to prevent abuse
-        raise HTTPException(status_code=500, detail=f"Refresh failed: {str(e)}")
+
+@router.get("/refresh/status")
+async def refresh_status(
+    job_id: str,
+    user_claims: UserClaims = Depends(get_current_user),
+):
+    """
+    Get status for a queued refresh job.
+    """
+    import redis
+    import os
+
+    redis_client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+    job_prefix = os.getenv("ODDS_REFRESH_JOB_PREFIX", "odds_refresh_job:")
+
+    from api.services.refresh_queue import get_job_status
+
+    status = get_job_status(redis_client, job_id, job_prefix=job_prefix)
+    if not status:
+        raise HTTPException(status_code=404, detail="Job not found or expired")
+
+    def parse_dt(value: Optional[str]) -> Optional[datetime]:
+        if not value:
+            return None
+        try:
+            return datetime.fromisoformat(value)
+        except Exception:
+            return None
+
+    return RefreshJobStatusResponse(
+        job_id=job_id,
+        status=status.get("status", "unknown"),
+        enqueued_at=parse_dt(status.get("enqueued_at")),
+        started_at=parse_dt(status.get("started_at")),
+        completed_at=parse_dt(status.get("completed_at")),
+        message=status.get("message"),
+        errors=status.get("errors"),
+        result=status.get("result"),
+    )
 
 
 @router.get("/matcher")
 async def get_matcher_opportunities(
+    request: Request,
+    response: Response,
     stake: Decimal = Query(default=Decimal("100"), ge=Decimal("1"), le=Decimal("10000")),
     bet_type: BetType = Query(default=BetType.NORMAL),
     bookmaker_codes: Optional[str] = Query(default=None, description="Comma-separated bookmaker codes"),
@@ -1102,4 +1184,30 @@ async def get_matcher_opportunities(
     logger.info(f"Total opportunities found: {len(opportunities)}")
     logger.info(f"Returning top {min(limit, len(opportunities))} opportunities")
 
-    return opportunities[:limit]
+    # Compute caching headers
+    limited_opps = opportunities[:limit]
+    last_modified_dt = None
+    if limited_opps:
+        last_modified_dt = max((opp.last_updated for opp in limited_opps if opp.last_updated), default=None)
+
+    if last_modified_dt:
+        etag = f'W/"{int(last_modified_dt.timestamp())}-{len(limited_opps)}"'
+        response.headers["ETag"] = etag
+        response.headers["Last-Modified"] = format_datetime(last_modified_dt)
+
+        incoming_etag = request.headers.get("if-none-match")
+        incoming_last_mod = request.headers.get("if-modified-since")
+
+        if incoming_etag and incoming_etag == etag:
+            response.status_code = 304
+            return []
+        if incoming_last_mod:
+            try:
+                if_last_mod_dt = parsedate_to_datetime(incoming_last_mod)
+                if last_modified_dt <= if_last_mod_dt:
+                    response.status_code = 304
+                    return []
+            except Exception:
+                pass
+
+    return limited_opps

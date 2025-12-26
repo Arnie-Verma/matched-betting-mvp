@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { OddsFilters } from './OddsFilters'
 import { OddsTable } from './OddsTable'
 import { BetCalculatorModal } from './BetCalculatorModal'
@@ -66,8 +66,13 @@ export function OddsMatcherClient() {
 
   const [selectedOdds, setSelectedOdds] = useState<OddsMatch | null>(null)
 
+  // Prevent duplicate mount calls in React Strict Mode
+  const hasInitialized = useRef(false)
+
   // Auto-refresh odds on component mount (triggers scraping if cache expired)
   useEffect(() => {
+    if (hasInitialized.current) return
+    hasInitialized.current = true
     refreshOdds()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -162,6 +167,12 @@ export function OddsMatcherClient() {
       if (!response.ok) {
         clearTimeout(noticeTimer)  // Cancel notice if error happens quickly
         setShowPerformanceNotice(false)
+        // 429 = rate limited - silently continue to fetch cached odds instead of showing error
+        if (response.status === 429) {
+          console.log('[OddsMatcherClient] Rate limited, fetching cached odds instead')
+          await fetchOpportunities()
+          return
+        }
         throw new Error('Failed to refresh odds')
       }
 

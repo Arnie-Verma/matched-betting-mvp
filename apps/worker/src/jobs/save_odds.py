@@ -112,7 +112,17 @@ class OddsPersistence:
 
             # OPTIMIZATION: Batch process all events together instead of one-by-one
             all_selection_ids = []
-            all_odds_to_insert = []
+            all_odds_to_upsert = []
+
+            # Calculate timestamp_bucket (floor to nearest 5 minutes for deduplication)
+            from datetime import datetime, timezone, timedelta
+            now = datetime.now(timezone.utc)
+            bucket_minutes = 5
+            timestamp_bucket = now.replace(
+                minute=(now.minute // bucket_minutes) * bucket_minutes,
+                second=0,
+                microsecond=0
+            )
 
             for scraped_event in result.events:
                 try:
@@ -121,14 +131,14 @@ class OddsPersistence:
                     event = self._save_event(scraped_event)
                     stats["events_saved"] += 1
 
-                    # Prepare odds for batch insert (don't insert yet)
+                    # Prepare odds for batch upsert (don't insert yet)
                     for scraped_odds in scraped_event.odds:
                         try:
                             market = self._get_or_create_market(event, scraped_odds)
                             selection = self._get_or_create_selection(market, scraped_odds)
 
                             all_selection_ids.append(selection.id)
-                            all_odds_to_insert.append({
+                            all_odds_to_upsert.append({
                                 "selection_id": selection.id,
                                 "bookmaker_id": bookmaker.id,
                                 "decimal_odds": scraped_odds.decimal_odds,
@@ -136,6 +146,7 @@ class OddsPersistence:
                                 "source_type": SourceType.SCRAPE,
                                 "source_url": scraped_odds.source_url,
                                 "timestamp": scraped_odds.scraped_at,
+                                "timestamp_bucket": timestamp_bucket,  # NEW: For deduplication
                                 "is_current": True,
                                 "scrape_session_id": scrape_session_id,
                                 "market_status": "open"
@@ -150,25 +161,54 @@ class OddsPersistence:
                     stats["errors"] += 1
                     continue
 
-            # BATCH DELETE all old odds at once (single query)
-            if all_selection_ids:
-                delete_start = time.time()
-                self.db.execute(
-                    delete(OddsSnapshot).where(
-                        OddsSnapshot.selection_id.in_(all_selection_ids),
-                        OddsSnapshot.bookmaker_id == bookmaker.id,
-                        OddsSnapshot.is_current == True
-                    )
-                )
-                delete_time = time.time() - delete_start
-                logger.debug(f"⏱️  [DB] Batch delete {len(set(all_selection_ids))} selections took {delete_time:.4f}s")
+            # IDEMPOTENT UPSERT: Use PostgreSQL INSERT ... ON CONFLICT DO UPDATE
+            # This replaces the delete+insert pattern with true upsert
+            if all_odds_to_upsert:
+                from sqlalchemy.dialects.postgresql import insert
+                upsert_start = time.time()
 
-            # BATCH INSERT all new odds at once (single operation)
-            if all_odds_to_insert:
-                insert_start = time.time()
-                self.db.bulk_insert_mappings(OddsSnapshot, all_odds_to_insert)
-                insert_time = time.time() - insert_start
-                logger.debug(f"⏱️  [DB] Batch insert {len(all_odds_to_insert)} odds took {insert_time:.4f}s")
+                # First, mark old odds as not current (for same bookmaker/selection)
+                if all_selection_ids:
+                    self.db.execute(
+                        delete(OddsSnapshot).where(
+                            OddsSnapshot.selection_id.in_(all_selection_ids),
+                            OddsSnapshot.bookmaker_id == bookmaker.id,
+                            OddsSnapshot.is_current == True
+                        )
+                    )
+
+                # Dedupe odds by constraint key before upsert
+                # (same selection + bookmaker + timestamp_bucket + session = keep last)
+                # This prevents "cannot affect row a second time" error
+                deduped_odds = {}
+                for odds in all_odds_to_upsert:
+                    key = (
+                        odds["selection_id"],
+                        odds["bookmaker_id"],
+                        odds["timestamp_bucket"],
+                        odds["scrape_session_id"]
+                    )
+                    deduped_odds[key] = odds  # Last write wins
+
+                unique_odds = list(deduped_odds.values())
+                logger.debug(f"⏱️  [DB] Deduped {len(all_odds_to_upsert)} → {len(unique_odds)} odds")
+
+                # Upsert new odds (idempotent - safe on retry)
+                stmt = insert(OddsSnapshot).values(unique_odds)
+                stmt = stmt.on_conflict_do_update(
+                    constraint='uq_odds_dedupe',
+                    set_={
+                        'decimal_odds': stmt.excluded.decimal_odds,
+                        'available_amount': stmt.excluded.available_amount,
+                        'timestamp': stmt.excluded.timestamp,
+                        'is_current': stmt.excluded.is_current,
+                        'market_status': stmt.excluded.market_status,
+                    }
+                )
+                self.db.execute(stmt)
+
+                upsert_time = time.time() - upsert_start
+                logger.debug(f"⏱️  [DB] Batch upsert {len(unique_odds)} odds took {upsert_time:.4f}s")
 
             events_time = time.time() - events_start
             logger.info(f"⏱️  [DB] Processing {len(result.events)} events took {events_time:.2f}s")
