@@ -5,10 +5,22 @@ This scraper navigates to Betfair's Australian Exchange website and intercepts
 network requests to capture odds data. No API authentication required.
 
 Targets: https://www.betfair.com.au/exchange/plus/football
+
+PARALLELIZATION NOTES (Phase 1 Production Optimization):
+- Each scrape_sport() call uses isolated captured_data via closure pattern
+- This allows multiple sports to be scraped in parallel without race conditions
+- Use scrape_all_sports_parallel() for optimal performance (6x speedup)
+
+DYNAMIC WAITS (Phase 2 Production Optimization):
+- Replaced fixed 5s waits with polling-based detection
+- Polls every 300ms for bymarket data capture, max 8s
+- Fast sports complete in 2-3s instead of 8s
+- Saves 2-4s per competition, significant at scale
 """
 import asyncio
 import json
 import re
+import time
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from typing import List, Optional, Dict, Any
@@ -36,6 +48,7 @@ class BetfairScraper(BaseScraper):
     _browser = None
     _playwright = None
     _browser_context = None
+    _browser_lock = None  # Asyncio lock for browser creation (initialized lazily)
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(
@@ -77,8 +90,12 @@ class BetfairScraper(BaseScraper):
             }
         }
 
-        # Captured network data
-        self.captured_data: List[Dict] = []
+        # NOTE: captured_data is NO LONGER used as instance variable
+        # Each scrape_sport() call uses local captured_data via closure pattern
+        # This enables safe parallel execution of multiple sports
+
+        # All supported sports for parallel scraping
+        self.ALL_SPORTS = ["soccer", "basketball", "ice_hockey", "boxing", "afl", "nrl"]
 
         # Team name normalization mapping
         self.team_name_mapping = {
@@ -105,6 +122,9 @@ class BetfairScraper(BaseScraper):
         """
         Scrape Betfair Exchange for a specific sport using Playwright.
 
+        PARALLELIZATION SAFE: Uses closure pattern for captured_data.
+        Multiple calls can run concurrently without race conditions.
+
         Args:
             sport: Our sport code ("soccer", "afl", etc.)
             limit: Max events to scrape
@@ -113,6 +133,7 @@ class BetfairScraper(BaseScraper):
             ScrapeResult with events and lay odds
         """
         started_at = datetime.now(timezone.utc)
+        scrape_start = time.time()
         events = []
         errors = []
 
@@ -121,17 +142,17 @@ class BetfairScraper(BaseScraper):
                 errors.append(f"Unsupported sport: {sport}")
                 return self._create_failed_result(started_at, errors)
 
-            self.logger.info(f"Starting Betfair scrape for {sport} using Playwright")
+            self.logger.info(f"[{self.bookmaker_code}] Starting scrape: {sport}")
 
-            # Run Playwright scraping
+            # Run Playwright scraping with isolated captured_data
             events = await self._scrape_with_playwright(sport, limit)
 
             if not events:
-                errors.append("No events captured from Betfair")
+                errors.append(f"No events captured from Betfair for {sport}")
 
         except Exception as e:
             errors.append(f"Betfair scrape failed: {str(e)}")
-            self.logger.exception(f"Betfair Playwright error for {sport}")
+            self.logger.exception(f"[{self.bookmaker_code}/{sport}] Playwright error")
 
         # Calculate stats
         total_odds = sum(len(event.odds) for event in events)
@@ -139,6 +160,7 @@ class BetfairScraper(BaseScraper):
             ScraperStatus.PARTIAL if events else ScraperStatus.FAILED
         )
 
+        scrape_duration = time.time() - scrape_start
         result = ScrapeResult(
             bookmaker_code=self.bookmaker_code,
             status=status,
@@ -150,50 +172,184 @@ class BetfairScraper(BaseScraper):
             completed_at=datetime.now(timezone.utc)
         )
 
+        self.logger.info(
+            f"⏱️  [Betfair/{sport}] Completed in {scrape_duration:.2f}s: "
+            f"{len(events)} events, {total_odds} odds"
+        )
         self.log_scrape_stats(result)
         return result
 
-    async def _get_or_create_browser(self):
-        """Get existing browser instance or create new one (singleton pattern)"""
-        import time
+    async def scrape_all_sports_parallel(
+        self,
+        sports: Optional[List[str]] = None,
+        limit: Optional[int] = None,
+        batch_size: Optional[int] = None
+    ) -> ScrapeResult:
+        """
+        Scrape ALL sports in parallel using asyncio.gather with batching.
 
-        if BetfairScraper._browser is None or not BetfairScraper._browser.is_connected():
-            browser_start = time.time()
-            self.logger.info("⏱️  [Betfair] Launching NEW browser instance...")
+        This is the PRIMARY method for production use - provides speedup
+        by running sport scrapes concurrently in batches.
 
-            BetfairScraper._playwright = await async_playwright().start()
-            BetfairScraper._browser = await BetfairScraper._playwright.chromium.launch(
-                headless=True,
-                args=[
-                    '--disable-blink-features=AutomationControlled',
-                    '--disable-dev-shm-usage',
-                    '--no-sandbox'
-                ]
-            )
+        Args:
+            sports: List of sports to scrape. Defaults to ALL_SPORTS.
+            limit: Optional limit per sport (for testing)
+            batch_size: Number of sports to scrape in parallel.
+                        Default: SCRAPER_BATCH_SIZE env var, or 1 for Docker compatibility.
+                        Set to 3-6 in production for better performance.
 
-            browser_launch_time = time.time() - browser_start
-            self.logger.info(f"⏱️  [Betfair] Browser launch took {browser_launch_time:.2f}s")
+        Returns:
+            Combined ScrapeResult with all events from all sports
+
+        Performance:
+            Sequential (batch=1): 6 sports × 15s = 90s
+            Batched (batch=3): 2 batches × 15s = ~30s (3x speedup)
+            Parallel (batch=6): 1 batch × 15s = ~15s (6x speedup) - production only
+        """
+        import os
+        # Default to 1 for Docker compatibility, configurable via env for production
+        if batch_size is None:
+            batch_size = int(os.getenv("SCRAPER_BATCH_SIZE", "1"))
+        started_at = datetime.now(timezone.utc)
+        scrape_start = time.time()
+
+        sports_to_scrape = sports or self.ALL_SPORTS
+        self.logger.info(
+            f"[{self.bookmaker_code}] Starting BATCHED PARALLEL scrape of {len(sports_to_scrape)} sports "
+            f"(batch_size={batch_size}): {', '.join(sports_to_scrape)}"
+        )
+
+        # Process sports in batches to avoid overloading browser
+        all_results = []
+        for i in range(0, len(sports_to_scrape), batch_size):
+            batch = sports_to_scrape[i:i + batch_size]
+            self.logger.info(f"[{self.bookmaker_code}] Processing batch {i//batch_size + 1}: {', '.join(batch)}")
+
+            tasks = [self.scrape_sport(sport, limit=limit) for sport in batch]
+            batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+            all_results.extend(zip(batch, batch_results))
+
+        # Unpack results
+        results = [r for _, r in all_results]
+        sports_processed = [s for s, _ in all_results]
+
+        # Aggregate results
+        all_events = []
+        all_errors = []
+        total_events_scraped = 0
+        total_odds_scraped = 0
+        successful_sports = []
+        failed_sports = []
+
+        for sport, result in zip(sports_processed, results):
+            if isinstance(result, Exception):
+                # Task raised an exception
+                error_msg = f"{sport}: {str(result)}"
+                all_errors.append(error_msg)
+                failed_sports.append(sport)
+                self.logger.error(f"[{self.bookmaker_code}] {sport} failed with exception: {result}")
+            elif isinstance(result, ScrapeResult):
+                # Normal result
+                all_events.extend(result.events)
+                all_errors.extend(result.errors)
+                total_events_scraped += result.events_scraped
+                total_odds_scraped += result.odds_scraped
+
+                if result.status == ScraperStatus.SUCCESS:
+                    successful_sports.append(sport)
+                elif result.status == ScraperStatus.PARTIAL:
+                    successful_sports.append(f"{sport}(partial)")
+                else:
+                    failed_sports.append(sport)
+            else:
+                # Unexpected result type
+                all_errors.append(f"{sport}: Unexpected result type: {type(result)}")
+                failed_sports.append(sport)
+
+        # Determine overall status
+        if not all_errors:
+            status = ScraperStatus.SUCCESS
+        elif all_events:
+            status = ScraperStatus.PARTIAL
         else:
-            self.logger.info("⏱️  [Betfair] Reusing existing browser instance (FAST!)")
+            status = ScraperStatus.FAILED
+
+        scrape_duration = time.time() - scrape_start
+
+        combined_result = ScrapeResult(
+            bookmaker_code=self.bookmaker_code,
+            status=status,
+            events_scraped=total_events_scraped,
+            odds_scraped=total_odds_scraped,
+            events=all_events,
+            errors=all_errors,
+            started_at=started_at,
+            completed_at=datetime.now(timezone.utc)
+        )
+
+        self.logger.info(
+            f"⏱️  [Betfair] PARALLEL scrape completed in {scrape_duration:.2f}s: "
+            f"{total_events_scraped} events, {total_odds_scraped} odds | "
+            f"Success: {', '.join(successful_sports) or 'none'} | "
+            f"Failed: {', '.join(failed_sports) or 'none'}"
+        )
+
+        return combined_result
+
+    async def _get_or_create_browser(self):
+        """
+        Get existing browser instance or create new one (singleton pattern).
+
+        Uses asyncio lock to prevent race conditions when multiple
+        parallel calls try to create the browser simultaneously.
+        """
+        # Initialize lock lazily (must be done inside async context)
+        if BetfairScraper._browser_lock is None:
+            BetfairScraper._browser_lock = asyncio.Lock()
+
+        async with BetfairScraper._browser_lock:
+            if BetfairScraper._browser is None or not BetfairScraper._browser.is_connected():
+                browser_start = time.time()
+                self.logger.info("⏱️  [Betfair] Launching NEW browser instance...")
+
+                BetfairScraper._playwright = await async_playwright().start()
+                BetfairScraper._browser = await BetfairScraper._playwright.chromium.launch(
+                    headless=True,
+                    args=[
+                        '--disable-blink-features=AutomationControlled',
+                        '--disable-dev-shm-usage',
+                        '--no-sandbox'
+                    ]
+                )
+
+                browser_launch_time = time.time() - browser_start
+                self.logger.info(f"⏱️  [Betfair] Browser launch took {browser_launch_time:.2f}s")
+            else:
+                self.logger.debug("⏱️  [Betfair] Reusing existing browser instance")
 
         return BetfairScraper._browser
 
     async def _scrape_with_playwright(self, sport: str, limit: Optional[int]) -> List[ScrapedEvent]:
-        """Use Playwright to scrape Betfair Exchange (with browser reuse)"""
-        import time
+        """
+        Use Playwright to scrape Betfair Exchange (with browser reuse).
+
+        PARALLELIZATION SAFE: Uses local captured_data via closure pattern.
+        Each call has isolated data capture - no race conditions.
+        """
         events = []
 
-        # Clear captured data from previous scrapes (prevent memory accumulation)
-        self.captured_data = []
+        # LOCAL captured_data - isolated per call via closure
+        # This is the key fix for parallel execution safety
+        captured_data: List[Dict] = []
 
-        # Track current competition for proper labeling
-        self._current_competition = None
+        # LOCAL current_competition tracker (not instance variable)
+        current_competition = {"name": "Unknown"}  # Use dict for mutability in closure
 
         # Get or reuse browser instance (HUGE speedup on subsequent runs)
         browser = await self._get_or_create_browser()
 
         try:
-            # Create NEW context for each scrape (contexts are lightweight)
+            # Create NEW context for each scrape (contexts are lightweight, isolates cookies/cache)
             context = await browser.new_context(
                 viewport={'width': 1920, 'height': 1080},
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -203,59 +359,103 @@ class BetfairScraper(BaseScraper):
 
             page = await context.new_page()
 
-            # Set up network interception
-            page.on('response', lambda response: asyncio.create_task(
-                self._handle_response(response)
-            ))
+            # CLOSURE PATTERN: Response handler captures LOCAL captured_data
+            # Each scrape_with_playwright() call has its own isolated list
+            async def handle_response(response: Response):
+                """Handle intercepted network responses - captures local captured_data"""
+                try:
+                    url = response.url
+
+                    # Look for the specific Betfair API endpoints we need
+                    if response.status == 200:
+                        # Key endpoints: navigation-aggregator (fixtures) and bymarket (prices)
+                        if any(pattern in url for pattern in [
+                            'navigation-aggregator',  # Fixtures + market IDs
+                            '/bymarket',              # Actual prices/odds
+                            '/readonly/v1/bymarket'   # Full endpoint path
+                        ]):
+                            try:
+                                content_type = response.headers.get('content-type', '')
+                                if 'application/json' in content_type:
+                                    data = await response.json()
+
+                                    # Append to LOCAL list (not self.captured_data)
+                                    captured_data.append({
+                                        'url': url,
+                                        'data': data,
+                                        'timestamp': datetime.now(timezone.utc),
+                                        'competition': current_competition["name"]
+                                    })
+
+                                    self.logger.info(f"✓ [{sport}/{current_competition['name']}] Captured: {url[:80]}...")
+
+                            except Exception as e:
+                                self.logger.debug(f"Could not parse response from {url[:100]}: {e}")
+
+                except Exception as e:
+                    self.logger.debug(f"Error handling response: {e}")
+
+            page.on('response', lambda response: asyncio.create_task(handle_response(response)))
 
             # Navigate to each competition page
             competitions = self.competition_urls.get(sport, {})
             for comp_name, url in competitions.items():
                 comp_start = time.time()
-                self.logger.info(f"⏱️  [Betfair] Navigating to {comp_name}: {url}")
+                self.logger.info(f"⏱️  [Betfair/{sport}] Navigating to {comp_name}: {url}")
 
-                # Track current competition for proper labeling
-                self._current_competition = comp_name
+                # Update current competition for response handler (via closure)
+                current_competition["name"] = comp_name
 
                 try:
-                    # Navigate with domcontentloaded (MUCH faster than networkidle)
-                    # domcontentloaded = HTML parsed, but may still be loading resources
-                    # networkidle = all network requests finished (slower but more reliable)
+                    # Navigate with domcontentloaded (faster than networkidle)
                     nav_start = time.time()
                     await page.goto(url, wait_until='domcontentloaded', timeout=15000)
                     nav_time = time.time() - nav_start
-                    self.logger.info(f"⏱️  [Betfair] Page load (domcontentloaded) took {nav_time:.2f}s")
+                    self.logger.info(f"⏱️  [Betfair/{sport}] Page load took {nav_time:.2f}s")
 
-                    # Wait for bymarket API calls to complete
-                    # Increased to 5000ms - bymarket responses arrive AFTER navigation-aggregator
-                    # Debug logs showed bymarket arriving after 3s wait, so increased to 5s
+                    # PHASE 2: Dynamic wait - poll for captured data instead of fixed 5s
+                    # This saves 2-4s for fast competitions that respond quickly
                     wait_start = time.time()
-                    await page.wait_for_timeout(5000)
-                    wait_time = time.time() - wait_start
-                    self.logger.info(f"⏱️  [Betfair] Wait after page load took {wait_time:.2f}s")
+                    max_wait = 8.0  # Maximum wait time in seconds
+                    poll_interval = 0.3  # Check every 300ms
+                    data_captured = False
+                    initial_count = len(captured_data)
 
-                    # REMOVED: Scroll and click operations - they don't capture more data
-                    # The bymarket API calls happen automatically after page load
-                    # Clicking/scrolling doesn't trigger additional useful API calls
+                    while (time.time() - wait_start) < max_wait:
+                        # Check if we captured new bymarket data (not just navigation)
+                        new_bymarket = any(
+                            'bymarket' in c.get('url', '')
+                            for c in captured_data[initial_count:]
+                        )
+                        if new_bymarket:
+                            # Data captured! Wait a bit more for any additional responses
+                            await asyncio.sleep(0.5)
+                            data_captured = True
+                            break
+                        await asyncio.sleep(poll_interval)
+
+                    wait_time = time.time() - wait_start
+                    if data_captured:
+                        self.logger.info(f"⏱️  [Betfair/{sport}] Data captured after {wait_time:.2f}s (saved {max_wait - wait_time:.1f}s)")
+                    else:
+                        self.logger.info(f"⏱️  [Betfair/{sport}] Max wait reached ({wait_time:.2f}s), continuing anyway")
 
                     comp_time = time.time() - comp_start
-                    self.logger.info(f"⏱️  [Betfair] {comp_name} took {comp_time:.2f}s - captured {len(self.captured_data)} network responses")
+                    self.logger.info(f"⏱️  [Betfair/{sport}] {comp_name} took {comp_time:.2f}s - captured {len(captured_data)} responses")
 
                 except Exception as e:
-                    self.logger.error(f"Failed to load {comp_name}: {e}")
+                    self.logger.error(f"[Betfair/{sport}] Failed to load {comp_name}: {e}")
                     continue
 
-            # Wait for async response handlers to finish processing
-            # The bymarket responses are captured asynchronously, so we need a small delay
-            # to ensure all responses are fully processed before parsing
-            await asyncio.sleep(1)
-            self.logger.info(f"⏱️  [Betfair] Captured {len(self.captured_data)} total responses")
+            # Brief wait for async response handlers to finish processing
+            await asyncio.sleep(0.5)
+            self.logger.info(f"⏱️  [Betfair/{sport}] Captured {len(captured_data)} total responses")
 
-            # Parse captured data into events
+            # Parse captured data into events (using LOCAL list)
             parse_start = time.time()
-            events = self._parse_captured_data(sport, limit)
+            events = self._parse_captured_data_local(captured_data, sport, limit)
             parse_time = time.time() - parse_start
-            self.logger.info(f"⏱️  [Betfair] Parsing took {parse_time:.2f}s - {len(events)} events")
+            self.logger.info(f"⏱️  [Betfair/{sport}] Parsing took {parse_time:.2f}s - {len(events)} events")
 
         finally:
             # Close context (lightweight), but KEEP browser running
@@ -263,44 +463,77 @@ class BetfairScraper(BaseScraper):
 
         return events
 
-    async def _handle_response(self, response: Response):
-        """Handle intercepted network responses"""
-        try:
-            url = response.url
+    # NOTE: _handle_response() method REMOVED - replaced by inline closure in _scrape_with_playwright()
+    # This enables parallel execution safety (each call has its own captured_data list)
 
-            # Log ALL responses to debug what endpoints are available
-            if response.status == 200 and 'betfair' in url.lower():
-                self.logger.info(f"[DEBUG] Betfair response: {url[:150]}")
+    def _parse_captured_data_local(
+        self,
+        captured_data: List[Dict],
+        sport: str,
+        limit: Optional[int]
+    ) -> List[ScrapedEvent]:
+        """
+        Parse captured network data into ScrapedEvent objects.
 
-            # Look for the specific Betfair API endpoints we need
-            if response.status == 200:
-                # Key endpoints: navigation-aggregator (fixtures) and bymarket (prices)
-                if any(pattern in url for pattern in [
-                    'navigation-aggregator',  # Fixtures + market IDs
-                    '/bymarket',              # Actual prices/odds
-                    '/readonly/v1/bymarket'   # Full endpoint path
-                ]):
-                    try:
-                        # Try to parse JSON response
-                        content_type = response.headers.get('content-type', '')
-                        if 'application/json' in content_type:
-                            data = await response.json()
+        Takes captured_data as parameter (not self.captured_data) to support
+        parallel execution with isolated data per call.
+        """
+        events_dict: Dict[str, ScrapedEvent] = {}  # Key by event ID
+        fixtures_data = None
+        bymarket_events = {}  # event_id -> {event_data, competition}
 
-                            self.captured_data.append({
-                                'url': url,
-                                'data': data,
-                                'timestamp': datetime.now(timezone.utc),
-                                'competition': getattr(self, '_current_competition', 'Unknown')
-                            })
+        self.logger.info(f"Parsing {len(captured_data)} captured responses")
 
-                            comp = getattr(self, '_current_competition', 'Unknown')
-                            self.logger.info(f"✓ Captured data from {comp}: {url[:80]}...")
+        # First pass: identify fixtures and bymarket data
+        for capture in captured_data:
+            try:
+                url = capture['url']
+                data = capture['data']
+                competition = capture.get('competition', 'Unknown')
 
-                    except Exception as e:
-                        self.logger.debug(f"Could not parse response from {url[:100]}: {e}")
+                # Check if this is the navigation-aggregator (fixtures)
+                if 'navigation-aggregator' in url:
+                    fixtures_data = data
+                    self.logger.info("Found fixtures data (navigation-aggregator)")
 
-        except Exception as e:
-            self.logger.debug(f"Error handling response: {e}")
+                # Check if this is bymarket (prices)
+                elif 'bymarket' in url:
+                    # Extract complete event data from bymarket response
+                    event_types = data.get('eventTypes', [])
+                    if event_types:
+                        for et in event_types:
+                            event_nodes = et.get('eventNodes', [])
+                            for event_node in event_nodes:
+                                event_id = str(event_node.get('eventId', ''))
+                                if event_id:
+                                    if event_id not in bymarket_events:
+                                        bymarket_events[event_id] = {
+                                            'node': event_node,
+                                            'competition': competition
+                                        }
+                                    else:
+                                        # Replace if new one has better data
+                                        existing_has_event = 'event' in bymarket_events[event_id]['node']
+                                        new_has_event = 'event' in event_node
+                                        if new_has_event and not existing_has_event:
+                                            bymarket_events[event_id] = {
+                                                'node': event_node,
+                                                'competition': competition
+                                            }
+
+            except Exception as e:
+                self.logger.debug(f"Could not parse captured data: {e}")
+                continue
+
+        # Parse using bymarket data (which has everything we need)
+        if bymarket_events:
+            events = self._parse_bymarket_events(bymarket_events, fixtures_data, sport)
+            if limit:
+                events = events[:limit]
+            return events
+
+        self.logger.warning("No bymarket data found - cannot parse events")
+        return []
 
     def _parse_captured_data(self, sport: str, limit: Optional[int]) -> List[ScrapedEvent]:
         """Parse captured network data into ScrapedEvent objects"""

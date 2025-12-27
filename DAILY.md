@@ -4,6 +4,130 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2025-12-27 (Friday)
+
+### Session 1: Phase 1 Implementation - PARALLEL SCRAPING
+
+**Goal**: 96s → 10-15s scrape time (6-8x improvement)
+
+**✅ Task 1.1: Fix Race Condition in Ladbrokes** ([ladbrokes_scraper.py](apps/worker/src/scrapers/ladbrokes_scraper.py))
+- Removed `self.captured_data` instance variable
+- Implemented closure pattern: local `captured_data` per `scrape_sport()` call
+- Response handler now captures to local list, not shared state
+- Safe for parallel execution
+
+**✅ Task 1.2: Add Parallel Sports to Ladbrokes**
+- Added `scrape_all_sports_parallel()` method using `asyncio.gather`
+- Runs all 6 sports concurrently: soccer, basketball, ice_hockey, boxing, afl, nrl
+- Aggregates results with proper error handling
+- Expected: 48s → 10s per bookmaker
+
+**✅ Task 1.3: Fix Race Condition + Parallel in Betfair** ([betfair_scraper.py](apps/worker/src/scrapers/betfair_scraper.py))
+- Same closure pattern for `captured_data`
+- Added `_parse_captured_data_local()` that takes captured_data as param
+- Also fixed `_current_competition` shared state (now dict in closure)
+- Added `scrape_all_sports_parallel()` method
+
+**✅ Task 1.4: Parallel Bookmaker Orchestration** ([scrape_service.py](apps/worker/src/jobs/scrape_service.py))
+- Added `scrape_bookmaker_all_sports()` - uses parallel sports method
+- Updated `scrape_all_active_bookmakers()` to run ALL bookmakers in parallel
+- Both Betfair and Ladbrokes run simultaneously via `asyncio.gather`
+- Total time = max(slowest_bookmaker) instead of sum(all)
+
+### Architecture Changes
+
+**Before (Sequential)**:
+```
+for bookmaker in [betfair, ladbrokes]:
+    for sport in [soccer, basketball, hockey, boxing, afl, nrl]:
+        await scrape_sport(sport)  # 8s each
+# Total: 2 × 6 × 8s = 96s
+```
+
+**After (Parallel)**:
+```
+asyncio.gather(
+    betfair.scrape_all_sports_parallel(),   # ~15s
+    ladbrokes.scrape_all_sports_parallel()  # ~10s
+)
+# Total: max(15s, 10s) = ~15s
+```
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| [ladbrokes_scraper.py](apps/worker/src/scrapers/ladbrokes_scraper.py) | Closure pattern + `scrape_all_sports_parallel()` |
+| [betfair_scraper.py](apps/worker/src/scrapers/betfair_scraper.py) | Closure pattern + `_parse_captured_data_local()` + `scrape_all_sports_parallel()` |
+| [scrape_service.py](apps/worker/src/jobs/scrape_service.py) | `scrape_bookmaker_all_sports()` + parallel orchestration |
+
+### Session 2: Testing & Timing Results
+
+**✅ End-to-End Testing Complete**
+
+| Test | Result | Details |
+|------|--------|---------|
+| Ladbrokes solo | ✅ 42.69s | 150 events, 578 odds (6 sports sequential) |
+| Betfair solo | ✅ 88.92s | 162 events, 456 odds (6 sports sequential) |
+| Sequential total | Would be 131.61s | sum(ladbrokes, betfair) |
+| **Parallel total** | **91.80s** | 312 events, 1034 odds |
+
+**Improvement**: 131s → 91s (**30% faster**) with bookmakers running in parallel.
+
+**Docker Limitation Discovered**:
+- Parallel sport scraping (`batch_size > 1`) causes browser crashes in Docker
+- Root cause: Docker container resource constraints + multiple Playwright contexts
+- Fix: Configurable `SCRAPER_BATCH_SIZE` env var (default=1 for Docker safety)
+- Production servers can use higher batch_size for additional speedup
+
+**Production Projection** (with `SCRAPER_BATCH_SIZE=6`):
+- Expected: 91s → ~15-20s (both bookmakers + all sports truly parallel)
+- Cloud server with dedicated resources handles higher parallelism
+
+### Files Modified (Session 2)
+
+| File | Changes |
+|------|---------|
+| [scrape_service.py](apps/worker/src/jobs/scrape_service.py) | Increased timeout to 120s for all-sports scrape |
+| [manual_scrape.py](apps/worker/src/manual_scrape.py) | Added timing output |
+
+### Session 3: Phase 2 Implementation - DYNAMIC WAITS
+
+**Goal**: Replace fixed 5s waits with polling-based detection (save 2-4s per competition)
+
+**✅ Task 2.1: Polling-based Dynamic Wait in Ladbrokes**
+- First attempt: `networkidle` triggered too early (no data captured)
+- Fix: Poll every 300ms for `captured_data` items, max 8s wait
+- Exits early when API data is captured → saves time for fast APIs
+
+**✅ Task 2.2: Polling-based Dynamic Wait in Betfair**
+- Same pattern: Poll for `bymarket` data capture
+- Checks if new bymarket responses arrived since navigation started
+- Falls back to max wait if no data (off-season sports)
+
+**Timing Results**:
+
+| Metric | Before (Fixed 5s) | After (Polling) | Improvement |
+|--------|------------------|-----------------|-------------|
+| Total time | 91.80s | **79.38s** | **13.5% faster** |
+| Events | 312 | 312 | Same |
+| Odds | 1034 | 1034 | Same |
+
+**Files Modified**:
+
+| File | Changes |
+|------|---------|
+| [ladbrokes_scraper.py](apps/worker/src/scrapers/ladbrokes_scraper.py) | Polling loop for captured_data |
+| [betfair_scraper.py](apps/worker/src/scrapers/betfair_scraper.py) | Polling loop for bymarket data |
+
+### Next Steps
+1. **Phase 3**: Database cleanup service + indexes
+2. **Phase 4**: NormalizationService extraction
+3. **Phase 5**: Proxy tier implementation
+4. **Production**: Set `SCRAPER_BATCH_SIZE=6` for full parallelism
+
+---
+
 ## 2025-12-26 (Thursday)
 
 ### Session 2: Phase 0 Testing - ALL TESTS PASSED

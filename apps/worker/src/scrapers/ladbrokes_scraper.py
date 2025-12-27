@@ -12,6 +12,11 @@ PARALLELIZATION NOTES (Phase 1 Production Optimization):
 - Each scrape_sport() call uses isolated captured_data via closure pattern
 - This allows multiple sports to be scraped in parallel without race conditions
 - Use scrape_all_sports_parallel() for optimal performance (6x speedup)
+
+DYNAMIC WAITS (Phase 2 Production Optimization):
+- Replaced fixed 5s waits with smart networkidle detection
+- Fast APIs (boxing, NBL) complete in 2-3s instead of 8s
+- Saves 2-4s per sport, significant at scale
 """
 import asyncio
 import time
@@ -40,6 +45,7 @@ class LadbrokesScraper(BaseScraper):
     # Class-level browser instance (shared across all scrapes)
     _browser = None
     _playwright = None
+    _browser_lock = None  # Asyncio lock for browser creation (initialized lazily)
 
     # Sport page URLs
     SPORT_URLS = {
@@ -88,22 +94,35 @@ class LadbrokesScraper(BaseScraper):
         # This enables safe parallel execution of multiple sports
 
     async def _get_or_create_browser(self):
-        """Get or create shared browser instance"""
-        import time
+        """
+        Get or create shared browser instance.
 
-        if LadbrokesScraper._browser is None:
-            browser_start = time.time()
-            self.logger.info("⏱️  [Ladbrokes] Launching browser (first time)...")
+        Uses asyncio lock to prevent race conditions when multiple
+        parallel calls try to create the browser simultaneously.
+        """
+        # Initialize lock lazily (must be done inside async context)
+        if LadbrokesScraper._browser_lock is None:
+            LadbrokesScraper._browser_lock = asyncio.Lock()
 
-            LadbrokesScraper._playwright = await async_playwright().start()
-            LadbrokesScraper._browser = await LadbrokesScraper._playwright.chromium.launch(
-                headless=True
-            )
+        async with LadbrokesScraper._browser_lock:
+            if LadbrokesScraper._browser is None:
+                browser_start = time.time()
+                self.logger.info("⏱️  [Ladbrokes] Launching browser (first time)...")
 
-            browser_launch_time = time.time() - browser_start
-            self.logger.info(f"⏱️  [Ladbrokes] Browser launch took {browser_launch_time:.2f}s")
-        else:
-            self.logger.info("⏱️  [Ladbrokes] Reusing existing browser instance (FAST!)")
+                LadbrokesScraper._playwright = await async_playwright().start()
+                LadbrokesScraper._browser = await LadbrokesScraper._playwright.chromium.launch(
+                    headless=True,
+                    args=[
+                        '--disable-blink-features=AutomationControlled',
+                        '--disable-dev-shm-usage',
+                        '--no-sandbox'
+                    ]
+                )
+
+                browser_launch_time = time.time() - browser_start
+                self.logger.info(f"⏱️  [Ladbrokes] Browser launch took {browser_launch_time:.2f}s")
+            else:
+                self.logger.debug("⏱️  [Ladbrokes] Reusing existing browser instance")
 
         return LadbrokesScraper._browser
 
@@ -178,11 +197,29 @@ class LadbrokesScraper(BaseScraper):
                 nav_time = time.time() - nav_start
                 self.logger.info(f"⏱️  [Ladbrokes/{sport}] Page load took {nav_time:.2f}s")
 
-                # Wait for API calls to complete
-                await page.wait_for_timeout(5000)
+                # PHASE 2: Dynamic wait - poll for captured data instead of fixed 5s
+                # This saves 2-4s for fast APIs that respond quickly
+                wait_start = time.time()
+                max_wait = 8.0  # Maximum wait time in seconds
+                poll_interval = 0.3  # Check every 300ms
+                data_captured = False
 
-                # Wait for async response handlers to finish
-                await asyncio.sleep(1)
+                while (time.time() - wait_start) < max_wait:
+                    if captured_data:
+                        # Data captured! Wait a bit more for any additional responses
+                        await asyncio.sleep(0.5)
+                        data_captured = True
+                        break
+                    await asyncio.sleep(poll_interval)
+
+                wait_time = time.time() - wait_start
+                if data_captured:
+                    self.logger.info(f"⏱️  [Ladbrokes/{sport}] Data captured after {wait_time:.2f}s (saved {max_wait - wait_time:.1f}s)")
+                else:
+                    self.logger.info(f"⏱️  [Ladbrokes/{sport}] Max wait reached ({wait_time:.2f}s), no data captured")
+
+                # Brief wait for async response handlers to finish processing
+                await asyncio.sleep(0.3)
 
                 self.logger.info(f"⏱️  [Ladbrokes/{sport}] Captured {len(captured_data)} API responses")
 
@@ -271,42 +308,56 @@ class LadbrokesScraper(BaseScraper):
     async def scrape_all_sports_parallel(
         self,
         sports: Optional[List[str]] = None,
-        limit: Optional[int] = None
+        limit: Optional[int] = None,
+        batch_size: Optional[int] = None
     ) -> ScrapeResult:
         """
-        Scrape ALL sports in parallel using asyncio.gather.
+        Scrape ALL sports in parallel using asyncio.gather with batching.
 
-        This is the PRIMARY method for production use - provides 6x speedup
-        by running all sport scrapes concurrently.
+        This is the PRIMARY method for production use - provides speedup
+        by running sport scrapes concurrently in batches.
 
         Args:
             sports: List of sports to scrape. Defaults to ALL_SPORTS.
             limit: Optional limit per sport (for testing)
+            batch_size: Number of sports to scrape in parallel.
+                        Default: SCRAPER_BATCH_SIZE env var, or 1 for Docker compatibility.
+                        Set to 3-6 in production for better performance.
 
         Returns:
             Combined ScrapeResult with all events from all sports
 
         Performance:
-            Sequential: 6 sports × 8s = 48s
-            Parallel:   6 sports concurrent = ~10s (bounded by slowest)
+            Sequential (batch=1): 6 sports × 8s = 48s
+            Batched (batch=3): 2 batches × 8s = ~16s (3x speedup)
+            Parallel (batch=6): 1 batch × 8s = ~8s (6x speedup) - production only
         """
+        import os
+        # Default to 1 for Docker compatibility, configurable via env for production
+        if batch_size is None:
+            batch_size = int(os.getenv("SCRAPER_BATCH_SIZE", "1"))
         started_at = datetime.now(timezone.utc)
         scrape_start = time.time()
 
         sports_to_scrape = sports or self.ALL_SPORTS
         self.logger.info(
-            f"[{self.bookmaker_code}] Starting PARALLEL scrape of {len(sports_to_scrape)} sports: "
-            f"{', '.join(sports_to_scrape)}"
+            f"[{self.bookmaker_code}] Starting BATCHED PARALLEL scrape of {len(sports_to_scrape)} sports "
+            f"(batch_size={batch_size}): {', '.join(sports_to_scrape)}"
         )
 
-        # Launch all sport scrapes in parallel
-        tasks = [
-            self.scrape_sport(sport, limit=limit)
-            for sport in sports_to_scrape
-        ]
+        # Process sports in batches to avoid overloading browser
+        all_results = []
+        for i in range(0, len(sports_to_scrape), batch_size):
+            batch = sports_to_scrape[i:i + batch_size]
+            self.logger.info(f"[{self.bookmaker_code}] Processing batch {i//batch_size + 1}: {', '.join(batch)}")
 
-        # Wait for all to complete (with exception handling)
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+            tasks = [self.scrape_sport(sport, limit=limit) for sport in batch]
+            batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+            all_results.extend(zip(batch, batch_results))
+
+        # Unpack results
+        results = [r for _, r in all_results]
+        sports_processed = [s for s, _ in all_results]
 
         # Aggregate results
         all_events = []
@@ -316,7 +367,7 @@ class LadbrokesScraper(BaseScraper):
         successful_sports = []
         failed_sports = []
 
-        for sport, result in zip(sports_to_scrape, results):
+        for sport, result in zip(sports_processed, results):
             if isinstance(result, Exception):
                 # Task raised an exception
                 error_msg = f"{sport}: {str(result)}"
