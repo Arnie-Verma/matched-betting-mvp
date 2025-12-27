@@ -6,6 +6,38 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ## 2025-12-27 (Friday)
 
+### Session 2: Production Readiness Review
+
+**Goal**: Assess gaps for 100+ bookmakers, 1000+ users
+
+**Key Findings**:
+
+| Area | Status | Priority |
+|------|--------|----------|
+| Phases 0-4 | ✅ Complete | - |
+| Monitoring/Alerting | ❌ Missing | CRITICAL |
+| TAB Scraper | ❌ Disabled | HIGH (needs proxy) |
+| Neds Scraper | ❌ Not implemented | HIGH (free tier) |
+| Database Pool Size | ⚠️ Default 5 | MEDIUM |
+| Scheduled Cleanup | ⚠️ Partial | MEDIUM |
+| Browser Resilience | ⚠️ Single instance | MEDIUM |
+| Rate Limiting | ✅ 30s/user | - |
+
+**Architecture Validated**:
+- Queue + worker decoupling works well
+- Circuit breaker protects against cascading failures
+- Global cache (5-60s TTL) scales to 1000+ users
+- Parallel scraping achieves 131s → 79s (40% faster)
+
+### Next Steps Identified
+1. Monitoring: Sentry/structured logging for production visibility
+2. TAB Proxy: SmartProxy integration ($15-30/mo)
+3. Neds Scraper: Complete free tier (Ladbrokes + Neds + Betfair)
+4. Connection Pool: Increase DB pool from 5 → 20+
+5. Scheduled Cleanup: Cron job for past events (every 6h)
+
+---
+
 ### Session 1: Phase 1 Implementation - PARALLEL SCRAPING
 
 **Goal**: 96s → 10-15s scrape time (6-8x improvement)
@@ -120,11 +152,120 @@ asyncio.gather(
 | [ladbrokes_scraper.py](apps/worker/src/scrapers/ladbrokes_scraper.py) | Polling loop for captured_data |
 | [betfair_scraper.py](apps/worker/src/scrapers/betfair_scraper.py) | Polling loop for bymarket data |
 
+### Session 4: Phase 3 Implementation - DATABASE OPTIMIZATION
+
+**Goal**: Keep database small and queries fast for 1000+ users
+
+**✅ Task 3.1: Cleanup Service** ([cleanup_service.py](apps/worker/src/jobs/cleanup_service.py))
+- Created `CleanupService` class with:
+  - `cleanup_non_current_odds()` - Delete `is_current=false` odds immediately
+  - `cleanup_past_events()` - Delete events that started (manual cascade: odds → selections → markets → events)
+  - `cleanup_orphaned_selections()` - Remove dangling selections
+  - `cleanup_orphaned_markets()` - Remove dangling markets
+  - `get_database_stats()` - Monitor table counts
+  - `run_full_cleanup()` - Run all cleanup steps
+- Added safety guards: 2-hour buffer for past events, 1000 max delete per batch
+
+**✅ Task 3.2: Production Indexes** ([20251227_add_production_indexes.py](apps/api/alembic/versions/20251227_add_production_indexes.py))
+- Added 5 new partial indexes for hot-path queries:
+  - `idx_odds_current_only` - Partial index WHERE is_current=true (90% smaller)
+  - `idx_odds_matcher_covering` - Covering index with odds/amount columns
+  - `idx_events_upcoming` - Partial index WHERE status='scheduled'
+  - `idx_events_past_cleanup` - Index for cleanup queries
+  - `idx_bookmaker_code_active` - Partial index for bookmaker lookups
+
+**✅ Task 3.3: Post-Scrape Cleanup Integration** ([scrape_service.py](apps/worker/src/jobs/scrape_service.py))
+- Added `_run_post_scrape_cleanup()` method
+- Runs after every successful scrape
+- Only cleans non-current odds (fast, safe operation)
+- Past events cleanup via scheduled job (less frequent)
+
+**Test Results**:
+```
+=== Database Stats ===
+odds_total: 3262
+odds_current: 3262
+odds_non_current: 0      ← All old odds deleted immediately
+events_upcoming: 284
+events_past: 6           ← Within 2-hour buffer
+```
+
+**Files Created/Modified**:
+
+| File | Changes |
+|------|---------|
+| [cleanup_service.py](apps/worker/src/jobs/cleanup_service.py) | NEW - Database cleanup service |
+| [20251227_add_production_indexes.py](apps/api/alembic/versions/20251227_add_production_indexes.py) | NEW - Production indexes migration |
+| [scrape_service.py](apps/worker/src/jobs/scrape_service.py) | Post-scrape cleanup integration |
+
+### Session 5: Phase 4 Implementation - NORMALIZATION SERVICE
+
+**Goal**: Centralize 400+ lines of duplicated team/competition name mappings
+
+**✅ Task 4.1: Create NormalizationService** ([normalization_service.py](apps/api/src/api/services/normalization_service.py))
+- Created centralized `NormalizationService` class with:
+  - `normalize_team()` - Team name canonicalization (200+ mappings)
+  - `normalize_event()` - Event name with team order sorting
+  - `normalize_competition()` - Competition name mapping
+  - `normalize_selection()` - Alias for normalize_team
+  - `fuzzy_match_score()` - String similarity matching
+- LRU cached (10K entries) for performance
+- Single source of truth for ALL name mappings
+
+**✅ Task 4.2: Update odds_matcher.py**
+- Removed inline `normalize_competition_name()` (48 lines)
+- Removed inline `normalize_event_name()` (260 lines)
+- Removed inline `normalize_selection_name()` (224 lines)
+- Now imports from NormalizationService
+
+**✅ Task 4.3: Update save_odds.py**
+- Removed inline `normalize_team_name()` (37 lines)
+- Removed inline `fuzzy_match_score()` (10 lines)
+- Now imports `fuzzy_match_score` from NormalizationService
+
+**Code Reduction**:
+- **Removed ~580 lines** of duplicated code
+- **Single file** now contains all mappings
+- Adding new bookmaker = update ONE file
+
+**Test Results**:
+```
+Team Normalization:
+  ✅ "Man Utd" -> "manutd"
+  ✅ "Wolverhampton Wanderers" -> "wolves"
+  ✅ "Paris Saint-Germain" -> "psg"
+  ✅ "Boston Celtics" -> "celtics"
+
+Event Normalization (with sorting):
+  ✅ "Man Utd vs Arsenal" -> "arsenalvmanutd"
+  ✅ "Arsenal @ Man Utd" -> "arsenalvmanutd"
+```
+
+**Files Created/Modified**:
+
+| File | Changes |
+|------|---------|
+| [normalization_service.py](apps/api/src/api/services/normalization_service.py) | NEW - Centralized normalization |
+| [odds_matcher.py](apps/api/src/api/routers/odds_matcher.py) | Removed 530+ lines, uses NormalizationService |
+| [save_odds.py](apps/worker/src/jobs/save_odds.py) | Removed 47 lines, uses NormalizationService |
+
+### Progress Summary
+
+| Phase | Status | Improvement |
+|-------|--------|-------------|
+| Phase 0: Queue/Cache | ✅ Complete | Non-blocking + Circuit Breaker |
+| Phase 1: Parallel Scraping | ✅ Complete | 131s → 91s (30% faster) |
+| Phase 2: Dynamic Waits | ✅ Complete | 91s → 79s (13.5% faster) |
+| Phase 3: DB Optimization | ✅ Complete | Bounded DB size, optimized queries |
+| Phase 4: NormalizationService | ✅ Complete | -580 lines duplication |
+| Phase 5: Proxy Tier | ⏳ Backlog | - |
+
+**Total Improvement**: 131s → 79s (40% faster) + stable database + maintainable code
+
 ### Next Steps
-1. **Phase 3**: Database cleanup service + indexes
-2. **Phase 4**: NormalizationService extraction
-3. **Phase 5**: Proxy tier implementation
-4. **Production**: Set `SCRAPER_BATCH_SIZE=6` for full parallelism
+1. **Phase 5**: Proxy tier implementation (for TAB/anti-bot bookmakers)
+2. **Production**: Set `SCRAPER_BATCH_SIZE=6` for full parallelism
+3. **More bookmakers**: Add Sportsbet, Neds, PointsBet, etc.
 
 ---
 

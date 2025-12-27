@@ -10,7 +10,6 @@ sys.path.insert(0, "apps/api/src")
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Dict, Set
 from decimal import Decimal
-from difflib import SequenceMatcher
 import logging
 from sqlalchemy.orm import Session
 from sqlalchemy import select, delete
@@ -20,59 +19,10 @@ from api.models.odds import (
     Sport, Competition, Event, Market, Selection, OddsSnapshot,
     Bookmaker, Team, SourceType, MarketType
 )
+from api.services.normalization_service import fuzzy_match_score
 from scrapers.base import ScrapedEvent, ScrapedOdds, ScrapeResult
 
 logger = logging.getLogger(__name__)
-
-
-def normalize_team_name(name: str) -> str:
-    """
-    Normalize team names for better fuzzy matching.
-
-    Handles common abbreviations and variations:
-    - Nottm -> Nottingham
-    - Man Utd/Man United -> Manchester United
-    - Man City -> Manchester City
-    - Spurs -> Tottenham
-    etc.
-    """
-    replacements = {
-        "nottm": "nottingham",
-        "man utd": "manchester united",
-        "man united": "manchester united",
-        "man city": "manchester city",
-        "wolves": "wolverhampton",
-        "spurs": "tottenham",
-        "tottenham hotspur": "tottenham",
-        "west ham": "west ham united",
-        "brighton": "brighton & hove albion",
-        "brighton & hove albion": "brighton",
-        "newcastle": "newcastle united",
-        "leicester": "leicester city",
-        "norwich": "norwich city",
-        "crystal palace": "palace",
-    }
-
-    normalized = name.lower().strip()
-
-    # Apply replacements
-    for abbr, full in replacements.items():
-        if abbr in normalized:
-            normalized = normalized.replace(abbr, full)
-
-    return normalized
-
-
-def fuzzy_match_score(str1: str, str2: str) -> float:
-    """
-    Calculate fuzzy match score between two strings (0.0 to 1.0).
-
-    Uses SequenceMatcher to calculate similarity between normalized strings.
-    """
-    s1 = " ".join(normalize_team_name(str1).split())
-    s2 = " ".join(normalize_team_name(str2).split())
-
-    return SequenceMatcher(None, s1, s2).ratio()
 
 
 class OddsPersistence:

@@ -30,6 +30,7 @@ from scrapers.betfair_scraper import BetfairScraper
 from scrapers.ladbrokes_scraper import LadbrokesScraper
 from scrapers.base import ScrapeResult, ScraperStatus
 from jobs.save_odds import save_scrape_result_to_db
+from jobs.cleanup_service import CleanupService
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,34 @@ class ScrapeService:
         else:
             logger.info(f"[{bookmaker_code}] Failure {failures}/{self.breaker_threshold}")
             self._set_breaker_state(bookmaker_code, "closed", failures)
+
+    def _run_post_scrape_cleanup(self) -> Dict[str, Any]:
+        """
+        Run lightweight cleanup after each scrape.
+
+        Phase 3 optimization: Keep database small by removing stale data immediately.
+        Only cleans non-current odds (fast, safe operation).
+        Past events cleanup runs less frequently via scheduled job.
+
+        Returns:
+            Dict with cleanup statistics
+        """
+        from api.core.database import SessionLocal
+
+        db = SessionLocal()
+        try:
+            service = CleanupService(db)
+
+            # Quick cleanup: just remove non-current odds
+            # This is fast and safe - these odds are already superseded
+            result = service.cleanup_non_current_odds()
+
+            return {
+                "odds_deleted": result.get("deleted", 0),
+                "duration_seconds": result.get("duration_seconds", 0)
+            }
+        finally:
+            db.close()
 
     def _check_breaker(self, bookmaker_code: str) -> bool:
         """
@@ -445,6 +474,18 @@ class ScrapeService:
             if result_errors:
                 all_errors.extend([f"{bookmaker}: {e}" for e in result_errors])
 
+        # Run cleanup after successful scrape (Phase 3 optimization)
+        cleanup_result = None
+        if success_count > 0:
+            try:
+                cleanup_start = time.time()
+                cleanup_result = self._run_post_scrape_cleanup()
+                cleanup_duration = time.time() - cleanup_start
+                logger.info(f"⏱️  [CLEANUP] Post-scrape cleanup took {cleanup_duration:.2f}s")
+            except Exception as e:
+                logger.error(f"[CLEANUP] Post-scrape cleanup failed: {e}")
+                cleanup_result = {"error": str(e)}
+
         return {
             "success": success_count > 0,
             "bookmakers_scraped": success_count,
@@ -456,7 +497,8 @@ class ScrapeService:
             "duration_seconds": parallel_duration,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "results": bookmaker_results,
-            "parallel": True  # Flag indicating parallel execution
+            "parallel": True,  # Flag indicating parallel execution
+            "cleanup": cleanup_result  # Phase 3: cleanup stats
         }
 
 
