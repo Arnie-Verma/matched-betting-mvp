@@ -162,7 +162,7 @@ export function OddsMatcherClient() {
 
         // Update UI with current status
         if (status.status === 'running') {
-          setScrapeStatus(status.message || 'Scraping in progress...')
+          setScrapeStatus(status.message || 'Fetching odds in progress...')
         } else if (status.status === 'pending') {
           setScrapeStatus('Queued, waiting to start...')
         }
@@ -174,7 +174,7 @@ export function OddsMatcherClient() {
         }
 
         if (status.status === 'failed') {
-          console.error('[OddsMatcherClient] Scrape job failed:', status.errors)
+          console.error('[OddsMatcherClient] Odds refresh job failed:', status.errors)
           setScrapeStatus(null)
           return false
         }
@@ -224,18 +224,18 @@ export function OddsMatcherClient() {
         return
       }
 
-      // Fresh scrape was queued - poll for completion
+      // Fresh refresh was queued - poll for completion
       if (refreshData.job_id) {
         setShowPerformanceNotice(true)
-        setScrapeStatus('Starting scrape...')
+        setScrapeStatus('Starting refresh...')
 
         const success = await pollJobStatus(refreshData.job_id)
 
         setShowPerformanceNotice(false)
 
         if (!success) {
-          // Still fetch cached odds even if scrape failed
-          console.warn('[OddsMatcherClient] Scrape may have failed, fetching cached odds')
+          // Still fetch cached odds even if refresh failed
+          console.warn('[OddsMatcherClient] Refresh may have failed, fetching cached odds')
         }
       }
 
