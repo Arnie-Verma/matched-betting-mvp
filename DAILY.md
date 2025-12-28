@@ -6,6 +6,39 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ## 2025-12-28 (Saturday)
 
+### Session 4: Full Refresh Flow Audit (Opus 4.5)
+
+**Goal**: Double-check entire refresh flow for correctness
+
+**🐛 TWO MORE CRITICAL BUGS FOUND & FIXED**:
+
+1. **Bug #1 - used_cache for new jobs**:
+   - `used_cache=bool(cached_time)` returned `True` even when cache was expired
+   - Frontend saw `used_cache=True` → skipped polling → never got fresh data
+   - **Fix**: Hardcoded `used_cache=False` when job is enqueued
+
+2. **Bug #2 - used_cache for merged jobs**:
+   - Merged requests returned `used_cache=True`
+   - Frontend skipped polling even though scrape was actively running
+   - **Fix**: Changed to `used_cache=False` for merged requests too
+
+3. **Terminology cleanup**:
+   - Worker messages changed from "Scrape" to "refresh" terminology
+
+**Files Modified**:
+- [odds_matcher.py](apps/api/src/api/routers/odds_matcher.py) - Lines 240, 251-254
+- [refresh_worker.py](apps/worker/src/jobs/refresh_worker.py) - Lines 80, 109, 128
+
+**Flow Now Correct**:
+1. User refreshes → POST `/refresh` → cache expired → enqueue job
+2. Returns `used_cache=False` + `job_id` ← **FIXED** (was True)
+3. Frontend sees `used_cache=False` → starts polling
+4. Worker processes job → updates status to "success"
+5. Frontend poll gets "success" → fetches fresh opportunities
+6. User sees updated odds
+
+---
+
 ### Session 3: Critical Cache TTL Bug Fix
 
 **Goal**: Debug why odds appear stale after refresh
