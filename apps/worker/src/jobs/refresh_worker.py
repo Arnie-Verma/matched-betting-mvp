@@ -77,7 +77,7 @@ async def _process_job(
     job.setdefault("errors", [])
     attempts = int(job.get("attempts", 0))
     job["started_at"] = datetime.now(timezone.utc).isoformat()
-    job = _set_status(job, "running", "Scrape started")
+    job = _set_status(job, "running", "Fetching latest odds...")
     _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=slow_ttl_seconds)
 
     try:
@@ -106,7 +106,7 @@ async def _process_job(
 
         success = result.get("success", False)
         status = "success" if success else "failed"
-        msg = "Scrape completed" if success else "Scrape completed with errors"
+        msg = "Odds refresh completed" if success else "Refresh completed with errors"
         job = _set_status(job, status, msg)
 
         # On success, refresh cache timestamps (global + per bookmaker)
@@ -125,7 +125,7 @@ async def _process_job(
         attempts += 1
         job["attempts"] = attempts
         if attempts > max_retries:
-            job = _set_status(job, "failed", "Scrape failed; moved to DLQ")
+            job = _set_status(job, "failed", "Refresh failed; moved to DLQ")
             _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=slow_ttl_seconds)
             redis_client.lpush(dlq_key, json.dumps(job))
             return

@@ -237,7 +237,9 @@ async def refresh_odds(
             message="Refresh already queued; merged request",
             opportunities_count=opportunities_count,
             last_refresh=now,
-            used_cache=True,
+            # CRITICAL: used_cache=False so frontend polls for job completion
+            # Even though request was merged, a scrape is still running!
+            used_cache=False,
             job_id=job_id,
         )
 
@@ -246,7 +248,10 @@ async def refresh_odds(
         message=f"Refresh job queued (job_id={job_id}); returning current cached odds",
         opportunities_count=opportunities_count,
         last_refresh=now,
-        used_cache=bool(cached_time),
+        # CRITICAL: used_cache=False when job is enqueued
+        # Frontend must poll job status until scrape completes
+        # Previously used bool(cached_time) which was True if expired cache existed
+        used_cache=False,
         job_id=job_id,
     )
 
