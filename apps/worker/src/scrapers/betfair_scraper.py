@@ -348,6 +348,7 @@ class BetfairScraper(BaseScraper):
         # Get or reuse browser instance (HUGE speedup on subsequent runs)
         browser = await self._get_or_create_browser()
 
+        context = None  # Initialize to None for safe cleanup in finally block
         try:
             # Create NEW context for each scrape (contexts are lightweight, isolates cookies/cache)
             context = await browser.new_context(
@@ -459,7 +460,8 @@ class BetfairScraper(BaseScraper):
 
         finally:
             # Close context (lightweight), but KEEP browser running
-            await context.close()
+            if context:
+                await context.close()
 
         return events
 

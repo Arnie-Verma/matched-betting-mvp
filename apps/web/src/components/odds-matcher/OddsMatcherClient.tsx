@@ -148,17 +148,25 @@ export function OddsMatcherClient() {
   }, [opportunities, filters])
 
   // Poll job status until complete
-  const pollJobStatus = async (jobId: string, maxAttempts = 30): Promise<boolean> => {
+  const pollJobStatus = async (jobId: string, maxAttempts = 40): Promise<boolean> => {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
+        console.log(`[OddsMatcherClient] Poll attempt ${attempt + 1}/${maxAttempts} for job ${jobId}`)
         const response = await fetch(`/api/proxy/odds/refresh/status?job_id=${encodeURIComponent(jobId)}`)
 
         if (!response.ok) {
+          // 404 means job expired or doesn't exist - could mean it completed
+          if (response.status === 404) {
+            console.log(`[OddsMatcherClient] Job ${jobId} not found (may have completed and expired)`)
+            // Job completed and expired - treat as success
+            return true
+          }
           console.warn(`[OddsMatcherClient] Job status check failed: ${response.status}`)
           return false
         }
 
         const status = await response.json()
+        console.log(`[OddsMatcherClient] Job status:`, status)
 
         // Update UI with current status
         if (status.status === 'running') {
@@ -217,14 +225,17 @@ export function OddsMatcherClient() {
       }
 
       const refreshData = await response.json()
+      console.log('[OddsMatcherClient] Refresh response:', refreshData)
 
       // If cache was used, data is already fresh - just fetch opportunities
       if (refreshData.used_cache === true) {
+        console.log('[OddsMatcherClient] Cache hit - skipping poll')
         await fetchOpportunities()
         return
       }
 
       // Fresh refresh was queued - poll for completion
+      console.log('[OddsMatcherClient] Cache miss - will poll for job:', refreshData.job_id)
       if (refreshData.job_id) {
         setShowPerformanceNotice(true)
         setScrapeStatus('Starting refresh...')
