@@ -475,17 +475,41 @@ class LadbrokesScraper(BaseScraper):
                 except:
                     start_time = datetime.now(timezone.utc) + timedelta(days=1)
 
-                # Extract home/away teams from participants
-                participant_ids = event_data.get("participant_ids", [])
-                event_participants = data.get("event_participants", {})
+                # Extract home/away teams from EVENT NAME (not participant order!)
+                # Event names are formatted as "Home Team v Away Team" or "Home Team vs Away Team"
+                # The participant_ids order is NOT reliable - Ladbrokes API doesn't guarantee home is first
                 home_team = None
                 away_team = None
 
-                if len(participant_ids) >= 2:
-                    home_participant = event_participants.get(participant_ids[0], {})
-                    away_participant = event_participants.get(participant_ids[1], {})
-                    home_team = home_participant.get("name")
-                    away_team = away_participant.get("name")
+                # Parse home/away from event name (e.g., "Chelsea v Bournemouth" -> home=Chelsea, away=Bournemouth)
+                if " v " in event_name:
+                    parts = event_name.split(" v ", 1)
+                    if len(parts) == 2:
+                        home_team = parts[0].strip()
+                        away_team = parts[1].strip()
+                elif " vs " in event_name.lower():
+                    parts = event_name.lower().split(" vs ", 1)
+                    if len(parts) == 2:
+                        # Need to extract from original case
+                        idx = event_name.lower().find(" vs ")
+                        home_team = event_name[:idx].strip()
+                        away_team = event_name[idx + 4:].strip()
+                elif " @ " in event_name:
+                    # Format: "Away Team @ Home Team" (common in US sports)
+                    parts = event_name.split(" @ ", 1)
+                    if len(parts) == 2:
+                        away_team = parts[0].strip()
+                        home_team = parts[1].strip()
+
+                # Fallback: use participant data if name parsing failed
+                if not home_team or not away_team:
+                    participant_ids = event_data.get("participant_ids", [])
+                    event_participants = data.get("event_participants", {})
+                    if len(participant_ids) >= 2:
+                        home_participant = event_participants.get(participant_ids[0], {})
+                        away_participant = event_participants.get(participant_ids[1], {})
+                        home_team = home_team or home_participant.get("name")
+                        away_team = away_team or away_participant.get("name")
 
                 # Create event
                 event = ScrapedEvent(
@@ -599,17 +623,42 @@ class LadbrokesScraper(BaseScraper):
 
     def _get_selection_key(self, selection_name: str, event: ScrapedEvent) -> str:
         """Determine selection key (home/away/draw) from selection name"""
-        name_lower = selection_name.lower()
+        name_lower = selection_name.lower().strip()
 
         # Check for draw
-        if name_lower in ["draw", "tie"]:
+        if name_lower in ["draw", "the draw", "tie", "x"]:
             return "draw"
 
-        # Match with home team
+        # Normalize for comparison (remove common suffixes like FC, AFC, etc.)
+        def normalize_team(name: str) -> str:
+            if not name:
+                return ""
+            n = name.lower().strip()
+            # Remove common suffixes
+            for suffix in [" fc", " afc", " cf", " sc", " united", " city"]:
+                if n.endswith(suffix):
+                    n = n[:-len(suffix)].strip()
+            return n
+
+        sel_norm = normalize_team(selection_name)
+        home_norm = normalize_team(event.home_team) if event.home_team else ""
+        away_norm = normalize_team(event.away_team) if event.away_team else ""
+
+        # Exact match after normalization
+        if home_norm and sel_norm == home_norm:
+            return "home"
+        if away_norm and sel_norm == away_norm:
+            return "away"
+
+        # Substring match (selection contains team name or vice versa)
+        if home_norm and (home_norm in sel_norm or sel_norm in home_norm):
+            return "home"
+        if away_norm and (away_norm in sel_norm or sel_norm in away_norm):
+            return "away"
+
+        # Last resort: check if selection name contains original team names
         if event.home_team and event.home_team.lower() in name_lower:
             return "home"
-
-        # Match with away team
         if event.away_team and event.away_team.lower() in name_lower:
             return "away"
 

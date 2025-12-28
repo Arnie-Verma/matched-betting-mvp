@@ -6,6 +6,44 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ## 2025-12-28 (Saturday)
 
+### Session 6: Ladbrokes Selection Key Bug Fix
+
+**Goal**: Fix incorrect home/away selection matching for Ladbrokes
+
+**🐛 CRITICAL BUG FOUND & FIXED**:
+- **Problem**: Chelsea @ 5.20 shown in UI when actual Ladbrokes odds were 1.58
+  - Chelsea was getting Bournemouth's odds (and vice versa)
+  - Database showed: `Chelsea | away | 5.20` and `AFC Bournemouth | home | 1.58` (backwards!)
+
+- **Root Cause**: Ladbrokes API participant_ids order is NOT reliable
+  - Old code assumed `participant_ids[0]` = home team
+  - Reality: Order varies by event, doesn't match "Home vs Away" event name format
+
+- **Fix** ([ladbrokes_scraper.py](apps/worker/src/scrapers/ladbrokes_scraper.py)):
+  1. Parse home/away from EVENT NAME instead of participant order
+     - Split on " v ", " vs ", or " @ " (common formats)
+     - Fallback to participant data only if parsing fails
+  2. Improved `_get_selection_key()` with better normalization
+     - Remove common suffixes (FC, AFC, United, City)
+     - Exact match first, then substring match
+     - Handle "The Draw", "Tie", "X" as draw
+
+- **Data Fix**: Deleted corrupted Chelsea vs AFC Bournemouth selections
+  - Old selections had wrong selection_key (cached from before fix)
+  - Fresh scrape created correct selections
+
+**Verification**:
+```
+Chelsea vs AFC Bournemouth | Chelsea | home | 1.58 ✓
+Chelsea vs AFC Bournemouth | Draw | draw | 4.10 ✓
+Chelsea vs AFC Bournemouth | AFC Bournemouth | away | 5.20 ✓
+```
+
+**Files Modified**:
+- [ladbrokes_scraper.py](apps/worker/src/scrapers/ladbrokes_scraper.py) - Lines 478-512, 624-665
+
+---
+
 ### Session 5: End-to-End Testing & Scraper Fix
 
 **Goal**: Debug and fix job polling flow issues
