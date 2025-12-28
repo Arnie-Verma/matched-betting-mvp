@@ -220,8 +220,12 @@ async def refresh_odds(
     job_id = enqueue_result["job_id"]
 
     # Mark cache intent to prevent stampede; worker will set actual refresh time
+    # CRITICAL FIX: TTL must cover the entire scrape duration (~79s)
+    # If we only set fast_ttl_seconds (60s), the cache expires while worker is still running,
+    # causing stale data window: cache expires at T=60s but worker finishes at T=79s
     now = datetime.now(timezone.utc)
-    redis_client.setex(global_cache_key, fast_ttl_seconds, now.isoformat())  # soft hold while job runs
+    # Use slow_ttl (300s) to ensure cache doesn't expire while worker is scraping
+    redis_client.setex(global_cache_key, slow_ttl_seconds, now.isoformat())
 
     opportunities_count = db.query(OddsSnapshot).filter(
         OddsSnapshot.is_current == True

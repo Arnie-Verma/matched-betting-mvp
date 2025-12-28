@@ -6,6 +6,27 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ## 2025-12-28 (Saturday)
 
+### Session 3: Critical Cache TTL Bug Fix
+
+**Goal**: Debug why odds appear stale after refresh
+
+**🐛 CRITICAL BUG FOUND & FIXED**:
+- **Problem**: Cache TTL set to 60s but scrape takes 79s → stale data window
+  - Timeline: T=0s enqueue → cache 60s TTL → T=60s cache expires → T=79s worker finishes → T=60-79s STALE
+  - This is why odds didn't update after refresh!
+
+- **Root Cause**: `odds_matcher.py:224` set `setex(global_cache_key, fast_ttl_seconds, ...)`
+  - fast_ttl_seconds = 60s (too short)
+  - Cache expires while worker still running
+
+- **Fix**: Changed to `slow_ttl_seconds` (300s) to cover entire scrape duration
+- **Impact**: Eliminates stale data window, ensures fresh odds always displayed
+
+**Files Modified**:
+- [odds_matcher.py](apps/api/src/api/routers/odds_matcher.py) - Line 228
+
+---
+
 ### Session 2: Frontend Job Polling Implementation
 
 **Goal**: Fix gap where frontend doesn't poll job status after refresh
