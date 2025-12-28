@@ -4,6 +4,55 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2025-12-28 (Saturday)
+
+### Session 2: Frontend Job Polling Implementation
+
+**Goal**: Fix gap where frontend doesn't poll job status after refresh
+
+**Completed**:
+- ✅ Added `pollJobStatus()` function - polls `/odds/refresh/status` every 3s
+- ✅ Updated `refreshOdds()` to poll when `job_id` returned (fresh scrape queued)
+- ✅ Added `scrapeStatus` state for real-time progress display
+- ✅ Updated progress notice to show actual scrape status message
+- ✅ Type check passes
+
+**Files Modified**:
+- [OddsMatcherClient.tsx](apps/web/src/components/odds-matcher/OddsMatcherClient.tsx)
+
+**Behavior Now**:
+1. User clicks refresh → POST `/refresh` → returns `job_id`
+2. Frontend shows "Starting scrape..." progress notice
+3. Polls status every 3s → updates message from worker ("Scrape started", etc)
+4. When `status === "success"` → fetches fresh opportunities
+5. Hides notice, shows updated odds
+
+---
+
+### Session 1: Production Gap Analysis
+
+**Goal**: Identify critical gaps for 100+ bookmakers, 1000+ users
+
+**Key Gaps Identified**:
+
+| # | Gap | Priority | Status |
+|---|-----|----------|--------|
+| 1 | Frontend doesn't poll job status | 🔴 CRITICAL | ✅ FIXED |
+| 2 | No progress indicator | 🔴 CRITICAL | ✅ FIXED |
+| 3 | No Sentry/error tracking | 🔴 CRITICAL | ⏳ Next |
+| 4 | No structured logging | 🔴 CRITICAL | ⏳ Next |
+| 5 | DB connection pool = 5 | 🟡 HIGH | Pending |
+| 6 | Neds scraper missing | 🟡 HIGH | Pending |
+| 7 | No graceful degradation | 🟡 HIGH | Pending |
+
+**Architecture Validated** ✅:
+- Worker IS running in docker-compose (consuming queue)
+- Queue-based refresh decoupling working
+- Circuit breaker + timeout protection working
+- Parallel scraping (79s vs 131s)
+
+---
+
 ## 2025-12-27 (Friday)
 
 ### Session 2: Production Readiness Review

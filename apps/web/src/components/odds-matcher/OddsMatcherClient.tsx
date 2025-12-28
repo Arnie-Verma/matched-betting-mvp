@@ -62,6 +62,7 @@ export function OddsMatcherClient() {
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [showPerformanceNotice, setShowPerformanceNotice] = useState(false)
+  const [scrapeStatus, setScrapeStatus] = useState<string | null>(null)
   const [debouncedStake, setDebouncedStake] = useState(100)
 
   const [selectedOdds, setSelectedOdds] = useState<OddsMatch | null>(null)
@@ -146,14 +147,55 @@ export function OddsMatcherClient() {
     })
   }, [opportunities, filters])
 
+  // Poll job status until complete
+  const pollJobStatus = async (jobId: string, maxAttempts = 30): Promise<boolean> => {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const response = await fetch(`/api/proxy/odds/refresh/status?job_id=${encodeURIComponent(jobId)}`)
+
+        if (!response.ok) {
+          console.warn(`[OddsMatcherClient] Job status check failed: ${response.status}`)
+          return false
+        }
+
+        const status = await response.json()
+
+        // Update UI with current status
+        if (status.status === 'running') {
+          setScrapeStatus(status.message || 'Scraping in progress...')
+        } else if (status.status === 'pending') {
+          setScrapeStatus('Queued, waiting to start...')
+        }
+
+        // Check if job is complete
+        if (status.status === 'success') {
+          setScrapeStatus(null)
+          return true
+        }
+
+        if (status.status === 'failed') {
+          console.error('[OddsMatcherClient] Scrape job failed:', status.errors)
+          setScrapeStatus(null)
+          return false
+        }
+
+        // Wait 3 seconds before next poll
+        await new Promise(resolve => setTimeout(resolve, 3000))
+      } catch (err) {
+        console.error('[OddsMatcherClient] Error polling job status:', err)
+        return false
+      }
+    }
+
+    console.warn('[OddsMatcherClient] Job polling timed out after max attempts')
+    setScrapeStatus(null)
+    return false
+  }
+
   const refreshOdds = async () => {
     setLoading(true)
     setError(null)
-
-    // Delay showing performance notice by 3 seconds
-    const noticeTimer = setTimeout(() => {
-      setShowPerformanceNotice(true)
-    }, 3000)
+    setScrapeStatus(null)
 
     try {
       const response = await fetch('/api/proxy/odds/refresh', {
@@ -161,13 +203,11 @@ export function OddsMatcherClient() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ force: false })  // Respect cache!
+        body: JSON.stringify({ force: false })
       })
 
       if (!response.ok) {
-        clearTimeout(noticeTimer)  // Cancel notice if error happens quickly
-        setShowPerformanceNotice(false)
-        // 429 = rate limited - silently continue to fetch cached odds instead of showing error
+        // 429 = rate limited - silently continue to fetch cached odds
         if (response.status === 429) {
           console.log('[OddsMatcherClient] Rate limited, fetching cached odds instead')
           await fetchOpportunities()
@@ -178,22 +218,32 @@ export function OddsMatcherClient() {
 
       const refreshData = await response.json()
 
-      // If cache was used (fast response), cancel the notice timer
+      // If cache was used, data is already fresh - just fetch opportunities
       if (refreshData.used_cache === true) {
-        clearTimeout(noticeTimer)
-        setShowPerformanceNotice(false)
+        await fetchOpportunities()
+        return
       }
-      // If fresh scrape (used_cache === false), notice will show after 3 seconds
 
-      // After refresh, fetch new opportunities
+      // Fresh scrape was queued - poll for completion
+      if (refreshData.job_id) {
+        setShowPerformanceNotice(true)
+        setScrapeStatus('Starting scrape...')
+
+        const success = await pollJobStatus(refreshData.job_id)
+
+        setShowPerformanceNotice(false)
+
+        if (!success) {
+          // Still fetch cached odds even if scrape failed
+          console.warn('[OddsMatcherClient] Scrape may have failed, fetching cached odds')
+        }
+      }
+
+      // Fetch opportunities (fresh or cached)
       await fetchOpportunities()
-
-      // Hide performance notice once odds have loaded
-      clearTimeout(noticeTimer)  // Cancel timer if still pending
-      setShowPerformanceNotice(false)
     } catch (err) {
-      clearTimeout(noticeTimer)  // Cancel timer on error
       setError(err instanceof Error ? err.message : 'An error occurred')
+      setScrapeStatus(null)
       setShowPerformanceNotice(false)
       setLoading(false)
     }
@@ -230,7 +280,7 @@ export function OddsMatcherClient() {
         </button>
       </div>
 
-      {/* Performance Notice */}
+      {/* Scrape Progress Notice */}
       {showPerformanceNotice && (
         <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg">
           <div className="flex items-center gap-3">
@@ -240,9 +290,14 @@ export function OddsMatcherClient() {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             </div>
-            <p className="font-medium">
-              Loading your best opportunities, hang tight, value never sleeps.
-            </p>
+            <div>
+              <p className="font-medium">
+                {scrapeStatus || 'Fetching latest odds from bookmakers...'}
+              </p>
+              <p className="text-sm text-blue-600 mt-1">
+                This typically takes 60-90 seconds
+              </p>
+            </div>
           </div>
         </div>
       )}
