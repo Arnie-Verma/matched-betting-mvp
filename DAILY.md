@@ -6,6 +6,33 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ## 2025-12-28 (Saturday)
 
+### Session 5: End-to-End Testing & Scraper Fix
+
+**Goal**: Debug and fix job polling flow issues
+
+**Issues Found & Fixed**:
+
+1. **Betfair scraper crash** - `cannot access local variable 'context'`
+   - Cause: Exception before `context` assignment, then `finally` block tried to close it
+   - Fix: Initialize `context = None` before try block, add null check in finally
+
+2. **Polling debug improvements**:
+   - Added console logging for each poll attempt
+   - Handle 404 as success (job completed and expired from Redis)
+   - Increased maxAttempts from 30 to 40 for longer scrapes
+
+**Files Modified**:
+- [OddsMatcherClient.tsx](apps/web/src/components/odds-matcher/OddsMatcherClient.tsx) - Enhanced polling
+- [betfair_scraper.py](apps/worker/src/scrapers/betfair_scraper.py) - Context null safety
+- [status/route.ts](apps/web/src/app/api/proxy/odds/refresh/status/route.ts) - New proxy route
+
+**Result**: ✅ Full refresh flow working end-to-end
+- Progress bar displays during scrape
+- Status updates every 3s
+- Fresh data loads on completion (~104s scrape time)
+
+---
+
 ### Session 4: Full Refresh Flow Audit (Opus 4.5)
 
 **Goal**: Double-check entire refresh flow for correctness
