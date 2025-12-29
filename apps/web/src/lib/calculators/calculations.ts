@@ -269,38 +269,42 @@ export function calculateMulti(
     profitLoss: round2(allWinProfit)
   })
 
-  if (anyLegFail) {
-    // Outcome 2: Exactly one leg fails (refund as bonus bet)
-    // Probability of exactly one failing = sum of (prob_fail_i * product_j_win)
-    let oneLegFailProb = 0
-    for (let i = 0; i < fairProbs.length; i++) {
-      const failProb = 1 - fairProbs[i]
-      const othersWinProb = fairProbs
-        .filter((_, j) => j !== i)
-        .reduce((acc, p) => acc * p, 1)
-      oneLegFailProb += failProb * othersWinProb
-    }
+  // Calculate probability of exactly one leg failing
+  let oneLegFailProb = 0
+  for (let i = 0; i < fairProbs.length; i++) {
+    const failProb = 1 - fairProbs[i]
+    const othersWinProb = fairProbs
+      .filter((_, j) => j !== i)
+      .reduce((acc, p) => acc * p, 1)
+    oneLegFailProb += failProb * othersWinProb
+  }
 
-    // Bonus bet value = stake * retention%
-    const bonusValue = stake * (bonusRetention / 100)
+  // Bonus bet value for refund scenarios
+  const bonusValue = stake * (bonusRetention / 100)
+
+  if (anyLegFail) {
+    // Any Leg Fail promo ON: ALL failure scenarios get bonus refund
+    // Combined into single "Any leg fails (refund)" outcome
+    const anyFailProb = 1 - combinedProbability
+    outcomes.push({
+      name: 'Any leg fails (refund)',
+      probability: anyFailProb * 100,
+      profitLoss: round2(bonusValue - stake) // Net position after refund
+    })
+  } else {
+    // Default: Show detailed breakdown
+    // One leg fails = gets refund (standard promo behavior)
     outcomes.push({
       name: 'One leg fails (refund)',
       probability: oneLegFailProb * 100,
       profitLoss: round2(bonusValue - stake) // Net position after refund
     })
 
-    // Outcome 3: More than one leg fails (lose stake)
+    // More than one leg fails = lose stake (no refund)
     const moreThanOneFailProb = 1 - combinedProbability - oneLegFailProb
     outcomes.push({
       name: 'More than one leg fails',
       probability: Math.max(0, moreThanOneFailProb * 100),
-      profitLoss: round2(-stake)
-    })
-  } else {
-    // Outcome 2: Any leg fails (lose stake)
-    outcomes.push({
-      name: 'Any leg fails',
-      probability: (1 - combinedProbability) * 100,
       profitLoss: round2(-stake)
     })
   }

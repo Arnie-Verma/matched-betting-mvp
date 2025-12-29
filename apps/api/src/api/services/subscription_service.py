@@ -253,41 +253,56 @@ class SubscriptionService:
         """
         Get list of bookmaker codes allowed for user's plan.
 
-        Tier structure is CUMULATIVE (Betfair always included as exchange for lay odds):
+        Tier structure (Betfair always included as exchange for lay odds):
         - Free tier: 2 bookmakers (Ladbrokes + Neds) + Betfair
-        - Premium tier: 17 bookmakers total (Free + 15 more) + Betfair
+        - Premium tier: 16 bookmakers + Betfair
         - Diamond tier: All 103 bookmakers + Betfair
 
         Note: Betfair is ALWAYS included as it's the exchange (provides lay odds).
         """
         plan = user.current_plan.lower()
 
-        # Free tier: 2 bookmakers (Ladbrokes + Neds) + Betfair (exchange)
+        # Free tier: 2 bookmakers + Betfair (exchange)
         if plan == "free":
             return ["ladbrokes", "neds", "betfair"]
 
-        # Premium tier: 17 bookmakers total
-        # Free (2) + Premium additions (15) = 17 bookmakers + Betfair
+        # Premium tier: 16 bookmakers + Betfair
         if plan == "premium":
             return [
-                # Free tier bookmakers (2)
-                "ladbrokes", "neds",
-                # Premium tier additions (15)
-                "sportsbet", "tab", "pointsbet", "unibet",
+                "sportsbet", "ladbrokes", "neds", "tab", "pointsbet", "unibet",
                 "betr", "betdeluxe", "betright", "crossbet", "dabble",
                 "elitebet", "tabtouch", "realbookie", "picklebet",
                 # Exchange (always included)
                 "betfair"
             ]
 
-        # Diamond/Platinum tier: All bookmakers in database
+        # Diamond/Platinum tier: All 103 bookmakers
         if plan in ["platinum", "diamond"]:
-            bookmakers = db.query(Bookmaker).all()
-            bookmaker_codes = [bm.code for bm in bookmakers]
-            # Ensure Betfair is included
-            if "betfair" not in bookmaker_codes:
-                bookmaker_codes.append("betfair")
-            return bookmaker_codes
+            return [
+                # All bookmakers
+                "alphabet", "baggybet", "bet575", "bet66", "bet777", "betbetbet",
+                "betblitz", "betchamps", "betdeluxe", "betestate", "betfocus",
+                "betgalaxy", "betgold", "betlocal", "betm", "betnation",
+                "betprofessor", "betr", "betright", "betroyale", "betyoucan",
+                "bigbet", "blondebet", "boombet", "boostbet", "bossbet",
+                "buffalobet", "cashcage", "chasebet", "chromabet", "crossbet",
+                "dabble", "diamondbet", "dowbet", "elitebet", "fiestaet",
+                "gigabet", "goldbet", "goldenbet888", "goldenrush", "havabet",
+                "hotbet", "jimmybet", "juicybet", "junglebet", "justbet",
+                "ladbrokes", "letsbet", "lightningbet", "marantellibet", "midasbet",
+                "mintbet", "mybet", "neds", "noisy", "okebet",
+                "oldgill", "palmerbet", "picklebet", "picnicbet", "playup",
+                "playwest", "pointsbet", "ponybet", "premiumbet", "pulsebet",
+                "punt123", "puntcity", "puntgenie", "puntnow", "puntzone",
+                "questbet", "readybet", "realbookie", "robwaterhouse", "slambet",
+                "sportsbet", "starsports", "sterlingparker", "sugarcastle", "surge",
+                "swiftbet", "tab", "tabtouch", "templebet", "terrybet",
+                "titanbet", "topbet", "tradiebet", "truebet", "ultrabet",
+                "unibet", "upcoz", "vikingbet", "vinbet", "volcanobet",
+                "wellbet", "winnersbet", "wishbet", "wizbet", "zbet",
+                # Exchange (always included)
+                "betfair"
+            ]
 
         # Default: free tier
         return ["ladbrokes", "neds", "betfair"]

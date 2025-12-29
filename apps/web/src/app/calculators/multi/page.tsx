@@ -189,12 +189,10 @@ function MultiCalculatorContent() {
               </div>
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value={bonusRetention}
-                  onChange={(e) => setBonusRetention(parseFloat(e.target.value) || 0)}
+                  type="text"
+                  inputMode="decimal"
+                  value={bonusRetentionStr}
+                  onChange={(e) => setBonusRetentionStr(e.target.value)}
                   className="w-20 px-3 py-2 border border-purple-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
                 <span className="bg-purple-200 text-purple-800 px-3 py-2 rounded-lg font-medium">%</span>
@@ -307,7 +305,7 @@ function MultiCalculatorContent() {
           <div className="text-sm text-blue-800">
             <strong>Multi Calculator</strong> estimates expected value (EV) for multi-leg bets.
             <ul className="mt-2 space-y-1 list-disc list-inside text-blue-700">
-              <li><strong>Any leg fail:</strong> Promo where 1 losing leg = bonus refund</li>
+              <li><strong>Any leg fail:</strong> Promo where any losing leg = bonus refund</li>
               <li><strong>SGM:</strong> Same Game Multi (legs from same match)</li>
               <li><strong>Overround:</strong> Bookmaker margin to account for</li>
               <li><strong>Retention:</strong> Expected value of bonus bets (~70%)</li>

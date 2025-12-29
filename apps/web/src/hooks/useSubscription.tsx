@@ -39,9 +39,9 @@ export function useSubscription(): UseSubscriptionResult {
       }
 
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
         const token = await getToken()
-        const response = await fetch(`${apiUrl}/api/v1/subscription/status`, {
+        // Use the proxy route to avoid CORS issues
+        const response = await fetch('/api/proxy/billing/subscription', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -54,6 +54,7 @@ export function useSubscription(): UseSubscriptionResult {
           setPlan(data.current_plan?.toLowerCase() || 'free')
         } else {
           // Default to free plan if API call fails
+          console.warn('Subscription API returned non-OK status:', response.status)
           setPlan('free')
         }
       } catch (error) {
