@@ -496,34 +496,43 @@ GET  /sportssilks/supportedsports                → Team/sport metadata
 
 ---
 
-#### 2. Generation Web Platform ⚠️ INCOMPLETE DATA
+#### 2. Generation Web Platform ⚠️ PARTIAL API FOUND
 
-**Sites Researched**: EliteBet, WinnersBet
+**Sites Researched**: EliteBet (3 sports), WinnersBet (1 sport)
+**Research Date**: 2025-12-29 (Enhanced automated discovery)
+**Sports Tested**: Soccer, AFL, NRL
 
 **API Pattern**:
 ```
-EliteBet:  https://betapi.elitebet.com.au/
-WinnersBet: Minimal API exposure (live chat only captured)
+Base: https://betapi.{domain}/
+Endpoints consistent across all 3 sports tested
 ```
 
-**Captured Endpoints**:
+**Captured Endpoints** (Multi-Sport Research):
 ```
-POST /sportutility/getSportAZ           → Sports + markets index
-POST /sportutility2/getSportHighlights  → Featured events
+POST /sportutility/getSportAZ            → Sports + markets index (865 bytes)
+POST /sportutility2/getSportHighlights   → Featured events (2.2KB)
 ```
 
-**Status**: ⚠️ Limited API visibility
-- Heavy client-side rendering detected
-- Sports page may use different endpoints than captured
-- **Requires deeper investigation** of browser network tab
-- Likely has odds endpoints but not captured in initial request
+**Key Finding**:
+- ✅ Same endpoints appear across all sports (soccer, AFL, NRL)
+- ✅ Consistent between EliteBet and WinnersBet
+- ⚠️ **No sports betting odds endpoint captured yet**
+- Response keys suggest these are sports/market configuration endpoints, not odds
 
-**Anti-Bot Protection**: NONE detected in limited data
+**Status**: Partial API visibility
+- Likely has odds endpoints that are lazily loaded via JavaScript
+- May require following a link in response or navigating to a subpage
+- Possible approach: Parse response for odds links or event IDs, then fetch odds separately
+
+**Anti-Bot Protection**: NONE detected
 
 **Implementation Notes**:
-- EliteBet has API at `betapi.{domain}` subdomain
-- Unlike other platforms, Generation Web may use proprietary naming
-- Need to manually test with browser DevTools to find full API surface
+- API subdomain: `betapi.{domain}` (verified consistent across sites)
+- Responses are lightweight (~2-3KB), not full odds data
+- EliteBet and WinnersBet have different UI but identical API backend
+- **Next step**: Inspect the HTML response body for embedded odds or find full odds endpoint pattern
+- Likely similar structure to Punterstech but with different endpoint naming
 
 ---
 
@@ -553,45 +562,59 @@ POST /sportutility2/getSportHighlights  → Featured events
 
 ---
 
-#### 4. BetCloud Platform ⚠️ RACING-FOCUSED, LIMITED CAPTURE
+#### 4. BetCloud Platform ⚠️ RACING-ONLY APIS CAPTURED
 
-**Sites Researched**: WellBet, BetGalaxy
+**Sites Researched**: WellBet (3 sports), BetGalaxy (3 sports)
+**Research Date**: 2025-12-29 (Enhanced automated discovery - multi-sport)
+**Sports Tested**: Soccer, AFL, NRL
 
 **Captured Endpoints**:
 ```
-GET  /punter/general/offerings              → Available sports/races
-GET  /punter/content/homepage               → Homepage content
-GET  /punter/races/next-to-jump?race_type=X → Next horse/dog races (3.5KB each)
-GET  /generic/config/fields.{bookmaker}     → Field configuration
+GET  /punter/general/offerings              → Available sports/races (1.2KB)
+GET  /punter/content/homepage               → Homepage content (1.4KB)
+GET  /punter/races/next-to-jump?race_type=X → Horse/dog races (3.4-3.5KB)
+GET  /generic/config/fields.{bookmaker}     → Field config (113-115 bytes)
 ```
 
 **Status**: Partial API discovered
-- Racing/next-to-jump API working well
-- Sports betting endpoints NOT captured
-- May be on different API path or AJAX-loaded
+- ✅ Racing/next-to-jump API working consistently
+- ⚠️ **Sports betting endpoints NOT captured across any sport**
+- No new endpoints found when navigating to different sports
+- Endpoints identical between WellBet and BetGalaxy (platform consistency confirmed)
+
+**Key Finding**:
+- All 4 captured endpoints appear across all 3 sports (soccer, AFL, NRL)
+- Same endpoints, same response sizes regardless of sport
+- Racing offerings update dynamically, but no sports betting APIs visible
 
 **Anti-Bot Protection**: NONE detected
 
 **Implementation Notes**:
 - API base: `https://api.{bookmaker}.com.au/`
-- Very consistent between WellBet and BetGalaxy (as expected from platform)
-- Racing data is readily available
-- **Sports betting endpoints need further investigation**
-- Possible approach: Use Playwright to load sports page, inspect Network tab
+- Response shows available sports in `/punter/general/offerings` ("offered_sports" key)
+- But **no endpoint to fetch actual sports betting odds** was captured
+- Possible explanations:
+  1. Sports betting odds loaded client-side via JavaScript after page render
+  2. Odds fetched via WebSocket or long-polling
+  3. Odds embedded in HTML response body (not JSON API)
+  4. Different API path not triggered by simple page navigation
+- **Requires deeper investigation**: May need to inspect browser Network tab for XHR requests or check HTML response body
 
 ---
 
 ### Scraping Feasibility Summary
 
-| Platform | Bookmakers | API Visibility | Difficulty | Proxy Needed | ETA |
-|----------|-----------|---|-----------|------------|-----|
-| **Punterstech** | 21 | ✅ Full | Easy | No | 2-3 days |
-| **Generation Web** | 22 | ⚠️ Partial | Medium | No | 3-5 days |
-| **BetMakers** | 33 | ❌ SSR | Medium | No | 3-5 days |
-| **BetCloud** | 26 | ⚠️ Partial | Medium | No | 3-5 days |
-| **Entain** | 3 | ✅ Full | Easy | No | 1 day (already done) |
-| **TAB** | 2 | ✅ Full | Hard | **YES** | 1-2 days + proxy setup |
-| **Standalone** | ~16 | ❓ Unknown | Hard | Maybe | 1-2 weeks |
+| Platform | Bookmakers | API Visibility | Difficulty | Proxy Needed | ETA | Status |
+|----------|-----------|---|-----------|------------|-----|--------|
+| **Punterstech** | 21 | ✅ Full | Easy | No | 2-3 days | ✅ READY |
+| **Generation Web** | 22 | ⚠️ Partial | Medium | No | 2-3 days* | Odds endpoint hidden |
+| **BetMakers** | 33 | ❌ SSR | Medium | No | 3-5 days | DOM parsing needed |
+| **BetCloud** | 26 | ⚠️ Racing only | Medium-Hard | No | 3-5 days* | Sports API hidden |
+| **Entain** | 3 | ✅ Full | Easy | No | 1 day | ✅ Done |
+| **TAB** | 2 | ✅ Full | Hard | **YES** | 1-2 days + proxy | Proxy required |
+| **Standalone** | ~16 | ❓ Unknown | Hard | Maybe | 1-2 weeks | Individual research |
+
+*Generation Web & BetCloud: Automated multi-sport discovery completed but odds endpoints not captured. Likely client-side loaded or embedded in HTML.
 
 ---
 
@@ -641,39 +664,54 @@ odds_json = await page.evaluate("window.__ODDS_DATA__ || null")
 
 ## API Research Tool
 
-A Playwright-based research script is available to capture API patterns from any bookmaker site.
+A Playwright-based automated research script captures API patterns from any bookmaker site across multiple sports.
 
 ### Location
 ```
-apps/worker/src/scrapers/research/platform_research.py
+discovery.py (root directory)
 ```
 
 ### Usage
 ```bash
-# Research all sites for a platform
-docker exec mb_api python -m src.scrapers.research.platform_research --platform punterstech
+# Research all sites for a platform (supports multi-sport navigation)
+docker exec mb_api bash -c "cd /workspace && python discovery.py --platform punterstech"
+docker exec mb_api bash -c "cd /workspace && python discovery.py --platform generation_web"
+docker exec mb_api bash -c "cd /workspace && python discovery.py --platform betcloud"
 
 # Research a single site
-docker exec mb_api python -m src.scrapers.research.platform_research --site tradie.bet --sport /sports/soccer
-
-# Research EliteBet
-docker exec mb_api python -m src.scrapers.research.platform_research --site elitebet.com.au --sport /sports/soccer
+docker exec mb_api bash -c "cd /workspace && python discovery.py --site https://www.tradie.bet --sport /sports/soccer"
 ```
 
 ### What It Does
 1. Launches headless Chromium browser
-2. Navigates to the bookmaker's sports page
-3. Intercepts all network responses
-4. Filters for JSON/API responses
-5. Saves captured endpoints and sample data to JSON file
-6. Identifies likely odds-related endpoints
+2. Navigates to multiple sports pages for each bookmaker (soccer, AFL, NRL by default)
+3. Intercepts ALL network responses on each page load
+4. Filters for JSON/API responses and suspicious patterns
+5. Tracks which sports each endpoint appears in
+6. Saves discovered endpoints with sport mapping to JSON file
+7. Identifies likely odds-related endpoints
+
+### Enhanced Features (2025-12-29)
+- **Multi-sport research**: Tests soccer, AFL, NRL pages to find all API endpoints
+- **Sport tracking**: Records which endpoints appear in which sports
+- **Consistent endpoint identification**: Finds endpoints that work across all sports
+- **Better platform-specific patterns**: Detects BetCloud (`/punter/*`), Generation Web (`/sportutility*`)
 
 ### Output
-Results saved to `apps/worker/src/scrapers/research/research_output/`:
+Results saved to `discovery_output/`:
 ```
-tradie.bet_sports_soccer_20251228_143022.json
-elitebet.com.au_sports_soccer_20251228_143156.json
+elitebet_20251229_122024.json           (EliteBet - 3 endpoints across 3 sports)
+winnersbet_20251229_122103.json         (WinnersBet - limited capture)
+wellbet_20251229_122512.json            (WellBet - 4 racing endpoints)
+betgalaxy_20251229_122555.json          (BetGalaxy - 4 racing endpoints)
 ```
+
+Each file includes:
+- Unique endpoints captured
+- Full URLs and request methods
+- Response sizes and sample data structure
+- Sports where each endpoint appears
+- Likely odds-related endpoints identified
 
 ### Correct Site URLs
 
@@ -791,5 +829,6 @@ docker logs mb_api 2>&1 | grep -E "\[(Ladbrokes|Betfair|TAB)\]"
 
 ---
 
-*Document version: 2.0*
-*Last updated: 2025-12-28*
+*Document version: 2.1*
+*Last updated: 2025-12-29*
+*Latest changes: Enhanced automated discovery completed for Gen Web & BetCloud; multi-sport API research added**

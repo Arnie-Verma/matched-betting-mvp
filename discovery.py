@@ -38,8 +38,8 @@ class PlatformDiscovery:
         },
         "generation_web": {
             "sites": [
-                ("EliteBet", "https://www.elitebet.com.au", "/sports/soccer"),
-                ("WinnersBet", "https://www.winnersbet.com.au", "/sports/soccer"),
+                ("EliteBet", "https://www.elitebet.com.au", ["/sports/soccer", "/sports/afl", "/sports/nrl"]),
+                ("WinnersBet", "https://www.winnersbet.com.au", ["/sports/soccer", "/sports/afl", "/sports/nrl"]),
             ]
         },
         "betmakers": {
@@ -50,8 +50,8 @@ class PlatformDiscovery:
         },
         "betcloud": {
             "sites": [
-                ("WellBet", "https://www.wellbet.com.au", "/sports/soccer"),
-                ("BetGalaxy", "https://www.betgalaxy.com.au", "/sports/soccer"),
+                ("WellBet", "https://www.wellbet.com.au", ["/sports/soccer", "/sports/afl", "/sports/nrl"]),
+                ("BetGalaxy", "https://www.betgalaxy.com.au", ["/sports/soccer", "/sports/afl", "/sports/nrl"]),
             ]
         },
     }
@@ -61,26 +61,34 @@ class PlatformDiscovery:
         self.output_dir.mkdir(exist_ok=True)
         self.results = []
 
-    async def research_site(self, name: str, base_url: str, sport_path: str) -> Dict[str, Any]:
+    async def research_site(self, name: str, base_url: str, sport_path) -> Dict[str, Any]:
         """
         Research a single site by capturing network requests.
 
         Args:
             name: Bookmaker name for logging
             base_url: Base URL of bookmaker (e.g., https://www.tradie.bet)
-            sport_path: Path to sports page (e.g., /sports/soccer)
+            sport_path: Path(s) to sports page (str or list of str)
 
         Returns:
             Dict with discovered endpoints and metadata
         """
-        full_url = f"{base_url}{sport_path}"
+        # Handle both single path (str) and multiple paths (list)
+        if isinstance(sport_path, str):
+            sport_paths = [sport_path]
+        else:
+            sport_paths = sport_path
+
         print(f"\n{'='*70}")
         print(f"🔍 RESEARCHING: {name}")
         print(f"{'='*70}")
-        print(f"URL: {full_url}")
+        print(f"Sports paths: {', '.join(sport_paths)}")
 
         captured_responses = []
         api_endpoints = {}
+
+        # Track endpoints per sport for better analysis
+        endpoints_by_sport = {}
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(
@@ -101,74 +109,97 @@ class PlatformDiscovery:
 
             page = await context.new_page()
 
-            async def handle_response(response: Response):
-                """Capture API responses"""
-                try:
-                    url = response.url
-                    status = response.status
-                    content_type = response.headers.get('content-type', '')
+            # Create a shared async task queue for handling responses
+            def create_response_handler(sport_name):
+                """Factory function to create response handler with correct closure"""
+                async def handler(response):
+                    try:
+                        url = response.url
+                        status = response.status
+                        content_type = response.headers.get('content-type', '')
 
-                    # Skip static assets
-                    skip_exts = ['.js', '.css', '.png', '.jpg', '.gif', '.svg', '.woff', '.ico']
-                    if any(ext in url.lower() for ext in skip_exts):
-                        return
+                        # Skip static assets
+                        skip_exts = ['.js', '.css', '.png', '.jpg', '.gif', '.svg', '.woff', '.ico']
+                        if any(ext in url.lower() for ext in skip_exts):
+                            return
 
-                    # Focus on API/JSON
-                    is_json = 'application/json' in content_type
-                    is_api = any(p in url.lower() for p in [
-                        '/api/', '/v1/', '/v2/', '/graphql',
-                        'event', 'market', 'odds', 'sport', 'fixture'
-                    ])
+                        # Focus on API/JSON - especially sports betting APIs
+                        is_json = 'application/json' in content_type
+                        is_api = any(p in url.lower() for p in [
+                            '/api/', '/v1/', '/v2/', '/graphql',
+                            'event', 'market', 'odds', 'sport', 'fixture', 'punter'
+                        ])
 
-                    if status == 200 and (is_json or is_api):
-                        try:
-                            body = await response.json()
-                            endpoint = urlparse(url).path
+                        # Special patterns for each platform
+                        is_sports_betting_api = any(p in url.lower() for p in [
+                            '/punter/sports',  # BetCloud pattern
+                            '/sportutility',   # Generation Web pattern
+                            '/api-events/public',  # Punterstech pattern
+                        ])
 
-                            # Track endpoint
-                            if endpoint not in api_endpoints:
-                                api_endpoints[endpoint] = {
-                                    'full_url': url,
-                                    'method': response.request.method,
+                        if status == 200 and (is_json or is_api or is_sports_betting_api):
+                            try:
+                                body = await response.json()
+                                endpoint = urlparse(url).path
+
+                                # Track endpoint
+                                if endpoint not in api_endpoints:
+                                    api_endpoints[endpoint] = {
+                                        'full_url': url,
+                                        'method': response.request.method,
+                                        'status': status,
+                                        'content_type': content_type,
+                                        'sample_keys': list(body.keys()) if isinstance(body, dict) else None,
+                                        'response_size': len(json.dumps(body)),
+                                        'sports_where_found': []
+                                    }
+
+                                # Track which sports this endpoint appears in
+                                if sport_name not in api_endpoints[endpoint]['sports_where_found']:
+                                    api_endpoints[endpoint]['sports_where_found'].append(sport_name)
+
+                                captured_responses.append({
+                                    'url': url,
+                                    'endpoint': endpoint,
+                                    'sport': sport_name,
                                     'status': status,
-                                    'content_type': content_type,
-                                    'sample_keys': list(body.keys()) if isinstance(body, dict) else None,
-                                    'response_size': len(json.dumps(body)),
-                                }
+                                    'size': len(json.dumps(body)),
+                                    'sample': self._truncate(body, max_depth=2),
+                                })
 
-                            captured_responses.append({
-                                'url': url,
-                                'endpoint': endpoint,
-                                'status': status,
-                                'size': len(json.dumps(body)),
-                                'sample': self._truncate(body, max_depth=2),
-                            })
+                                print(f"    [{sport_name}] ✓ {endpoint[:50]:<50} ({len(json.dumps(body))} bytes)")
+                            except:
+                                pass
+                    except Exception as e:
+                        pass
+                return handler
 
-                            print(f"  ✓ {endpoint[:60]:<60} ({status}) {len(json.dumps(body))} bytes")
-                        except:
-                            pass
+            # Research each sport path
+            for sport_path in sport_paths:
+                full_url = f"{base_url}{sport_path}"
+                sport_name = sport_path.split('/')[-1] if '/' in sport_path else 'root'
+
+                print(f"\n📱 Navigating to {sport_name.upper()}: {full_url}...")
+
+                # Set response handler for this sport
+                page.on('response', create_response_handler(sport_name))
+
+                try:
+                    await page.goto(full_url, wait_until='domcontentloaded', timeout=30000)
+                    print(f"✓ Page loaded. Waiting 8s for API responses...")
+
+                    await asyncio.sleep(8)
+
+                    # Trigger lazy loading
+                    print(f"📜 Scrolling to trigger lazy load...")
+                    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                    await asyncio.sleep(3)
+
                 except Exception as e:
-                    pass
+                    print(f"❌ Error navigating to {sport_name}: {e}")
 
-            page.on('response', lambda res: asyncio.create_task(handle_response(res)))
-
-            try:
-                print(f"\n📱 Navigating to {full_url}...")
-                await page.goto(full_url, wait_until='domcontentloaded', timeout=30000)
-                print(f"✓ Page loaded. Waiting 8s for API responses...")
-
-                await asyncio.sleep(8)
-
-                # Trigger lazy loading
-                print(f"📜 Scrolling to trigger lazy load...")
-                await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                await asyncio.sleep(3)
-
-            except Exception as e:
-                print(f"❌ Error navigating: {e}")
-            finally:
-                await context.close()
-                await browser.close()
+            await context.close()
+            await browser.close()
 
         # Analyze results
         print(f"\n{'='*70}")
@@ -199,13 +230,17 @@ class PlatformDiscovery:
         result = {
             "bookmaker": name,
             "base_url": base_url,
-            "sport_path": sport_path,
+            "sport_paths": sport_paths,
             "timestamp": datetime.now().isoformat(),
             "endpoints_captured": len(captured_responses),
             "unique_endpoints": len(api_endpoints),
             "endpoints": api_endpoints,
             "odds_endpoints": odds_endpoints,
-            "sample_responses": captured_responses[:5],  # First 5 for analysis
+            "endpoints_by_sport": {
+                sport: [ep for ep, info in api_endpoints.items() if sport in info.get('sports_where_found', [])]
+                for sport in set(r.get('sport', 'unknown') for r in captured_responses)
+            },
+            "sample_responses": captured_responses[:10],  # First 10 for analysis
         }
 
         self._save_results(name, result)
@@ -246,9 +281,9 @@ class PlatformDiscovery:
         print(f"# Sites: {len(sites['sites'])}")
         print(f"{'#'*70}")
 
-        for name, base_url, sport_path in sites['sites']:
+        for name, base_url, sport_paths in sites['sites']:
             try:
-                result = await self.research_site(name, base_url, sport_path)
+                result = await self.research_site(name, base_url, sport_paths)
                 self.results.append(result)
             except Exception as e:
                 print(f"❌ Error researching {name}: {e}")
