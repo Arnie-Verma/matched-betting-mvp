@@ -11,7 +11,8 @@ import {
   ChevronDown,
   Menu,
   X,
-  Lock
+  Lock,
+  CreditCard
 } from 'lucide-react'
 import { useSubscription } from '@/hooks/useSubscription'
 
@@ -54,8 +55,6 @@ export default function PostLoginHeader() {
   const tools = [
     { name: 'Odds Matcher', href: '/dashboard/odds-matcher', description: 'Find matched betting opportunities' },
     { name: 'Dutching Opportunities', href: '/tools/dutching', description: 'Discover profitable dutching bets' },
-    { name: 'Bookmaker Bonuses', href: '/tools/bonuses', description: 'Track available bonus offers' },
-    { name: 'Profit Tracker', href: '/tools/profit-tracker', description: 'Monitor your betting performance' },
   ]
 
   return (
@@ -164,7 +163,15 @@ export default function PostLoginHeader() {
                       google: ['profile', 'email']
                     }
                   }}
-                />
+                >
+                  <UserButton.MenuItems>
+                    <UserButton.Link
+                      label="Manage Subscription"
+                      labelIcon={<CreditCard className="w-4 h-4" />}
+                      href="/billing"
+                    />
+                  </UserButton.MenuItems>
+                </UserButton>
               </div>
             </div>
           </div>
@@ -177,7 +184,15 @@ export default function PostLoginHeader() {
                   avatarBox: "w-8 h-8"
                 }
               }}
-            />
+            >
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="Manage Subscription"
+                  labelIcon={<CreditCard className="w-4 h-4" />}
+                  href="/billing"
+                />
+              </UserButton.MenuItems>
+            </UserButton>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-gray-500 hover:text-gray-600 inline-flex items-center justify-center p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
