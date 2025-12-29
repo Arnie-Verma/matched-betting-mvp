@@ -1,30 +1,43 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Plus, Trash2, Info, Settings, HelpCircle, Play } from 'lucide-react'
 import { calculateLongTermEV, formatCurrency, formatPercentage } from '@/lib/calculators/calculations'
 import { Label } from '@/components/ui/label'
 import { PremiumLock } from '@/hooks/useSubscription'
 
+// Helper to parse numeric input
+const parseNumericInput = (value: string, fallback: number = 0): number => {
+  if (value === '' || value === '-') return fallback
+  const parsed = parseFloat(value)
+  return isNaN(parsed) ? fallback : parsed
+}
+
 interface LegEntry {
   id: number
-  odds: number
+  oddsStr: string
 }
 
 function LongTermEVContent() {
-  // Input state
-  const [numBets, setNumBets] = useState<number>(100)
-  const [stake, setStake] = useState<number>(50)
-  const [overround, setOverround] = useState<number>(5)
-  const [bonusRetention, setBonusRetention] = useState<number>(70)
+  // Input state - use strings for controlled inputs
+  const [numBetsStr, setNumBetsStr] = useState<string>('100')
+  const [stakeStr, setStakeStr] = useState<string>('50')
+  const [overroundStr, setOverroundStr] = useState<string>('5')
+  const [bonusRetentionStr, setBonusRetentionStr] = useState<string>('70')
   const [anyLegFail, setAnyLegFail] = useState<boolean>(false)
   const [isSGM, setIsSGM] = useState<boolean>(false)
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false)
   const [isSimulating, setIsSimulating] = useState<boolean>(false)
   const [legs, setLegs] = useState<LegEntry[]>([
-    { id: 1, odds: 1.5 }
+    { id: 1, oddsStr: '1.5' }
   ])
   const [nextId, setNextId] = useState(2)
+
+  // Parsed values
+  const numBets = Math.max(1, Math.round(parseNumericInput(numBetsStr, 100)))
+  const stake = parseNumericInput(stakeStr, 50)
+  const overround = parseNumericInput(overroundStr, 5)
+  const bonusRetention = parseNumericInput(bonusRetentionStr, 70)
 
   // Calculated results
   const [result, setResult] = useState<ReturnType<typeof calculateLongTermEV> | null>(null)
@@ -34,7 +47,7 @@ function LongTermEVContent() {
 
     // Use setTimeout to allow UI to update
     setTimeout(() => {
-      const legData = legs.map(l => ({ odds: l.odds }))
+      const legData = legs.map(l => ({ odds: parseNumericInput(l.oddsStr, 1.5) }))
       const newResult = calculateLongTermEV(
         numBets,
         stake,
@@ -53,7 +66,7 @@ function LongTermEVContent() {
   const addLeg = () => {
     setLegs(prev => [
       ...prev,
-      { id: nextId, odds: 1.5 }
+      { id: nextId, oddsStr: '1.5' }
     ])
     setNextId(prev => prev + 1)
   }
@@ -63,9 +76,9 @@ function LongTermEVContent() {
     setLegs(prev => prev.filter(l => l.id !== id))
   }
 
-  const updateLegOdds = (id: number, odds: number) => {
+  const updateLegOdds = (id: number, oddsStr: string) => {
     setLegs(prev =>
-      prev.map(l => l.id === id ? { ...l, odds } : l)
+      prev.map(l => l.id === id ? { ...l, oddsStr } : l)
     )
   }
 
@@ -102,12 +115,10 @@ function LongTermEVContent() {
             </button>
           </div>
           <input
-            type="number"
-            min="1"
-            max="10000"
-            step="10"
-            value={numBets}
-            onChange={(e) => setNumBets(parseInt(e.target.value) || 1)}
+            type="text"
+            inputMode="numeric"
+            value={numBetsStr}
+            onChange={(e) => setNumBetsStr(e.target.value)}
             className="w-32 px-3 py-2 border border-blue-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -162,11 +173,10 @@ function LongTermEVContent() {
             </button>
           </div>
           <input
-            type="number"
-            min="1"
-            step="1"
-            value={stake}
-            onChange={(e) => setStake(parseFloat(e.target.value) || 0)}
+            type="text"
+            inputMode="decimal"
+            value={stakeStr}
+            onChange={(e) => setStakeStr(e.target.value)}
             className="w-32 px-3 py-2 border border-purple-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
@@ -185,12 +195,10 @@ function LongTermEVContent() {
               </div>
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.5"
-                  value={overround}
-                  onChange={(e) => setOverround(parseFloat(e.target.value) || 0)}
+                  type="text"
+                  inputMode="decimal"
+                  value={overroundStr}
+                  onChange={(e) => setOverroundStr(e.target.value)}
                   className="w-20 px-3 py-2 border border-pink-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                 />
                 <span className="bg-pink-200 text-pink-800 px-3 py-2 rounded-lg font-medium">%</span>
@@ -208,12 +216,10 @@ function LongTermEVContent() {
               </div>
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value={bonusRetention}
-                  onChange={(e) => setBonusRetention(parseFloat(e.target.value) || 0)}
+                  type="text"
+                  inputMode="decimal"
+                  value={bonusRetentionStr}
+                  onChange={(e) => setBonusRetentionStr(e.target.value)}
                   className="w-20 px-3 py-2 border border-amber-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 />
                 <span className="bg-amber-200 text-amber-800 px-3 py-2 rounded-lg font-medium">%</span>
@@ -230,14 +236,13 @@ function LongTermEVContent() {
             key={leg.id}
             className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between"
           >
-            <span className="font-medium text-gray-700">Add Leg {index + 1}</span>
+            <span className="font-medium text-gray-700">Leg {index + 1}</span>
             <div className="flex items-center gap-3">
               <input
-                type="number"
-                min="1.01"
-                step="0.01"
-                value={leg.odds}
-                onChange={(e) => updateLegOdds(leg.id, parseFloat(e.target.value) || 1.01)}
+                type="text"
+                inputMode="decimal"
+                value={leg.oddsStr}
+                onChange={(e) => updateLegOdds(leg.id, e.target.value)}
                 className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               {legs.length > 1 && (
@@ -259,7 +264,7 @@ function LongTermEVContent() {
         className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 font-medium hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
       >
         <Plus className="w-5 h-5" />
-        Add Add Leg
+        Add Leg
       </button>
 
       {/* Simulate Button */}
