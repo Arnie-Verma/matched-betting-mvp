@@ -22,13 +22,14 @@ Plus **Entain** (3 major bookmakers) and **standalone operators** (~20 with cust
 
 | Platform | Bookmakers | Scraper Effort | Status |
 |----------|------------|----------------|--------|
-| **Entain** | 3 (Ladbrokes, Neds, Unibet) | 1 scraper | ✅ Working |
-| **Betfair** | 1 (Exchange) | 1 scraper | ✅ Working |
-| **BetMakers** | 33 | 1 scraper | ❌ Research needed |
-| **Generation Web** | 22 | 1 scraper | ❌ Research needed |
-| **Punterstech** | 21 | 1 scraper | ❌ Research needed |
-| **BetCloud** | 26 | 1 scraper | ❌ Research needed |
-| **TAB** | 2 (TAB, TABTouch) | 1 scraper | ⚠️ Needs proxy |
+| **Ladbrokes** | 1 | 1 scraper | ✅ Working |
+| **Betfair** | 1 | 1 scraper | ✅ Working |
+| **Punterstech** | 21 | 1 scraper | ✅ Ready (API complete) |
+| **BetMakers** | 33 | 1 scraper | ⚠️ Clear approach (SSR) |
+| **Generation Web** | 22 | 1 scraper | ⚠️ Partial (config found) |
+| **BetCloud** | 26 | 1 scraper | ⚠️ Partial (racing found) |
+| **Neds/Unibet** | 2 (Entain) | 1 scraper | ⏳ Pending |
+| **TAB** | 2 | 1 scraper | ⚠️ Needs proxy |
 | **Standalone** | ~15 major | Individual | ❌ Partial |
 
 **Estimated effort**: 8 platform scrapers = **~103 bookmakers covered**
@@ -610,7 +611,7 @@ GET  /generic/config/fields.{bookmaker}     → Field config (113-115 bytes)
 | **Generation Web** | 22 | ⚠️ Partial | Medium | No | 2-3 days* | Odds endpoint hidden |
 | **BetMakers** | 33 | ❌ SSR | Medium | No | 3-5 days | DOM parsing needed |
 | **BetCloud** | 26 | ⚠️ Racing only | Medium-Hard | No | 3-5 days* | Sports API hidden |
-| **Entain** | 3 | ✅ Full | Easy | No | 1 day | ✅ Done |
+| **Entain** | 3 | ✅ Full | Easy | No | 1 day | ⚠️ Partial (Ladbrokes only) |
 | **TAB** | 2 | ✅ Full | Hard | **YES** | 1-2 days + proxy | Proxy required |
 | **Standalone** | ~16 | ❓ Unknown | Hard | Maybe | 1-2 weeks | Individual research |
 
@@ -805,15 +806,16 @@ docker logs mb_api 2>&1 | grep -E "\[(Ladbrokes|Betfair|TAB)\]"
 
 | Platform | Bookmakers | Scraper Needed | Coverage |
 |----------|------------|----------------|----------|
-| Entain | 3 | 1 | ✅ Ready |
-| Betfair | 1 | 1 | ✅ Ready |
-| BetMakers | 33 | 1 | ❌ Research |
-| Generation Web | 22 | 1 | ❌ Research |
-| Punterstech | 21 | 1 | ❌ Research |
-| BetCloud | 26 | 1 | ❌ Research |
-| TAB | 2 | 1 | ⚠️ Proxy |
-| Standalone | ~15 | ~10 | ❌ Individual |
-| **TOTAL** | **~123** | **~18** | **8 platform + 10 custom** |
+| Ladbrokes | 1 | 1 | ✅ Working |
+| Betfair | 1 | 1 | ✅ Working |
+| Punterstech | 21 | 1 | ✅ Ready (API complete) |
+| BetMakers | 33 | 1 | ⚠️ Clear approach (SSR) |
+| Generation Web | 22 | 1 | ⚠️ Partial (config found) |
+| BetCloud | 26 | 1 | ⚠️ Partial (racing found) |
+| Neds/Unibet (Entain) | 2 | 1 | ⏳ Pending (same as Ladbrokes) |
+| TAB | 2 | 1 | ⚠️ Proxy needed |
+| Standalone | ~15 | ~10 | ❌ Individual research |
+| **TOTAL** | **~123** | **~18** | **2 working + 6 ready/near-ready** |
 
 ---
 

@@ -224,8 +224,10 @@ Located in `discovery_output/`:
 ### What's Ready Now
 ✅ **Punterstech (21 bookmakers)**: Complete API documented. Single scraper handles all 21 sites.
 ✅ **BetMakers (33 bookmakers)**: SSR approach clear. Use Playwright + DOM parsing.
-✅ **Entain (3 bookmakers)**: Already working (Ladbrokes scraper).
+✅ **Ladbrokes (1 bookmaker)**: Already working.
 ✅ **Betfair (1 exchange)**: Already working.
+
+**Total working now**: 2 bookmakers (Ladbrokes + Betfair)
 
 ### What Needs Investigation
 ⚠️ **Generation Web (22 bookmakers)**: Configuration endpoints found. Need to find sports betting odds endpoint.
