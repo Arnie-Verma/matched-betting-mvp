@@ -10,13 +10,16 @@ import {
   Wrench,
   ChevronDown,
   Menu,
-  X
+  X,
+  Lock
 } from 'lucide-react'
+import { useSubscription } from '@/hooks/useSubscription'
 
 export default function PostLoginHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const { isSignedIn } = useUser()
+  const { isPremium } = useSubscription()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Don't show post-login header if user is not signed in
@@ -41,11 +44,11 @@ export default function PostLoginHeader() {
   }
 
   const calculators = [
-    { name: 'Back/Lay Calculator', href: '/calculators/back-lay', description: 'Calculate lay stakes for back bets' },
-    { name: 'Dutching Calculator', href: '/calculators/dutching', description: 'Split stakes across multiple outcomes' },
-    { name: 'Multi Calculator', href: '/calculators/multi', description: 'Calculate multi-bet sequences' },
-    { name: 'True Odds Calculator', href: '/calculators/true-odds', description: 'Convert between odds formats' },
-    { name: 'Long Term EV Calculator', href: '/calculators/ev', description: 'Calculate expected value' },
+    { name: 'Back/Lay', href: '/calculators/back-lay', description: 'Calculate lay stakes for back bets', isPremium: false },
+    { name: 'Dutching', href: '/calculators/dutching', description: 'Split stakes across multiple outcomes', isPremium: false },
+    { name: 'Multi', href: '/calculators/multi', description: 'Calculate multi-bet EV', isPremium: true },
+    { name: 'True Odds', href: '/calculators/true-odds', description: 'Remove bookmaker margin', isPremium: false },
+    { name: 'Long Term EV', href: '/calculators/ev', description: 'Simulate EV over many bets', isPremium: true },
   ]
 
   const tools = [
@@ -98,17 +101,24 @@ export default function PostLoginHeader() {
 
                 {activeDropdown === 'calculators' && (
                   <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                    {calculators.map((calc) => (
-                      <Link
-                        key={calc.href}
-                        href={calc.href}
-                        className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                        onClick={() => setActiveDropdown(null)}
-                      >
-                        <div className="font-medium">{calc.name}</div>
-                        <div className="text-xs text-gray-500">{calc.description}</div>
-                      </Link>
-                    ))}
+                    {calculators.map((calc) => {
+                      const isLocked = calc.isPremium && !isPremium
+                      return (
+                        <Link
+                          key={calc.href}
+                          href={calc.href}
+                          className={`block px-4 py-3 text-sm hover:bg-gray-50 ${
+                            isLocked ? 'text-gray-400' : 'text-gray-700 hover:text-blue-600'
+                          }`}
+                          onClick={() => setActiveDropdown(null)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">{calc.name}</span>
+                            {isLocked && <Lock className="w-3.5 h-3.5 text-gray-400" />}
+                          </div>
+                        </Link>
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -209,16 +219,22 @@ export default function PostLoginHeader() {
                   <Calculator className="w-4 h-4 mr-2" />
                   Calculators
                 </div>
-                {calculators.map((calc) => (
-                  <Link
-                    key={calc.href}
-                    href={calc.href}
-                    className="block pl-6 py-2 text-sm text-gray-600 hover:text-blue-600"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {calc.name}
-                  </Link>
-                ))}
+                {calculators.map((calc) => {
+                  const isLocked = calc.isPremium && !isPremium
+                  return (
+                    <Link
+                      key={calc.href}
+                      href={calc.href}
+                      className={`block pl-6 py-2 text-sm flex items-center justify-between ${
+                        isLocked ? 'text-gray-400' : 'text-gray-600 hover:text-blue-600'
+                      }`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <span>{calc.name}</span>
+                      {isLocked && <Lock className="w-3.5 h-3.5" />}
+                    </Link>
+                  )
+                })}
               </div>
 
               {/* Mobile Tools */}

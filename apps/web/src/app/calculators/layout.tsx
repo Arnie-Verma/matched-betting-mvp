@@ -1,0 +1,35 @@
+'use client'
+
+import { useUser } from '@clerk/nextjs'
+import { redirect } from 'next/navigation'
+import { ReactNode } from 'react'
+
+interface CalculatorsLayoutProps {
+  children: ReactNode
+}
+
+export default function CalculatorsLayout({ children }: CalculatorsLayoutProps) {
+  const { isSignedIn, isLoaded } = useUser()
+
+  // Wait for Clerk to load
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  // Redirect to sign-in if not authenticated
+  if (!isSignedIn) {
+    redirect('/sign-in')
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {children}
+      </div>
+    </div>
+  )
+}

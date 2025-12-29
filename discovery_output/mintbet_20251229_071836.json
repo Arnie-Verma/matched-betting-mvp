@@ -1,0 +1,525 @@
+{
+  "bookmaker": "MintBet",
+  "base_url": "https://www.mintbet.com.au",
+  "sport_path": "/sports/soccer",
+  "timestamp": "2025-12-29T07:18:36.757556",
+  "endpoints_captured": 43,
+  "unique_endpoints": 38,
+  "endpoints": {
+    "/v1/projects/1WoqIjOc8HDYI9VSzaE49YTXIma7ercx/settings": {
+      "full_url": "https://cdn.segment.com/v1/projects/1WoqIjOc8HDYI9VSzaE49YTXIma7ercx/settings",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "_lastModified",
+        "integrations",
+        "plan",
+        "edgeFunction",
+        "analyticsNextEnabled",
+        "middlewareSettings",
+        "enabledMiddleware",
+        "metrics",
+        "legacyVideoPluginsEnabled",
+        "remotePlugins",
+        "autoInstrumentationSettings"
+      ],
+      "response_size": 787
+    },
+    "/api-settings/get": {
+      "full_url": "https://api.public.mintbet.au/api-settings/get",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "MinDepositCents",
+        "MinWithdrawalCents",
+        "MinStakeCents",
+        "MaxDepositCents",
+        "MaxWithdrawalCents",
+        "MaxStakeCents",
+        "BankDetails",
+        "AllowCancelWithdrawal",
+        "BookieSettings",
+        "SiteDown",
+        "MinBonusStakeCents",
+        "MaxBonusStakeCents",
+        "MinBonusOddsSingle",
+        "MinBonusOddsMulti",
+        "BonusBetTable",
+        "showFuturesMarketsLoggedOut",
+        "showPromotionMarketsLoggedOut",
+        "DefaultBoxedExotics",
+        "NavigatetoSGM",
+        "MercuryCRMEnabled",
+        "LiveChatProvider",
+        "DvsMode",
+        "SEOSettings",
+        "MaxVerificationAttempts",
+        "MaxDVSAttempts",
+        "MaxBonusPerEvent",
+        "ClearQuickbetOnAddToBetSlip"
+      ],
+      "response_size": 2351
+    },
+    "/layoutmanager/public/getpagelayout": {
+      "full_url": "https://api.public.mintbet.au/layoutmanager/public/getpagelayout",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "PageLayout"
+      ],
+      "response_size": 111
+    },
+    "/api-banners/data": {
+      "full_url": "https://api.public.mintbet.au/api-banners/data",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "promotions"
+      ],
+      "response_size": 620
+    },
+    "/sportssilks/supportedsports": {
+      "full_url": "https://api.public.mintbet.au/sportssilks/supportedsports",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "sportsTeamMap"
+      ],
+      "response_size": 14288
+    },
+    "/api-events/public/open-event-types": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/open-event-types",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "EventTypes"
+      ],
+      "response_size": 16957
+    },
+    "/api-chat/public/user": {
+      "full_url": "https://api.public.mintbet.au/api-chat/public/user",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": null,
+      "response_size": 189
+    },
+    "/v1/p": {
+      "full_url": "https://in.au1.segmentapis.com/v1/p",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "success"
+      ],
+      "response_size": 17
+    },
+    "/api-content/public/list": {
+      "full_url": "https://api.public.mintbet.au/api-content/public/list",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Slugs"
+      ],
+      "response_size": 403
+    },
+    "/api-events/public/next-to-go/batch": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/next-to-go/batch",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Events"
+      ],
+      "response_size": 116611
+    },
+    "/api-events/public/quick-markets": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/quick-markets",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "EventQuickMarkets"
+      ],
+      "response_size": 25
+    },
+    "/api-events/public/next-to-go": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/next-to-go",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Events"
+      ],
+      "response_size": 27124
+    },
+    "/api-content/public/get/TipOfTheDay": {
+      "full_url": "https://api.public.mintbet.au/api-content/public/get/TipOfTheDay",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "ComponentsContent"
+      ],
+      "response_size": 99
+    },
+    "/api-banners/minibanners/filtered/data": {
+      "full_url": "https://api.public.mintbet.au/api-banners/minibanners/filtered/data",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "minibanners"
+      ],
+      "response_size": 21
+    },
+    "/api-rsg/active": {
+      "full_url": "https://api.public.mintbet.au/api-rsg/active",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Tagline"
+      ],
+      "response_size": 49
+    },
+    "/api-events/public/featured": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/featured",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Events"
+      ],
+      "response_size": 14
+    },
+    "/api-events/public/markets/2025-12-29-g-warrnambool-au-10": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-warrnambool-au-10",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2293
+    },
+    "/api-events/public/markets/2025-12-29-g-nowra-au-2": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-nowra-au-2",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2951
+    },
+    "/api-events/public/markets/2025-12-29-h-tokyo%20city%20keiba-jp-10": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-h-tokyo%20city%20keiba-jp-10",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2567
+    },
+    "/api-events/public/markets/2025-12-29-g-wagga-au-10": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-wagga-au-10",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2632
+    },
+    "/api-events/public/markets/2025-12-29-g-warrnambool-au-11": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-warrnambool-au-11",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2388
+    },
+    "/api-events/public/markets/2025-12-29-g-maitland-au-2": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-maitland-au-2",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2433
+    },
+    "/api-events/public/markets/2025-12-29-t-pinjarra-au-6": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-t-pinjarra-au-6",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2741
+    },
+    "/api-events/public/markets/2025-12-29-g-sandown%20park-au-1": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-sandown%20park-au-1",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2379
+    },
+    "/api-events/public/markets/2025-12-29-g-warrnambool-au-12": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-warrnambool-au-12",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2300
+    },
+    "/api-events/public/markets/2025-12-29-g-nowra-au-3": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-nowra-au-3",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2830
+    },
+    "/api-events/public/markets/2025-12-29-g-maitland-au-3": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-maitland-au-3",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2319
+    },
+    "/api-events/public/markets/2025-12-29-g-q2%20parklands-au-1": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-q2%20parklands-au-1",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2188
+    },
+    "/api-events/public/markets/2025-12-29-g-maitland-au-4": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-maitland-au-4",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2357
+    },
+    "/api-events/public/markets/2025-12-29-g-nowra-au-4": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-nowra-au-4",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2951
+    },
+    "/api-events/public/markets/2025-12-29-h-tokyo%20city%20keiba-jp-11": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-h-tokyo%20city%20keiba-jp-11",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2558
+    },
+    "/api-events/public/markets/2025-12-29-g-sandown%20park-au-3": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-sandown%20park-au-3",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 1917
+    },
+    "/api-events/public/markets/2025-12-29-g-warrnambool-au-13": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-warrnambool-au-13",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2474
+    },
+    "/api-events/public/markets/2025-12-29-g-launceston-au-1": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-launceston-au-1",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2409
+    },
+    "/api-events/public/markets/2025-12-29-t-pinjarra-au-7": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-t-pinjarra-au-7",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2757
+    },
+    "/api-events/public/markets/2025-12-29-g-sandown%20park-au-2": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/markets/2025-12-29-g-sandown%20park-au-2",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Markets"
+      ],
+      "response_size": 2386
+    },
+    "/api-events/public/open-market-count/13408104": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/open-market-count/13408104",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "NumOpenMarkets"
+      ],
+      "response_size": 23
+    },
+    "/api-events/public/open-market-count/13395382": {
+      "full_url": "https://api.public.mintbet.au/api-events/public/open-market-count/13395382",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "NumOpenMarkets"
+      ],
+      "response_size": 23
+    }
+  },
+  "odds_endpoints": [
+    "/sportssilks/supportedsports",
+    "/api-events/public/open-event-types",
+    "/api-events/public/next-to-go/batch",
+    "/api-events/public/quick-markets",
+    "/api-events/public/next-to-go",
+    "/api-events/public/featured",
+    "/api-events/public/markets/2025-12-29-g-warrnambool-au-10",
+    "/api-events/public/markets/2025-12-29-g-nowra-au-2",
+    "/api-events/public/markets/2025-12-29-h-tokyo%20city%20keiba-jp-10",
+    "/api-events/public/markets/2025-12-29-g-wagga-au-10",
+    "/api-events/public/markets/2025-12-29-g-warrnambool-au-11",
+    "/api-events/public/markets/2025-12-29-g-maitland-au-2",
+    "/api-events/public/markets/2025-12-29-t-pinjarra-au-6",
+    "/api-events/public/markets/2025-12-29-g-sandown%20park-au-1",
+    "/api-events/public/markets/2025-12-29-g-warrnambool-au-12",
+    "/api-events/public/markets/2025-12-29-g-nowra-au-3",
+    "/api-events/public/markets/2025-12-29-g-maitland-au-3",
+    "/api-events/public/markets/2025-12-29-g-q2%20parklands-au-1",
+    "/api-events/public/markets/2025-12-29-g-maitland-au-4",
+    "/api-events/public/markets/2025-12-29-g-nowra-au-4",
+    "/api-events/public/markets/2025-12-29-h-tokyo%20city%20keiba-jp-11",
+    "/api-events/public/markets/2025-12-29-g-sandown%20park-au-3",
+    "/api-events/public/markets/2025-12-29-g-warrnambool-au-13",
+    "/api-events/public/markets/2025-12-29-g-launceston-au-1",
+    "/api-events/public/markets/2025-12-29-t-pinjarra-au-7",
+    "/api-events/public/markets/2025-12-29-g-sandown%20park-au-2",
+    "/api-events/public/open-market-count/13408104",
+    "/api-events/public/open-market-count/13395382"
+  ],
+  "sample_responses": [
+    {
+      "url": "https://cdn.segment.com/v1/projects/1WoqIjOc8HDYI9VSzaE49YTXIma7ercx/settings",
+      "endpoint": "/v1/projects/1WoqIjOc8HDYI9VSzaE49YTXIma7ercx/settings",
+      "status": 200,
+      "size": 787,
+      "sample": {
+        "_lastModified": "2025-12-18T14:52:15.302Z",
+        "integrations": {
+          "Segment.io": "..."
+        },
+        "plan": {
+          "track": "...",
+          "identify": "...",
+          "group": "..."
+        },
+        "edgeFunction": {},
+        "analyticsNextEnabled": true
+      }
+    },
+    {
+      "url": "https://api.public.mintbet.au/api-settings/get",
+      "endpoint": "/api-settings/get",
+      "status": 200,
+      "size": 2351,
+      "sample": {
+        "MinDepositCents": "1000",
+        "MinWithdrawalCents": "1000",
+        "MinStakeCents": "50",
+        "MaxDepositCents": "1000000",
+        "MaxWithdrawalCents": "5000000"
+      }
+    },
+    {
+      "url": "https://api.public.mintbet.au/layoutmanager/public/getpagelayout",
+      "endpoint": "/layoutmanager/public/getpagelayout",
+      "status": 200,
+      "size": 111,
+      "sample": {
+        "PageLayout": {
+          "Page": "..."
+        }
+      }
+    },
+    {
+      "url": "https://api.public.mintbet.au/api-banners/data",
+      "endpoint": "/api-banners/data",
+      "status": 200,
+      "size": 620,
+      "sample": {
+        "promotions": [
+          "...",
+          "...",
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://api.public.mintbet.au/sportssilks/supportedsports",
+      "endpoint": "/sportssilks/supportedsports",
+      "status": 200,
+      "size": 14288,
+      "sample": {
+        "sportsTeamMap": [
+          "...",
+          "...",
+          "..."
+        ]
+      }
+    }
+  ]
+}

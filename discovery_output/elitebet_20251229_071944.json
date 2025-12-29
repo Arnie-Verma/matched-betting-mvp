@@ -1,0 +1,101 @@
+{
+  "bookmaker": "EliteBet",
+  "base_url": "https://www.elitebet.com.au",
+  "sport_path": "/sports/soccer",
+  "timestamp": "2025-12-29T07:19:44.604327",
+  "endpoints_captured": 6,
+  "unique_endpoints": 3,
+  "endpoints": {
+    "/api/auth/session": {
+      "full_url": "https://www.elitebet.com.au/api/auth/session",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [],
+      "response_size": 2
+    },
+    "/sportutility/getSportAZ": {
+      "full_url": "https://betapi.elitebet.com.au/sportutility/getSportAZ",
+      "method": "POST",
+      "status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "sample_keys": [
+        "sportAZ",
+        "ERROBJ"
+      ],
+      "response_size": 865
+    },
+    "/sportutility2/getSportHighlights": {
+      "full_url": "https://betapi.elitebet.com.au/sportutility2/getSportHighlights",
+      "method": "POST",
+      "status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "sample_keys": [
+        "hotevents",
+        "ERROBJ"
+      ],
+      "response_size": 2271
+    }
+  },
+  "odds_endpoints": [
+    "/sportutility/getSportAZ",
+    "/sportutility2/getSportHighlights"
+  ],
+  "sample_responses": [
+    {
+      "url": "https://www.elitebet.com.au/api/auth/session",
+      "endpoint": "/api/auth/session",
+      "status": 200,
+      "size": 2,
+      "sample": {}
+    },
+    {
+      "url": "https://www.elitebet.com.au/api/auth/session",
+      "endpoint": "/api/auth/session",
+      "status": 200,
+      "size": 2,
+      "sample": {}
+    },
+    {
+      "url": "https://betapi.elitebet.com.au/sportutility/getSportAZ",
+      "endpoint": "/sportutility/getSportAZ",
+      "status": 200,
+      "size": 865,
+      "sample": {
+        "sportAZ": [
+          "...",
+          "...",
+          "..."
+        ],
+        "ERROBJ": {
+          "ERRORCODE": "...",
+          "ERRORDESC": "..."
+        }
+      }
+    },
+    {
+      "url": "https://betapi.elitebet.com.au/sportutility2/getSportHighlights",
+      "endpoint": "/sportutility2/getSportHighlights",
+      "status": 200,
+      "size": 2271,
+      "sample": {
+        "hotevents": [
+          "...",
+          "...",
+          "..."
+        ],
+        "ERROBJ": {
+          "ERRORCODE": "...",
+          "ERRORDESC": "..."
+        }
+      }
+    },
+    {
+      "url": "https://www.elitebet.com.au/api/auth/session",
+      "endpoint": "/api/auth/session",
+      "status": 200,
+      "size": 2,
+      "sample": {}
+    }
+  ]
+}

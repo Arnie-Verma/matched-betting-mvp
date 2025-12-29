@@ -4,7 +4,193 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2025-12-29 (Sunday)
+
+### Session 9: Extensive Bookmaker Platform Discovery
+
+**Goal**: Research and document APIs for 4 major platforms (Punterstech, Generation Web, BetMakers, BetCloud) to inform 100+ bookmaker scraper strategy
+
+**Completed**:
+
+1. **Automated Discovery Tool**
+   - Created [discovery.py](discovery.py): Playwright-based platform API research
+   - Captures network traffic from 8 bookmaker sites across 4 platforms
+   - Identifies API endpoints, response structures, auth requirements
+   - Detects anti-bot protection and rate limiting
+
+2. **Punterstech Platform Research** ✅ COMPLETE
+   - Sites: TradieBET, MintBet (both 21-bookmaker platform)
+   - **Discovery**: Complete REST API with 36-38 consistent endpoints
+   - **Key endpoint**: `POST /api-events/public/next-to-go/batch` (116KB response)
+   - **Anti-bot**: NONE - safe for direct scraping
+   - **Impact**: 1 scraper covers all 21 Punterstech bookmakers
+   - **Difficulty**: Easy (matches Ladbrokes API pattern)
+   - **Timeline**: 2-3 days to implement
+
+3. **Generation Web Platform Research** ⚠️ PARTIAL
+   - Sites: EliteBet, WinnersBet (both 22-bookmaker platform)
+   - **Discovery**: Found 2 endpoints but sports betting API hidden
+   - **Captured**: `/sportutility/getSportAZ`, `/sportutility2/getSportHighlights`
+   - **Issue**: Heavy client-side rendering obscures full API
+   - **Next step**: Manual browser inspection to find sports betting endpoints
+   - **Estimated**: 3-5 days once full API discovered
+
+4. **BetMakers Platform Research** ⚠️ SSR ARCHITECTURE
+   - Sites: RealBookie, CrossBet (both 33-bookmaker platform)
+   - **Discovery**: 0 API endpoints captured
+   - **Reason**: Server-side rendering with embedded odds in HTML
+   - **Approach**: DOM parsing + HTML extraction (not JSON API)
+   - **Advantage**: No anti-bot protection, reliable SSR architecture
+   - **Timeline**: 3-5 days (slightly slower due to SSR)
+
+5. **BetCloud Platform Research** ⚠️ RACING API FOUND
+   - Sites: WellBet, BetGalaxy (both 26-bookmarket platform)
+   - **Discovery**: Racing API complete, sports API missing
+   - **Found**: `/punter/races/next-to-jump` (fully working)
+   - **Missing**: Sports betting endpoints (likely `/punter/sports/*`)
+   - **Next step**: Manual testing to find sports endpoints
+   - **Estimated**: 3-5 days once complete API found
+
+**Key Insights**:
+- **Punterstech ready NOW**: Clean REST API, no anti-bot, 21 sites covered
+- **4 platforms = 102 bookmakers covered**: Punterstech (21) + BetMakers (33) + Generation Web (22) + BetCloud (26)
+- **No proxy needed** for any platform discovered so far
+- **SSR pattern** (BetMakers) requires different scraping approach than API pattern (others)
+- **Single scraper per platform** approach validated - endpoint consistency proven
+
+3. **Strategy Document Updated**
+   - Updated [SCRAPER_STRATEGY.md](SCRAPER_STRATEGY.md) with detailed discovery findings
+   - Added "Discovery Findings (2025-12-29)" section (200+ lines)
+   - Documented: API patterns, anti-bot analysis, implementation strategies
+   - Added feasibility table (6 platforms, timelines, difficulty)
+   - Created platform-specific scraping strategies (Punterstech-first approach)
+
+**Files Created**:
+- [discovery.py](discovery.py) - Automated discovery tool (330+ lines)
+- discovery_output/ - 8 JSON files with detailed API endpoint capture
+
+**Next Steps** (Prioritized):
+1. Implement PunterstechScraper (21 sites, easiest) → 2-3 days
+2. Find Generation Web sports API (manual testing) → 1-2 days research
+3. Implement BetMakersScraper (33 sites, SSR approach) → 3-5 days
+4. Find BetCloud sports API (manual testing) → 1-2 days research
+5. Implement GenerationWebScraper (22 sites) → 3-5 days
+6. Implement BetCloudScraper (26 sites) → 3-5 days
+
+**Total**: 4 platform scrapers = 102 bookmakers (13-21 days full implementation)
+
+---
+
+### Session 8: Calculator Implementation - All 5 Calculators
+
+**Goal**: Implement all 5 calculators (Back/Lay, Dutching, True Odds, Multi, Long Term EV) with premium access control
+
+**Completed**:
+
+1. **Calculator Utilities Library**
+   - Created [calculations.ts](apps/web/src/lib/calculators/calculations.ts): Shared calculation functions
+   - Back/Lay: Normal + bonus bet formulas with commission
+   - Dutching: Equal profit stake distribution
+   - True Odds: Remove bookmaker margin
+   - Multi: EV for multi-leg bets with any-leg-fail promos
+   - Long Term EV: Monte Carlo simulation (1000 runs)
+
+2. **Calculator Pages (5 total)**
+   - [/calculators/back-lay](apps/web/src/app/calculators/back-lay/page.tsx) - Free tier
+   - [/calculators/dutching](apps/web/src/app/calculators/dutching/page.tsx) - Free tier
+   - [/calculators/true-odds](apps/web/src/app/calculators/true-odds/page.tsx) - Free tier
+   - [/calculators/multi](apps/web/src/app/calculators/multi/page.tsx) - Premium tier
+   - [/calculators/ev](apps/web/src/app/calculators/ev/page.tsx) - Premium tier
+   - [/calculators](apps/web/src/app/calculators/page.tsx) - Index page
+
+3. **Access Control**
+   - Created [useSubscription.tsx](apps/web/src/hooks/useSubscription.tsx): Hook to check user plan
+   - `PremiumLock` component wraps premium calculators
+   - Lock icons in navigation for premium features
+   - Redirect to sign-in if not authenticated
+
+4. **Navigation Updates**
+   - Updated [PostLoginHeader.tsx](apps/web/src/components/navigation/PostLoginHeader.tsx)
+   - Lock icons on Multi and Long Term EV for free users
+   - Matching Outmatched.com UI pattern
+
+**Architecture**:
+- Client-side calculations (no API needed for calculators)
+- Subscription check via `/api/v1/subscription/status` endpoint
+- Graceful fallback to free plan if API fails
+
+### Next Steps
+- Test calculators in browser
+- Add subscription status endpoint if not exists
+- Neds scraper (completes free tier)
+
+---
+
 ## 2025-12-28 (Saturday)
+
+### Session 7: Production Scaling Strategy - 100+ Bookmakers
+
+**Goal**: Plan and document production-ready architecture for scaling to 103 bookmakers and 1000+ users
+
+**Completed**:
+
+1. **Platform Grouping Research**
+   - Discovered Australia has 4 major white-label providers: BetMakers (33), Generation Web (22), Punterstech (21), BetCloud (26)
+   - Identified ~80% of bookmakers run on shared platforms = 1 scraper per platform
+   - Total solution: 8 platform scrapers (not 103 individual scrapers)
+
+2. **Tier Configuration**
+   - Updated [seed_all_bookmakers.py](apps/api/src/api/scripts/seed_all_bookmakers.py): 103 bookmakers with platform/tier tags
+   - Updated [subscription_service.py](apps/api/src/api/services/subscription_service.py):
+     - FREE: Ladbrokes + Neds + Betfair
+     - PREMIUM: 17 bookmakers
+     - DIAMOND: All 103 bookmakers
+   - Config-driven registration (not hardcoded in code)
+
+3. **Comprehensive Documentation**
+   - [SCRAPER_STRATEGY.md](SCRAPER_STRATEGY.md): 550+ lines covering:
+     - Platform deep-dives (BetMakers, Generation Web, Punterstech, BetCloud, Entain, TAB)
+     - Scraper architecture patterns
+     - Proxy strategy for anti-bot sites
+     - Implementation roadmap (5 phases)
+     - Research templates and findings
+
+4. **Automated Research Tool**
+   - Created [platform_research.py](apps/worker/src/scrapers/research/platform_research.py):
+     - Playwright-based API discovery automation
+     - Captures network requests from any bookmaker
+     - Identifies endpoints, response structures, rate limits
+     - Outputs JSON for scraper implementation
+   - Usage: `python -m src.scrapers.research.platform_research --platform punterstech`
+
+**Key Insights**:
+- 4 platforms cover ~85 bookmakers (BetMakers + Generation Web + Punterstech + BetCloud)
+- Entain (3) + Betfair (1) + TAB (2) = 6 more (already working or simple)
+- Only ~15 standalone bookmakers need custom scrapers
+- Two-tier proxy strategy: Direct for 85, Proxy for 18 (cost: ~$50-150/mo)
+
+**Architecture Pattern**:
+```
+Dynamic Scraper Registry (in scrape_service.py):
+├── Read bookmaker.scraping_config from DB
+├── Look up scraper_class in SCRAPER_CLASSES dict
+└── Instantiate with configurable base_url
+```
+
+**Next Steps** (Phase 1-2):
+1. Run seed script: `docker exec mb_api python -m api.scripts.seed_all_bookmakers`
+2. Research Punterstech: `python -m src.scrapers.research.platform_research --platform punterstech`
+3. Refactor LadbrokesScraper → EntainScraper (base URL configurable)
+4. Build 4 platform scrapers sequentially
+
+**Files Created**:
+- SCRAPER_STRATEGY.md (production playbook)
+- platform_research.py (automation tool)
+- research/__init__.py (module marker)
+
+**Commit**: 92e546a - "feat: Production-ready scraper scaling to 100+ bookmakers"
+
+---
 
 ### Session 6: Ladbrokes Selection Key Bug Fix
 

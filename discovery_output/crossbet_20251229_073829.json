@@ -1,0 +1,11 @@
+{
+  "bookmaker": "CrossBet",
+  "base_url": "https://www.crossbet.com.au",
+  "sport_path": "/sports/soccer",
+  "timestamp": "2025-12-29T07:38:29.068980",
+  "endpoints_captured": 0,
+  "unique_endpoints": 0,
+  "endpoints": {},
+  "odds_endpoints": [],
+  "sample_responses": []
+}

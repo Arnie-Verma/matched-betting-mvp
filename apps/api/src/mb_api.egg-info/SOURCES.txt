@@ -31,6 +31,7 @@ src/api/scripts/seed_competitions.py
 src/api/scripts/seed_mock_betfair_odds.py
 src/api/scripts/seed_plans.py
 src/api/services/matching_engine.py
+src/api/services/normalization_service.py
 src/api/services/refresh_queue.py
 src/api/services/stripe_service.py
 src/api/services/subscription_service.py

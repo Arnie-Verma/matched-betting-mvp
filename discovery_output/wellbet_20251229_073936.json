@@ -1,0 +1,173 @@
+{
+  "bookmaker": "WellBet",
+  "base_url": "https://www.wellbet.com.au",
+  "sport_path": "/sports/soccer",
+  "timestamp": "2025-12-29T07:39:36.119683",
+  "endpoints_captured": 6,
+  "unique_endpoints": 4,
+  "endpoints": {
+    "/generic/config/fields.desktopwellbet": {
+      "full_url": "https://api.wellbet.com.au/generic/config/fields.desktopwellbet",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "sys",
+        "total",
+        "skip",
+        "limit",
+        "items"
+      ],
+      "response_size": 113
+    },
+    "/punter/general/offerings": {
+      "full_url": "https://api.wellbet.com.au/punter/general/offerings",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "offered_sports",
+        "offered_race_types",
+        "offered_racing_futures"
+      ],
+      "response_size": 1210
+    },
+    "/punter/content/homepage": {
+      "full_url": "https://api.wellbet.com.au/punter/content/homepage",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": null,
+      "response_size": 1402
+    },
+    "/punter/races/next-to-jump": {
+      "full_url": "https://api.wellbet.com.au/punter/races/next-to-jump?race_type=Greyhounds&limit=11&t=5",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": null,
+      "response_size": 3452
+    }
+  },
+  "odds_endpoints": [],
+  "sample_responses": [
+    {
+      "url": "https://api.wellbet.com.au/generic/config/fields.desktopwellbet",
+      "endpoint": "/generic/config/fields.desktopwellbet",
+      "status": 200,
+      "size": 113,
+      "sample": {
+        "sys": {
+          "type": "..."
+        },
+        "total": 1,
+        "skip": 0,
+        "limit": 100,
+        "items": [
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://api.wellbet.com.au/punter/general/offerings",
+      "endpoint": "/punter/general/offerings",
+      "status": 200,
+      "size": 1210,
+      "sample": {
+        "offered_sports": [
+          "...",
+          "...",
+          "..."
+        ],
+        "offered_race_types": [
+          "...",
+          "...",
+          "..."
+        ],
+        "offered_racing_futures": {
+          "sport_id": "...",
+          "display_name": "...",
+          "cashout_offered": "..."
+        }
+      }
+    },
+    {
+      "url": "https://api.wellbet.com.au/punter/content/homepage",
+      "endpoint": "/punter/content/homepage",
+      "status": 200,
+      "size": 1402,
+      "sample": [
+        {
+          "type": "...",
+          "content_info": "..."
+        },
+        {
+          "type": "...",
+          "content_info": "..."
+        },
+        {
+          "type": "...",
+          "content_info": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://api.wellbet.com.au/punter/races/next-to-jump?race_type=Greyhounds&limit=11&t=5",
+      "endpoint": "/punter/races/next-to-jump",
+      "status": 200,
+      "size": 3452,
+      "sample": [
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://api.wellbet.com.au/punter/races/next-to-jump?race_type=Horse+Racing&limit=11&t=5",
+      "endpoint": "/punter/races/next-to-jump",
+      "status": 200,
+      "size": 3465,
+      "sample": [
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        }
+      ]
+    }
+  ]
+}

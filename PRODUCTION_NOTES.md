@@ -237,3 +237,8 @@ DISABLED_BOOKMAKERS=tab,sportsbet
 3. **WebSocket updates** - Push new odds to connected clients
 4. **Multi-region** - Deploy scrapers in AU region for lower latency
 5. **Horizontal scaling** - Multiple scraper workers for more bookmakers
+What Requires Production Infrastructure
+Optimization	Savings	Requirement
+batch_size=6	~25s → 9s (3x)	More memory, native Playwright
+Persistent browser pool	~1s startup	Long-running workers
+HTTP/2 connection pooling	~0.5s/sport	Native networking
