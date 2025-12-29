@@ -81,6 +81,72 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+### Session 10: Enhanced Automated Multi-Sport Discovery
+
+**Goal**: Automate the remaining research for Generation Web and BetCloud by enhancing discovery.py for multi-sport navigation
+
+**Completed**:
+
+1. **Enhanced discovery.py** ✅
+   - Added multi-sport support (soccer, AFL, NRL)
+   - Implemented response handler factory pattern for correct closure
+   - Added sport tracking per endpoint
+   - Supports both single-path and multi-path site configurations
+   - Generates JSON output with sport→endpoint mapping
+
+2. **Generation Web Multi-Sport Research** ✅ COMPLETE
+   - EliteBet tested across 3 sports (soccer, AFL, NRL)
+   - WinnersBet tested for comparison
+   - **Result**: Same 3 endpoints appear across ALL sports
+   - Confirmed: `/sportutility/getSportAZ`, `/sportutility2/getSportHighlights`
+   - **Key finding**: Configuration endpoints working, sports betting odds API still hidden
+   - **New hypothesis**: Odds loaded client-side via JavaScript after initial page render
+   - **Next step**: Inspect HTML response body or find lazy-loaded XHR endpoint
+
+3. **BetCloud Multi-Sport Research** ✅ COMPLETE
+   - WellBet tested across 3 sports (soccer, AFL, NRL)
+   - BetGalaxy tested across 3 sports
+   - **Result**: Same 4 endpoints captured regardless of sport
+   - Confirmed: `/punter/general/offerings`, `/punter/races/next-to-jump`, `/punter/content/homepage`, `/generic/config/fields.*`
+   - **Key finding**: Racing API working perfectly, but sports betting odds still not captured
+   - **New hypothesis**: Sports odds also loaded differently (JS/WebSocket/embedded)
+
+4. **Documentation Updates** ✅
+   - Updated [SCRAPER_STRATEGY.md](SCRAPER_STRATEGY.md) with multi-sport research findings
+   - Updated [DISCOVERY_SUMMARY.md](DISCOVERY_SUMMARY.md) with complete platform status
+   - Added research methodology and enhanced features documentation
+
+5. **Git Commit** ✅
+   - Committed enhanced discovery.py, strategy updates, and 4 new discovery output files
+   - Added 12 total discovery files (initial + multi-sport enhanced versions)
+
+**Key Findings** (Latest):
+- ✅ **Punterstech**: READY - Complete API with 36-38 endpoints, no hidden bits
+- ✅ **BetMakers**: READY - Clear SSR approach, no API to find
+- ⚠️ **Generation Web**: Config API found, but sports betting odds loading differently
+- ⚠️ **BetCloud**: Racing API found, but sports betting odds loading differently
+
+**Blockers Resolved**:
+- ✅ Multi-sport automation working perfectly (no false hypothesis about sport-specific endpoints)
+- ✅ Confirmed both Gen Web & BetCloud hide their sports betting APIs (not captured in standard page load)
+- ✅ Clear next approach: Either inspect response body for embedded JSON or find lazy-load XHR
+
+**Implementation Status**:
+- Punterstech: Ready to start implementation (2-3 days)
+- BetMakers: Ready to start implementation (3-5 days)
+- Generation Web: Needs 2-3 day investigation, then 3-5 day implementation
+- BetCloud: Needs 2-3 day investigation, then 3-5 day implementation
+
+**Next Steps** (Updated):
+1. **IMMEDIATE**: Start PunterstechScraper implementation (no blockers)
+2. **PARALLEL**: Investigate Gen Web sports betting API (check HTML response, XHR, WebSocket)
+3. **PARALLEL**: Investigate BetCloud sports betting API (check HTML response, XHR, WebSocket)
+4. Once Gen Web API found → implement GenerationWebScraper
+5. Once BetCloud API found → implement BetCloudScraper
+6. BetMakersScraper can start anytime (SSR parsing, no API to find)
+
+---
+
 ### Session 8: Calculator Implementation - All 5 Calculators
 
 **Goal**: Implement all 5 calculators (Back/Lay, Dutching, True Odds, Multi, Long Term EV) with premium access control
