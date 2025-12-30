@@ -1,17 +1,24 @@
-# Platform Discovery Summary (2025-12-29)
+# Platform Discovery Summary (2025-12-30)
 
 ## Executive Summary
 
-Completed comprehensive automated research on 4 major Australian bookmaker platforms by capturing network traffic from 10+ sites across multiple sports. Enhanced discovery validated multi-sport navigation to find all API endpoints. Key finding: **Punterstech fully ready to implement (21 bookmakers), BetMakers clear SSR approach, Generation Web & BetCloud require additional investigation for hidden sports betting APIs**.
+Completed comprehensive automated research on **5 major Australian bookmaker platforms** by capturing network traffic from 11+ sites across multiple sports. Key findings:
+- **3 bookmakers working NOW**: Ladbrokes, Neds (Entain), Betfair
+- **2 platforms ready to implement**: Punterstech (21 bookmakers), Kindred/Unibet (1 bookmaker)
+- **3 platforms need investigation**: BetMakers (SSR approach clear), Generation Web & BetCloud (hidden APIs)
+
+**Ownership Correction (2025-12-30)**:
+- ✅ **Entain** owns Ladbrokes + Neds (confirmed same platform/API)
+- ❌ **Unibet is NOT Entain** - owned by Kindred Group (now FDJ), completely different API
 
 ### Research Scope
-- **Sites tested**: 10 bookmakers across 4 platforms (enhanced multi-sport research)
-- **Platforms covered**: Punterstech, Generation Web, BetMakers, BetCloud
-- **Total bookmakers**: 102 across 4 platforms
+- **Sites tested**: 11 bookmakers across 5 platforms
+- **Platforms covered**: Punterstech, Generation Web, BetMakers, BetCloud, Kindred
+- **Total bookmakers**: 103 across all platforms
 - **Methodology**: Enhanced Playwright-based multi-sport network traffic interception
-- **Sports tested**: Soccer, AFL, NRL (to find all endpoints)
-- **Data collected**: 12 JSON files with API patterns documented
-- **Research dates**: 2025-12-28 to 2025-12-29
+- **Sports tested**: Soccer, AFL, NRL, Football (to find all endpoints)
+- **Data collected**: 13 JSON files with API patterns documented
+- **Research dates**: 2025-12-28 to 2025-12-30
 
 ---
 
@@ -141,13 +148,59 @@ GET  /sportssilks/supportedsports            ← Team/sport metadata
 
 ---
 
-## Implementation Roadmap (Updated 2025-12-29)
+### 5. Kindred/Unibet (1 bookmaker) - ✅ API DISCOVERED
+
+**Status**: Complete API found, ready to implement
+**Discovery Date**: 2025-12-30
+**Owner**: Kindred Group (acquired by FDJ in Oct 2024) - **NOT Entain**
+
+**API Pattern Discovered**:
+```
+GET https://www.unibet.com.au/sportsbook-feeds/views/filter/{sport}/all/matches
+Response: 1.9MB for football - COMPLETE ODDS DATA
+```
+
+**Core Endpoints** (14 captured):
+```
+GET /sportsbook-feeds/views/filter/football/all/matches  → Full odds (1.9MB)
+GET /sportsbook-feeds/views/sports/a-z                   → Sports list (10KB)
+GET /sportsbook-feeds/settings                           → Config (50KB)
+```
+
+**Anti-Bot Protection**: ✅ NONE detected
+**Proxy Needed**: No
+
+**Key Finding**: Completely different API from Entain - needs separate scraper
+
+**Implementation Notes**:
+- Single large API call returns all match data per sport
+- Response structure: `viewId`, `session`, `layout`, `_links`
+- May need pagination for efficiency
+- **Covers 1 bookmaker but high-value (Premium tier)**
+
+**Expected Implementation**: **1-2 days**
+**Value**: **1 Premium bookmaker**
+
+---
+
+## Implementation Roadmap (Updated 2025-12-30)
+
+### Phase 0: Currently Working ✅
+- Entain (Ladbrokes + Neds): 2 bookmakers
+- Betfair: 1 exchange
+- **Total Working**: 3 bookmakers
 
 ### Phase 1: Punterstech (21 bookmakers) - ✅ READY TO START
 - Timeline: 2-3 days
 - Value: 21 bookmakers (20% of target)
 - Difficulty: Easy
 - Status: Full API documented, ready to implement
+
+### Phase 1b: Kindred/Unibet (1 bookmaker) - ✅ READY TO START
+- Timeline: 1-2 days
+- Value: 1 Premium bookmaker
+- Difficulty: Easy
+- Status: Full API discovered (1.9MB single endpoint)
 
 ### Phase 2: BetMakers (33 bookmakers) - ⚠️ CLEAR APPROACH
 - Timeline: 3-5 days
@@ -167,8 +220,8 @@ GET  /sportssilks/supportedsports            ← Team/sport metadata
 - Difficulty: Medium-Hard (sports API hidden)
 - Status: Racing API complete, sports API needs investigation
 
-**Total Timeline**: 2-3 weeks for 102-bookmaker coverage with 4 platform scrapers
-**Critical Path**: Complete Phase 1 immediately (blocking nothing), proceed with Phases 2-4 in parallel
+**Total Timeline**: 2-3 weeks for 103-bookmaker coverage with 5 platform scrapers
+**Critical Path**: Complete Phase 1 + 1b immediately (no blockers), proceed with Phases 2-4 in parallel
 
 ---
 
@@ -176,6 +229,7 @@ GET  /sportssilks/supportedsports            ← Team/sport metadata
 
 ### Anti-Bot Protection
 - **Punterstech**: ✅ None
+- **Kindred/Unibet**: ✅ None
 - **BetMakers**: ✅ None
 - **Generation Web**: ⚠️ Unknown (limited data)
 - **BetCloud**: ✅ None
@@ -213,35 +267,42 @@ Located in `discovery_output/`:
 - `wellbet_20251229_122512.json` - WellBet (4 endpoints, multi-sport) ✅ **ENHANCED**
 - `betgalaxy_20251229_122555.json` - BetGalaxy (4 endpoints, multi-sport) ✅ **ENHANCED**
 
-**Total Data**: 12 JSON files representing 10 bookmakers across 4 platforms with multi-sport coverage
+**Kindred** (New discovery 2025-12-30):
+- `unibet_20251230_071610.json` - Unibet (14 endpoints, 1.9MB odds data) ✅ **COMPLETE**
 
----
+**Total Data**: 13 JSON files representing 11 bookmakers across 5 platforms with multi-sport coverage
 
 ---
 
 ## Summary of Findings
 
-### What's Ready Now
+### What's Working Now (3 bookmakers)
+✅ **Entain (Ladbrokes + Neds)**: 2 bookmakers working (same platform/API)
+✅ **Betfair (Exchange)**: 1 exchange working
+
+### What's Ready to Implement (22+ bookmakers)
 ✅ **Punterstech (21 bookmakers)**: Complete API documented. Single scraper handles all 21 sites.
+✅ **Kindred/Unibet (1 bookmaker)**: Complete API discovered. 1.9MB single endpoint for all matches.
 ✅ **BetMakers (33 bookmakers)**: SSR approach clear. Use Playwright + DOM parsing.
-✅ **Ladbrokes (1 bookmaker)**: Already working.
-✅ **Betfair (1 exchange)**: Already working.
 
-**Total working now**: 2 bookmakers (Ladbrokes + Betfair)
-
-### What Needs Investigation
+### What Needs Investigation (48 bookmakers)
 ⚠️ **Generation Web (22 bookmakers)**: Configuration endpoints found. Need to find sports betting odds endpoint.
 ⚠️ **BetCloud (26 bookmakers)**: Racing API found. Need to find sports betting odds endpoint.
 
-### Blockers Resolved
+### Blockers Resolved (2025-12-30)
 - ✅ Multi-sport automated research working
 - ✅ Can now test platforms across soccer, AFL, NRL to find all endpoints
 - ✅ Eliminated false hypothesis that hidden endpoints only in certain sports
 - ✅ Confirmed Generation Web & BetCloud odds must use different loading method
+- ✅ **Corrected ownership**: Unibet is Kindred (NOT Entain), confirmed Neds works with Ladbrokes scraper
+- ✅ **Discovered Unibet API**: Complete with 1.9MB football endpoint
 
 ---
 
-**Last Updated**: 2025-12-29
+**Last Updated**: 2025-12-30
 **Tool**: `discovery.py` (Enhanced Playwright-based automated multi-sport research)
 **Status**: Ready to start implementation
-**Next Step**: Build PunterstechScraper (2-3 days) while investigating Gen Web & BetCloud sports APIs
+**Next Steps**:
+1. Build PunterstechScraper (2-3 days, 21 bookmakers)
+2. Build UnibetScraper (1-2 days, 1 Premium bookmaker)
+3. Investigate Gen Web & BetCloud sports APIs in parallel

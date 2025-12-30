@@ -16,23 +16,30 @@ Australia has **4 major white-label betting software providers** that power ~80%
 3. **Punterstech** (21 bookmakers) - Newest, started mid-2023
 4. **BetCloud** (26 bookmakers) - Rapid growth since Jan 2023
 
-Plus **Entain** (3 major bookmakers) and **standalone operators** (~20 with custom platforms).
+Plus:
+- **Entain** (2 bookmakers: Ladbrokes, Neds) - Same platform, same API
+- **Kindred/FDJ** (1 bookmaker: Unibet) - Separate platform, different API
+- **Standalone operators** (~15 with custom platforms)
 
-**Instead of 103 scrapers, we need ~8 platform scrapers:**
+**Instead of 103 scrapers, we need ~9 platform scrapers:**
 
 | Platform | Bookmakers | Scraper Effort | Status |
 |----------|------------|----------------|--------|
-| **Ladbrokes** | 1 | 1 scraper | ✅ Working |
-| **Betfair** | 1 | 1 scraper | ✅ Working |
+| **Entain** | 2 (Ladbrokes, Neds) | 1 scraper | ✅ Working |
+| **Betfair** | 1 (Exchange) | 1 scraper | ✅ Working |
 | **Punterstech** | 21 | 1 scraper | ✅ Ready (API complete) |
+| **Kindred** | 1 (Unibet) | 1 scraper | ✅ Ready (API discovered) |
 | **BetMakers** | 33 | 1 scraper | ⚠️ Clear approach (SSR) |
 | **Generation Web** | 22 | 1 scraper | ⚠️ Partial (config found) |
 | **BetCloud** | 26 | 1 scraper | ⚠️ Partial (racing found) |
-| **Neds/Unibet** | 2 (Entain) | 1 scraper | ⏳ Pending |
 | **TAB** | 2 | 1 scraper | ⚠️ Needs proxy |
-| **Standalone** | ~15 major | Individual | ❌ Partial |
+| **Standalone** | ~14 major | Individual | ❌ Research needed |
 
-**Estimated effort**: 8 platform scrapers = **~103 bookmakers covered**
+**Estimated effort**: 9 platform scrapers = **~103 bookmakers covered**
+
+**Note on Ownership (Verified 2025-12-30)**:
+- **Entain** owns Ladbrokes + Neds (confirmed same API/platform)
+- **Kindred Group** (now owned by FDJ) owns Unibet (separate platform, discovered API)
 
 ---
 
@@ -607,13 +614,15 @@ GET  /generic/config/fields.{bookmaker}     → Field config (113-115 bytes)
 
 | Platform | Bookmakers | API Visibility | Difficulty | Proxy Needed | ETA | Status |
 |----------|-----------|---|-----------|------------|-----|--------|
+| **Entain** | 2 | ✅ Full | Easy | No | Done | ✅ Working (Ladbrokes + Neds) |
+| **Betfair** | 1 | ✅ Full | Easy | No | Done | ✅ Working |
 | **Punterstech** | 21 | ✅ Full | Easy | No | 2-3 days | ✅ READY |
-| **Generation Web** | 22 | ⚠️ Partial | Medium | No | 2-3 days* | Odds endpoint hidden |
+| **Kindred** | 1 | ✅ Full | Easy | No | 1-2 days | ✅ READY (Unibet API discovered) |
 | **BetMakers** | 33 | ❌ SSR | Medium | No | 3-5 days | DOM parsing needed |
+| **Generation Web** | 22 | ⚠️ Partial | Medium | No | 2-3 days* | Odds endpoint hidden |
 | **BetCloud** | 26 | ⚠️ Racing only | Medium-Hard | No | 3-5 days* | Sports API hidden |
-| **Entain** | 3 | ✅ Full | Easy | No | 1 day | ⚠️ Partial (Ladbrokes only) |
 | **TAB** | 2 | ✅ Full | Hard | **YES** | 1-2 days + proxy | Proxy required |
-| **Standalone** | ~16 | ❓ Unknown | Hard | Maybe | 1-2 weeks | Individual research |
+| **Standalone** | ~14 | ❓ Unknown | Hard | Maybe | 1-2 weeks | Individual research |
 
 *Generation Web & BetCloud: Automated multi-sport discovery completed but odds endpoints not captured. Likely client-side loaded or embedded in HTML.
 
@@ -660,6 +669,36 @@ odds_json = await page.evaluate("window.__ODDS_DATA__ || null")
 - Likely same base path pattern: `/punter/sports/*` or similar
 - Manual testing with browser DevTools needed
 - **Covers 26 bookmakers with 1 scraper** (once found)
+
+#### Kindred/Unibet (1 site) - READY TO IMPLEMENT
+**Discovery Date**: 2025-12-30
+**Owner**: Kindred Group (acquired by FDJ in Oct 2024)
+
+**API Pattern Discovered**:
+```
+GET https://www.unibet.com.au/sportsbook-feeds/views/filter/{sport}/all/matches
+Response: 1.9MB for football - COMPLETE ODDS DATA
+```
+
+**Core Endpoints**:
+```
+GET /sportsbook-feeds/views/filter/football/all/matches  → Full odds (1.9MB!)
+GET /sportsbook-feeds/views/sports/a-z                   → Sports list (10KB)
+GET /sportsbook-feeds/settings                           → Config (50KB)
+```
+
+**Response Structure** (from discovery):
+- Keys: `viewId`, `session`, `layout`, `_links`
+- Large response suggests comprehensive odds data in single call
+
+**Anti-Bot Protection**: NONE detected
+**Proxy Needed**: No
+
+**Implementation Notes**:
+- Very different from Entain API
+- Single large API call returns all match data
+- May need pagination for efficiency
+- **Covers 1 bookmaker but high-value (Premium tier)**
 
 ---
 
@@ -806,16 +845,16 @@ docker logs mb_api 2>&1 | grep -E "\[(Ladbrokes|Betfair|TAB)\]"
 
 | Platform | Bookmakers | Scraper Needed | Coverage |
 |----------|------------|----------------|----------|
-| Ladbrokes | 1 | 1 | ✅ Working |
+| Entain (Ladbrokes, Neds) | 2 | 1 | ✅ Working |
 | Betfair | 1 | 1 | ✅ Working |
 | Punterstech | 21 | 1 | ✅ Ready (API complete) |
+| Kindred (Unibet) | 1 | 1 | ✅ Ready (API discovered) |
 | BetMakers | 33 | 1 | ⚠️ Clear approach (SSR) |
 | Generation Web | 22 | 1 | ⚠️ Partial (config found) |
 | BetCloud | 26 | 1 | ⚠️ Partial (racing found) |
-| Neds/Unibet (Entain) | 2 | 1 | ⏳ Pending (same as Ladbrokes) |
 | TAB | 2 | 1 | ⚠️ Proxy needed |
-| Standalone | ~15 | ~10 | ❌ Individual research |
-| **TOTAL** | **~123** | **~18** | **2 working + 6 ready/near-ready** |
+| Standalone | ~14 | ~10 | ❌ Individual research |
+| **TOTAL** | **~122** | **~18** | **3 working + 4 ready/near-ready** |
 
 ---
 
@@ -828,9 +867,11 @@ docker logs mb_api 2>&1 | grep -E "\[(Ladbrokes|Betfair|TAB)\]"
 - [Punterstech Official](https://www.punterstech.com/)
 - [BetMakers Official](https://betmakers.com/)
 - [The Odds API](https://the-odds-api.com/)
+- [Entain Wikipedia](https://en.wikipedia.org/wiki/Entain) - Confirms Ladbrokes + Neds ownership
+- [Kindred Group Wikipedia](https://en.wikipedia.org/wiki/Kindred_Group) - Confirms Unibet ownership (FDJ acquired 2024)
 
 ---
 
-*Document version: 2.1*
-*Last updated: 2025-12-29*
-*Latest changes: Enhanced automated discovery completed for Gen Web & BetCloud; multi-sport API research added**
+*Document version: 2.2*
+*Last updated: 2025-12-30*
+*Latest changes: Corrected Entain ownership (Ladbrokes + Neds only, NOT Unibet); Added Kindred/Unibet API discovery*

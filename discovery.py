@@ -54,6 +54,11 @@ class PlatformDiscovery:
                 ("BetGalaxy", "https://www.betgalaxy.com.au", ["/sports/soccer", "/sports/afl", "/sports/nrl"]),
             ]
         },
+        "kindred": {
+            "sites": [
+                ("Unibet", "https://www.unibet.com.au", "/betting/sports/filter/football"),
+            ]
+        },
     }
 
     def __init__(self, output_dir: str = "discovery_output"):
