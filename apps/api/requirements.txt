@@ -25,3 +25,6 @@ lxml>=4.9.0
 html5lib>=1.1
 playwright>=1.40.0
 tenacity>=8.2.0
+
+# Monitoring & Error Tracking
+sentry-sdk[fastapi]>=1.40.0

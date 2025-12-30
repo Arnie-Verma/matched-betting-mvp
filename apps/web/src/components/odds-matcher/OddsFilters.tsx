@@ -233,7 +233,7 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
           {/* Bookmaker Filter */}
           <div>
             <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              Bookmakers (Free tier: TAB & Ladbrokes)
+              Bookmakers
             </Label>
             <div ref={bookmakersRef} className="relative">
               <button

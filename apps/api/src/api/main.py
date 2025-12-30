@@ -7,11 +7,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import routers
-from api.routers import auth, billing, stripe_webhooks, plan_demo, odds_matcher, metadata
+from api.routers import auth, billing, stripe_webhooks, plan_demo, odds_matcher, metadata, health
+
+# Import monitoring
+from api.core.monitoring import init_sentry
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize Sentry before app creation (captures startup errors)
+sentry_enabled = init_sentry()
 
 app = FastAPI(title="MB API", version="0.1.0")
 
@@ -25,13 +31,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Health check
-@app.get("/health")
-def health_check():
-    """Health check endpoint"""
-    return {"status": "ok"}
-
 # Include routers
+app.include_router(health.router)  # Health endpoints (includes /health, /health/scrapers, etc.)
 app.include_router(auth.router)
 app.include_router(billing.router)
 app.include_router(stripe_webhooks.router)
@@ -47,6 +48,7 @@ async def startup_event():
     logger.info(f"Auth Audience: {os.getenv('MB_AUTH_AUDIENCE')}")
     logger.info(f"Auth JWKS URL: {os.getenv('MB_AUTH_JWKS_URL')}")
     logger.info(f"Clerk Issuer: {os.getenv('CLERK_ISSUER')}")
+    logger.info(f"Sentry Enabled: {sentry_enabled}")
 
     # Run database migrations automatically on startup (development only)
     if os.getenv("ENVIRONMENT", "development") == "development":

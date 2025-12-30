@@ -23,3 +23,6 @@ pydantic==2.5.3
 # Utils
 python-dotenv==1.0.0
 tenacity==8.2.3  # Retry logic
+
+# Monitoring & Error Tracking
+sentry-sdk>=1.40.0

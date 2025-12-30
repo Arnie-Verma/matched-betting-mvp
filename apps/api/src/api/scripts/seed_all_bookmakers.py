@@ -65,7 +65,7 @@ def seed_all_bookmakers(db: Session):
             "name": "Neds",
             "display_name": "Neds",
             "website_url": "https://www.neds.com.au",
-            "is_active": False,  # Will activate when Neds scraper ready
+            "is_active": True,  # ENABLED - uses EntainScraper (same as Ladbrokes)
             "base_url": "https://www.neds.com.au",
             "scraping_config": {
                 "tier": "free",

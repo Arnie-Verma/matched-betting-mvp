@@ -7,6 +7,11 @@ PRODUCTION OPTIMIZATION (Phase 1):
 - Parallel sport scraping: Each bookmaker scrapes all sports in parallel
 - Result: 96s → 10-15s for full scrape (6-8x improvement)
 
+DYNAMIC SCRAPER REGISTRY (Phase 1.2):
+- Config-driven scraper selection from database
+- Platform scrapers cover multiple bookmakers (e.g., Entain covers Ladbrokes, Neds, Unibet)
+- New bookmakers added by updating database config, not code
+
 Architecture:
 - scrape_all_active_bookmakers_parallel() → asyncio.gather for all bookmakers
 - Each bookmaker uses scrape_all_sports_parallel() internally
@@ -22,34 +27,188 @@ import time
 import redis
 import json
 from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Type
 from decimal import Decimal
 
 from scrapers.tab_scraper import TABScraper
 from scrapers.betfair_scraper import BetfairScraper
 from scrapers.ladbrokes_scraper import LadbrokesScraper
-from scrapers.base import ScrapeResult, ScraperStatus
+from scrapers.entain_scraper import EntainScraper
+from scrapers.base import BaseScraper, ScrapeResult, ScraperStatus
 from jobs.save_odds import save_scrape_result_to_db
 from jobs.cleanup_service import CleanupService
+
+# Optional Sentry integration for error tracking
+try:
+    from api.core.monitoring import capture_exception, capture_message, add_breadcrumb, init_sentry
+    # Initialize Sentry for worker process
+    init_sentry()
+    SENTRY_AVAILABLE = True
+except ImportError:
+    SENTRY_AVAILABLE = False
+    def capture_exception(*args, **kwargs): pass
+    def capture_message(*args, **kwargs): pass
+    def add_breadcrumb(*args, **kwargs): pass
 
 logger = logging.getLogger(__name__)
 
 
+# =============================================================================
+# SCRAPER REGISTRY
+# =============================================================================
+# Maps scraper_class (from bookmaker.scraping_config) to scraper implementation.
+# Platform scrapers (like EntainScraper) can handle multiple bookmakers with
+# different base_urls - just pass different config.
+#
+# To add a new platform:
+# 1. Create the scraper class (e.g., PunterstechScraper)
+# 2. Add it to SCRAPER_CLASSES below
+# 3. Update bookmaker.scraping_config in database to use new scraper_class
+# =============================================================================
+SCRAPER_CLASSES: Dict[str, Type[BaseScraper]] = {
+    "entain": EntainScraper,      # Ladbrokes, Neds, Unibet
+    "betfair": BetfairScraper,    # Betfair Exchange
+    "tab": TABScraper,            # TAB (needs proxy)
+    # Future platform scrapers:
+    # "punterstech": PunterstechScraper,    # 21 bookmakers
+    # "betmakers": BetMakersScraper,        # 33 bookmakers
+    # "generation_web": GenerationWebScraper,  # 22 bookmakers
+    # "betcloud": BetCloudScraper,          # 26 bookmakers
+}
+
+
 class ScrapeService:
-    """Service for managing on-demand scraping"""
+    """
+    Service for managing on-demand scraping.
+
+    Supports two modes:
+    1. Static scrapers (legacy): Hardcoded scraper instances
+    2. Dynamic scrapers (new): Created from database config using SCRAPER_CLASSES registry
+
+    Active bookmakers are determined by:
+    - Database: bookmaker.is_active = True AND scraper_class in SCRAPER_CLASSES
+    - Or fallback to static list if database unavailable
+    """
 
     def __init__(self):
-        self.scrapers = {
-            # "tab": TABScraper(),  # Disabled - needs rotating proxy for production
+        # Static scrapers (legacy - kept for backwards compatibility)
+        # These are used as fallback if database is unavailable
+        self._static_scrapers = {
             "betfair": BetfairScraper(),
-            "ladbrokes": LadbrokesScraper(),
-            # Add more scrapers as they're implemented
-            # "neds": NedsScraper(),
+            "ladbrokes": EntainScraper("ladbrokes", "https://www.ladbrokes.com.au"),
         }
+
+        # Cache for dynamically created scrapers
+        self._dynamic_scrapers: Dict[str, BaseScraper] = {}
+
         self.redis_client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
         self.breaker_threshold = int(os.getenv("BOOKMAKER_BREAKER_THRESHOLD", "5"))
         self.breaker_cooldown = int(os.getenv("BOOKMAKER_BREAKER_COOLDOWN_SECONDS", "60"))
         self.bookmaker_timeout = int(os.getenv("BOOKMAKER_TIMEOUT_SECONDS", "25"))
+
+    @property
+    def scrapers(self) -> Dict[str, BaseScraper]:
+        """
+        Get all available scrapers (static + dynamic).
+
+        Returns combined dict of static scrapers and any dynamically created ones.
+        """
+        combined = dict(self._static_scrapers)
+        combined.update(self._dynamic_scrapers)
+        return combined
+
+    def get_scraper_for_bookmaker(self, bookmaker_code: str, bookmaker_config: Optional[Dict] = None) -> Optional[BaseScraper]:
+        """
+        Get or create a scraper for a bookmaker.
+
+        Args:
+            bookmaker_code: The bookmaker's code (e.g., 'ladbrokes', 'neds')
+            bookmaker_config: Optional config dict with scraper_class, base_url, etc.
+                             If None, uses static scrapers.
+
+        Returns:
+            BaseScraper instance or None if not available
+        """
+        # Check if already created
+        if bookmaker_code in self._dynamic_scrapers:
+            return self._dynamic_scrapers[bookmaker_code]
+
+        if bookmaker_code in self._static_scrapers:
+            return self._static_scrapers[bookmaker_code]
+
+        # Try to create dynamically from config
+        if bookmaker_config:
+            scraper_class_name = bookmaker_config.get("scraper_class")
+            if scraper_class_name and scraper_class_name in SCRAPER_CLASSES:
+                ScraperClass = SCRAPER_CLASSES[scraper_class_name]
+
+                # Get base_url from config
+                base_url = bookmaker_config.get("base_url") or bookmaker_config.get("website_url")
+
+                if base_url:
+                    try:
+                        # Create scraper instance
+                        scraper = ScraperClass(
+                            bookmaker_code=bookmaker_code,
+                            base_url=base_url,
+                            config=bookmaker_config
+                        )
+                        self._dynamic_scrapers[bookmaker_code] = scraper
+                        logger.info(f"[{bookmaker_code}] Created dynamic scraper ({scraper_class_name})")
+                        return scraper
+                    except Exception as e:
+                        logger.error(f"[{bookmaker_code}] Failed to create scraper: {e}")
+                        return None
+
+        return None
+
+    def get_active_bookmakers_from_db(self) -> List[Dict[str, Any]]:
+        """
+        Get list of active bookmakers from database.
+
+        Returns list of dicts with bookmaker config (code, base_url, scraping_config).
+        Falls back to static list if database unavailable.
+        """
+        try:
+            from api.core.database import SessionLocal
+            from api.models import Bookmaker
+
+            db = SessionLocal()
+            try:
+                active = db.query(Bookmaker).filter(
+                    Bookmaker.is_active == True
+                ).all()
+
+                result = []
+                for bm in active:
+                    config = bm.scraping_config or {}
+                    scraper_class = config.get("scraper_class")
+
+                    # Only include if we have a scraper for this platform
+                    if scraper_class in SCRAPER_CLASSES:
+                        result.append({
+                            "code": bm.code,
+                            "name": bm.name,
+                            "base_url": bm.base_url or bm.website_url,
+                            "website_url": bm.website_url,
+                            "scraping_config": config
+                        })
+                    else:
+                        logger.debug(f"[{bm.code}] Skipped: scraper_class '{scraper_class}' not in registry")
+
+                logger.info(f"Found {len(result)} active bookmakers with available scrapers")
+                return result
+
+            finally:
+                db.close()
+
+        except Exception as e:
+            logger.warning(f"Could not load bookmakers from DB, using static list: {e}")
+            # Fallback to static scrapers
+            return [
+                {"code": "betfair", "base_url": "https://www.betfair.com.au", "scraping_config": {"scraper_class": "betfair"}},
+                {"code": "ladbrokes", "base_url": "https://www.ladbrokes.com.au", "scraping_config": {"scraper_class": "entain"}},
+            ]
 
     def _get_breaker_state(self, bookmaker_code: str) -> Dict[str, Any]:
         """Get circuit breaker state from Redis."""
@@ -261,6 +420,12 @@ class ScrapeService:
             logger.exception(f"Scrape failed for {bookmaker_code}: {e}")
             # Record failure - increment circuit breaker counter
             self._record_failure(bookmaker_code)
+            # Report to Sentry with context
+            capture_exception(e, {
+                "bookmaker": bookmaker_code,
+                "sport": sport,
+                "operation": "scrape_bookmaker"
+            })
             return {
                 "bookmaker": bookmaker_code,
                 "success": False,
@@ -377,6 +542,11 @@ class ScrapeService:
         except Exception as e:
             logger.exception(f"Parallel scrape failed for {bookmaker_code}: {e}")
             self._record_failure(bookmaker_code)
+            # Report to Sentry with context
+            capture_exception(e, {
+                "bookmaker": bookmaker_code,
+                "operation": "scrape_bookmaker_all_sports"
+            })
             return {
                 "bookmaker": bookmaker_code,
                 "success": False,
@@ -398,6 +568,11 @@ class ScrapeService:
         - Each bookmaker scrapes all sports in parallel internally
         - Total time = max(slowest_bookmaker) ≈ 10-15s instead of 96s+
 
+        DYNAMIC REGISTRY (Phase 1.2):
+        - Loads active bookmakers from database
+        - Creates scrapers dynamically based on scraping_config.scraper_class
+        - Falls back to static list if database unavailable
+
         Args:
             sport: Sport to scrape ("all" for all sports, or specific sport code)
             limit: Optional limit on events per bookmaker per sport
@@ -413,23 +588,31 @@ class ScrapeService:
         # Determine which sports to scrape
         sports_to_scrape = ALL_SPORTS if sport == "all" else [sport]
 
-        # Active bookmakers (TAB disabled - needs rotating proxy)
-        active_bookmakers = ["betfair", "ladbrokes"]
+        # Get active bookmakers from database (with fallback)
+        active_bookmaker_configs = self.get_active_bookmakers_from_db()
+        active_bookmaker_codes = [bm["code"] for bm in active_bookmaker_configs]
+
+        # Create scrapers for each active bookmaker
+        for bm_config in active_bookmaker_configs:
+            code = bm_config["code"]
+            scraping_config = bm_config.get("scraping_config", {})
+            scraping_config["base_url"] = bm_config.get("base_url")
+            scraping_config["website_url"] = bm_config.get("website_url")
+            self.get_scraper_for_bookmaker(code, scraping_config)
 
         logger.info(
-            f"⏱️  [PARALLEL] Starting PARALLEL scrape: "
-            f"{len(active_bookmakers)} bookmakers × {len(sports_to_scrape)} sports"
+            f"[PARALLEL] Starting scrape: {len(active_bookmaker_codes)} bookmakers x {len(sports_to_scrape)} sports"
         )
+        logger.info(f"[PARALLEL] Active bookmakers: {', '.join(active_bookmaker_codes)}")
 
         # PARALLEL EXECUTION: All bookmakers run simultaneously
-        # Each bookmaker internally parallelizes all sports via scrape_all_sports_parallel()
         tasks = [
             self.scrape_bookmaker_all_sports(
                 bookmaker_code=bookmaker,
                 sports=sports_to_scrape,
                 limit=limit
             )
-            for bookmaker in active_bookmakers
+            for bookmaker in active_bookmaker_codes
         ]
 
         # Wait for all bookmakers to complete (with exception handling)
@@ -437,8 +620,7 @@ class ScrapeService:
 
         parallel_duration = time.time() - parallel_start
         logger.info(
-            f"⏱️  [PARALLEL] All bookmakers completed in {parallel_duration:.2f}s "
-            f"(was ~96s sequential)"
+            f"[PARALLEL] All bookmakers completed in {parallel_duration:.2f}s"
         )
 
         # Aggregate statistics
@@ -449,7 +631,7 @@ class ScrapeService:
         success_count = 0
         bookmaker_results = []
 
-        for bookmaker, result in zip(active_bookmakers, results):
+        for bookmaker, result in zip(active_bookmaker_codes, results):
             if isinstance(result, Exception):
                 logger.error(f"[{bookmaker}] Scrape task failed with exception: {result}")
                 all_errors.append(f"{bookmaker}: {str(result)}")
@@ -489,7 +671,7 @@ class ScrapeService:
         return {
             "success": success_count > 0,
             "bookmakers_scraped": success_count,
-            "total_bookmakers": len(active_bookmakers),
+            "total_bookmakers": len(active_bookmaker_codes),
             "events_scraped": total_events,
             "odds_scraped": total_odds,
             "odds_saved": total_saved,

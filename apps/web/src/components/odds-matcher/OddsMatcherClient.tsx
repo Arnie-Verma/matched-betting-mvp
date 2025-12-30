@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { OddsFilters } from './OddsFilters'
 import { OddsTable } from './OddsTable'
 import { BetCalculatorModal } from './BetCalculatorModal'
@@ -38,6 +38,14 @@ export interface OddsMatch {
   last_updated: string
 }
 
+interface PaginatedResponse {
+  items: OddsMatch[]
+  total: number
+  offset: number
+  limit: number
+  has_more: boolean
+}
+
 export interface OddsFilters {
   stake: number
   betType: BetType
@@ -46,6 +54,8 @@ export interface OddsFilters {
   competitions: number[]
   search: string
 }
+
+const PAGE_SIZE = 30
 
 export function OddsMatcherClient() {
   const [filters, setFilters] = useState<OddsFilters>({
@@ -58,7 +68,10 @@ export function OddsMatcherClient() {
   })
 
   const [opportunities, setOpportunities] = useState<OddsMatch[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [showPerformanceNotice, setShowPerformanceNotice] = useState(false)
@@ -67,8 +80,10 @@ export function OddsMatcherClient() {
 
   const [selectedOdds, setSelectedOdds] = useState<OddsMatch | null>(null)
 
-  // Prevent duplicate mount calls in React Strict Mode
+  // Refs for infinite scroll
   const hasInitialized = useRef(false)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const currentOffset = useRef(0)
 
   // Auto-refresh odds on component mount (triggers scraping if cache expired)
   useEffect(() => {
@@ -87,37 +102,79 @@ export function OddsMatcherClient() {
   // Refetch opportunities when bet type or debounced stake changes (recalculates with new parameters)
   useEffect(() => {
     if (opportunities.length > 0) {
-      fetchOpportunities()
+      fetchOpportunities(true) // Reset to first page
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.betType, debouncedStake])
 
-  const fetchOpportunities = async () => {
-    setLoading(true)
+  const fetchOpportunities = useCallback(async (reset = false) => {
+    const offset = reset ? 0 : currentOffset.current
+
+    if (reset) {
+      setLoading(true)
+      currentOffset.current = 0
+    } else {
+      setLoadingMore(true)
+    }
     setError(null)
 
     try {
-      // Fetch ALL opportunities with just stake and bet type (filtering happens client-side)
       const params = new URLSearchParams()
       params.append('stake', debouncedStake.toString())
       params.append('bet_type', filters.betType)
+      params.append('limit', PAGE_SIZE.toString())
+      params.append('offset', offset.toString())
 
-      // ✅ Using real TAB + Betfair odds from database
       const response = await fetch(`/api/proxy/odds/matcher?${params.toString()}`)
 
       if (!response.ok) {
         throw new Error('Failed to fetch odds')
       }
 
-      const data = await response.json()
-      setOpportunities(data)
+      const data: PaginatedResponse = await response.json()
+
+      if (reset) {
+        setOpportunities(data.items)
+      } else {
+        setOpportunities(prev => [...prev, ...data.items])
+      }
+
+      setTotalCount(data.total)
+      setHasMore(data.has_more)
+      currentOffset.current = offset + data.items.length
       setLastRefresh(new Date())
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
-  }
+  }, [debouncedStake, filters.betType])
+
+  // Load more when scrolling near bottom
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore && !loading) {
+      fetchOpportunities(false)
+    }
+  }, [loadingMore, hasMore, loading, fetchOpportunities])
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMore()
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    )
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [hasMore, loadingMore, loading, loadMore])
 
   // Client-side filtering for instant results
   const filteredOpportunities = useMemo(() => {
@@ -218,7 +275,7 @@ export function OddsMatcherClient() {
         // 429 = rate limited - silently continue to fetch cached odds
         if (response.status === 429) {
           console.log('[OddsMatcherClient] Rate limited, fetching cached odds instead')
-          await fetchOpportunities()
+          await fetchOpportunities(true)
           return
         }
         throw new Error('Failed to refresh odds')
@@ -230,7 +287,7 @@ export function OddsMatcherClient() {
       // If cache was used, data is already fresh - just fetch opportunities
       if (refreshData.used_cache === true) {
         console.log('[OddsMatcherClient] Cache hit - skipping poll')
-        await fetchOpportunities()
+        await fetchOpportunities(true)
         return
       }
 
@@ -251,7 +308,7 @@ export function OddsMatcherClient() {
       }
 
       // Fetch opportunities (fresh or cached)
-      await fetchOpportunities()
+      await fetchOpportunities(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
       setScrapeStatus(null)
@@ -274,9 +331,10 @@ export function OddsMatcherClient() {
           {lastRefresh && (
             <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
           )}
-          {opportunities.length > 0 && (
+          {totalCount > 0 && (
             <span className="ml-4">
-              Showing {filteredOpportunities.length} of {opportunities.length} opportunities
+              Showing {filteredOpportunities.length} of {totalCount} opportunities
+              {hasMore && ' (scroll for more)'}
             </span>
           )}
         </div>
@@ -326,6 +384,22 @@ export function OddsMatcherClient() {
         loading={loading}
         onSelectOdds={setSelectedOdds}
       />
+
+      {/* Infinite Scroll Trigger */}
+      <div ref={loadMoreRef} className="h-10 flex items-center justify-center">
+        {loadingMore && (
+          <div className="flex items-center gap-2 text-gray-500">
+            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Loading more...</span>
+          </div>
+        )}
+        {!hasMore && opportunities.length > 0 && !loading && (
+          <span className="text-gray-400 text-sm">No more opportunities</span>
+        )}
+      </div>
 
       {/* Bet Calculator Modal */}
       {selectedOdds && (

@@ -81,6 +81,15 @@ class OddsMatchResponse(BaseModel):
     last_updated: datetime
 
 
+class PaginatedOddsResponse(BaseModel):
+    """Paginated response for odds matcher with infinite scroll support"""
+    items: List[OddsMatchResponse]
+    total: int
+    offset: int
+    limit: int
+    has_more: bool
+
+
 class RefreshOddsRequest(BaseModel):
     """Request to manually refresh odds"""
     force: bool = Field(default=False, description="Force refresh even if recently updated")
@@ -296,7 +305,7 @@ async def refresh_status(
     )
 
 
-@router.get("/matcher")
+@router.get("/matcher", response_model=PaginatedOddsResponse)
 async def get_matcher_opportunities(
     request: Request,
     response: Response,
@@ -307,12 +316,18 @@ async def get_matcher_opportunities(
     competition_ids: Optional[str] = Query(default=None, description="Comma-separated competition IDs"),
     search: Optional[str] = Query(default=None, description="Search event names"),
     min_rating: Optional[Decimal] = Query(default=None, ge=Decimal("0"), le=Decimal("100")),
-    limit: int = Query(default=200, ge=1, le=500),
+    limit: int = Query(default=30, ge=1, le=100, description="Number of items per page"),
+    offset: int = Query(default=0, ge=0, description="Number of items to skip"),
     user_claims: UserClaims = Depends(get_current_user),
     db: Session = Depends(get_db)
-) -> List[OddsMatchResponse]:
+) -> PaginatedOddsResponse:
     """
-    Get matched betting opportunities with filtering.
+    Get matched betting opportunities with filtering and pagination.
+
+    Supports infinite scroll with offset-based pagination:
+    - First request: offset=0, limit=30
+    - Next page: offset=30, limit=30
+    - And so on...
 
     Filters available odds to show only best opportunities based on:
     - User's plan (free tier = 2 bookmakers: Ladbrokes + Neds, plus Betfair exchange)
@@ -559,87 +574,98 @@ async def get_matcher_opportunities(
             group['lay_odds'] = lay
 
         # Now check each selection group for matched opportunities
+        # KEY CHANGE: Create one opportunity PER BOOKMAKER (like Outmatched)
+        # This allows users to see and bet on the same event across multiple bookmakers
         for norm_name, group in selection_groups.items():
-            back_odds = group['back_odds']
+            back_odds_list = group['back_odds']
             # Filter out invalid lay odds (odds >= 100 are Betfair placeholders meaning no liquidity)
             lay_odds = [lo for lo in group['lay_odds'] if lo.decimal_odds < Decimal("100")]
             selection = group['selections'][0]  # Use first selection for metadata
 
             # Show all original names in this group
             all_names = [s.name for s in group['selections']]
-            print(f"    Selection group '{norm_name}' (names: {all_names}): {len(back_odds)} back, {len(lay_odds)} lay (valid)")
+            print(f"    Selection group '{norm_name}' (names: {all_names}): {len(back_odds_list)} back, {len(lay_odds)} lay (valid)")
 
-            if not back_odds or not lay_odds:
-                if not back_odds:
+            if not back_odds_list or not lay_odds:
+                if not back_odds_list:
                     print(f"      SKIP: no back odds")
                 if not lay_odds:
                     print(f"      SKIP: no valid lay odds (filtered out odds >= 100)")
                 continue
 
-            print(f"      MATCH FOUND! Creating opportunity...")
-
-            # Find best back odds (highest)
-            best_back = max(back_odds, key=lambda x: x.decimal_odds)
-
-            # Find best lay odds (lowest is best for laying)
+            # Find best lay odds (lowest is best for laying) - same for all bookmakers
             best_lay = min(lay_odds, key=lambda x: x.decimal_odds)
 
-            # Calculate matched bet
-            back_bet = BackBet(
-                bookmaker_code=best_back.bookmaker.code,
-                bookmaker_name=best_back.bookmaker.display_name,
-                back_odds=best_back.decimal_odds,
-                stake=stake
-            )
+            # Group back odds by bookmaker and find best odds per bookmaker
+            # (in case same bookmaker has multiple odds entries for same selection)
+            bookmaker_best_odds: dict[str, OddsSnapshot] = {}
+            for back_odds in back_odds_list:
+                bm_code = back_odds.bookmaker.code
+                if bm_code not in bookmaker_best_odds:
+                    bookmaker_best_odds[bm_code] = back_odds
+                elif back_odds.decimal_odds > bookmaker_best_odds[bm_code].decimal_odds:
+                    bookmaker_best_odds[bm_code] = back_odds
 
-            lay_bet = LayBet(
-                lay_odds=best_lay.decimal_odds,
-                commission=Decimal("0.06"),  # 6% Betfair commission (Australian users)
-                liquidity=best_lay.available_amount
-            )
+            print(f"      MATCHES FOUND! Creating {len(bookmaker_best_odds)} opportunities (one per bookmaker)")
 
-            calculation = matching_engine.calculate_matched_bet(
-                back_bet, lay_bet, bet_type
-            )
+            # Create one opportunity per bookmaker
+            for bm_code, best_back in bookmaker_best_odds.items():
+                # Calculate matched bet for this bookmaker
+                back_bet = BackBet(
+                    bookmaker_code=best_back.bookmaker.code,
+                    bookmaker_name=best_back.bookmaker.display_name,
+                    back_odds=best_back.decimal_odds,
+                    stake=stake
+                )
 
-            # Apply rating filter
-            if min_rating and calculation.rating < min_rating:
-                continue
+                lay_bet = LayBet(
+                    lay_odds=best_lay.decimal_odds,
+                    commission=Decimal("0.06"),  # 6% Betfair commission (Australian users)
+                    liquidity=best_lay.available_amount
+                )
 
-            # Calculate PnL percentage
-            pnl_pct = matching_engine.calculate_pnl_percentage(calculation)
+                calculation = matching_engine.calculate_matched_bet(
+                    back_bet, lay_bet, bet_type
+                )
 
-            # Get market from first selection for metadata
-            market = selection.market
+                # Apply rating filter
+                if min_rating and calculation.rating < min_rating:
+                    continue
 
-            opportunities.append(OddsMatchResponse(
-                event_id=representative_event.id,
-                event_name=representative_event.name,
-                event_start_time=representative_event.start_time,
-                sport_name=representative_event.competition.sport.display_name,
-                competition_name=representative_event.competition.short_name,
-                market_id=market.id,
-                market_name=market.name,
-                market_type=market.market_type,
-                selection_id=selection.id,
-                selection_name=selection.name,
-                back_bookmaker_code=calculation.back_bet.bookmaker_code,
-                back_bookmaker_name=calculation.back_bet.bookmaker_name,
-                back_odds=float(calculation.back_bet.back_odds),
-                back_stake=float(calculation.back_stake),
-                lay_odds=float(calculation.lay_bet.lay_odds),
-                lay_stake=float(calculation.lay_stake),
-                lay_liability=float(calculation.lay_liability),
-                lay_commission=float(calculation.lay_bet.commission),
-                lay_liquidity=float(calculation.lay_bet.liquidity) if calculation.lay_bet.liquidity else None,
-                profit_if_back_wins=float(calculation.profit_if_back_wins),
-                profit_if_lay_wins=float(calculation.profit_if_lay_wins),
-                qualifying_loss=float(calculation.qualifying_loss),
-                pnl_percentage=float(pnl_pct),
-                bet_type=calculation.bet_type,
-                rating=float(calculation.rating),
-                last_updated=best_back.timestamp
-            ))
+                # Calculate PnL percentage
+                pnl_pct = matching_engine.calculate_pnl_percentage(calculation)
+
+                # Get market from first selection for metadata
+                market = selection.market
+
+                opportunities.append(OddsMatchResponse(
+                    event_id=representative_event.id,
+                    event_name=representative_event.name,
+                    event_start_time=representative_event.start_time,
+                    sport_name=representative_event.competition.sport.display_name,
+                    competition_name=representative_event.competition.short_name,
+                    market_id=market.id,
+                    market_name=market.name,
+                    market_type=market.market_type,
+                    selection_id=selection.id,
+                    selection_name=selection.name,
+                    back_bookmaker_code=calculation.back_bet.bookmaker_code,
+                    back_bookmaker_name=calculation.back_bet.bookmaker_name,
+                    back_odds=float(calculation.back_bet.back_odds),
+                    back_stake=float(calculation.back_stake),
+                    lay_odds=float(calculation.lay_bet.lay_odds),
+                    lay_stake=float(calculation.lay_stake),
+                    lay_liability=float(calculation.lay_liability),
+                    lay_commission=float(calculation.lay_bet.commission),
+                    lay_liquidity=float(calculation.lay_bet.liquidity) if calculation.lay_bet.liquidity else None,
+                    profit_if_back_wins=float(calculation.profit_if_back_wins),
+                    profit_if_lay_wins=float(calculation.profit_if_lay_wins),
+                    qualifying_loss=float(calculation.qualifying_loss),
+                    pnl_percentage=float(pnl_pct),
+                    bet_type=calculation.bet_type,
+                    rating=float(calculation.rating),
+                    last_updated=best_back.timestamp
+                ))
 
     # Sort by PnL percentage (most profitable first: -1% is better than -5%)
     # For normal bets: higher PnL% = less loss = better (e.g., -1% > -5%)
@@ -661,17 +687,21 @@ async def get_matcher_opportunities(
     print(f"{'='*80}\n")
 
     logger.info(f"=== MATCHER SUMMARY ===")
-    logger.info(f"Total opportunities found: {len(opportunities)}")
-    logger.info(f"Returning top {min(limit, len(opportunities))} opportunities")
+    total_count = len(opportunities)
+    logger.info(f"Total opportunities found: {total_count}")
+    logger.info(f"Returning items {offset} to {offset + limit} (offset={offset}, limit={limit})")
+
+    # Apply pagination: slice from offset to offset+limit
+    paginated_opps = opportunities[offset:offset + limit]
+    has_more = (offset + limit) < total_count
 
     # Compute caching headers
-    limited_opps = opportunities[:limit]
     last_modified_dt = None
-    if limited_opps:
-        last_modified_dt = max((opp.last_updated for opp in limited_opps if opp.last_updated), default=None)
+    if paginated_opps:
+        last_modified_dt = max((opp.last_updated for opp in paginated_opps if opp.last_updated), default=None)
 
     if last_modified_dt:
-        etag = f'W/"{int(last_modified_dt.timestamp())}-{len(limited_opps)}"'
+        etag = f'W/"{int(last_modified_dt.timestamp())}-{total_count}-{offset}-{limit}"'
         response.headers["ETag"] = etag
         response.headers["Last-Modified"] = format_datetime(last_modified_dt)
 
@@ -680,14 +710,32 @@ async def get_matcher_opportunities(
 
         if incoming_etag and incoming_etag == etag:
             response.status_code = 304
-            return []
+            return PaginatedOddsResponse(
+                items=[],
+                total=total_count,
+                offset=offset,
+                limit=limit,
+                has_more=has_more
+            )
         if incoming_last_mod:
             try:
                 if_last_mod_dt = parsedate_to_datetime(incoming_last_mod)
                 if last_modified_dt <= if_last_mod_dt:
                     response.status_code = 304
-                    return []
+                    return PaginatedOddsResponse(
+                        items=[],
+                        total=total_count,
+                        offset=offset,
+                        limit=limit,
+                        has_more=has_more
+                    )
             except Exception:
                 pass
 
-    return limited_opps
+    return PaginatedOddsResponse(
+        items=paginated_opps,
+        total=total_count,
+        offset=offset,
+        limit=limit,
+        has_more=has_more
+    )

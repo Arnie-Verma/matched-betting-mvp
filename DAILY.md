@@ -4,6 +4,79 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2025-12-30 (Monday)
+
+### Session 11: Phase 1 Production Readiness Implementation
+
+**Goal**: Implement production infrastructure for scaling to 100+ bookmakers
+
+**Completed**:
+
+1. **EntainScraper - Config-driven Platform Scraper** ✅
+   - Created [entain_scraper.py](apps/worker/src/scrapers/entain_scraper.py) - Covers Ladbrokes, Neds, Unibet
+   - Single scraper with configurable `base_url` (pass different URL for each bookmaker)
+   - Same API structure across all Entain bookmakers - only domain differs
+   - Factory functions: `create_ladbrokes_scraper()`, `create_neds_scraper()`, `create_unibet_scraper()`
+
+2. **Dynamic Scraper Registry** ✅
+   - Updated [scrape_service.py](apps/worker/src/jobs/scrape_service.py) with `SCRAPER_CLASSES` registry
+   - Maps `scraper_class` from database config to implementation
+   - `get_scraper_for_bookmaker()` - Creates scrapers dynamically from database config
+   - `get_active_bookmakers_from_db()` - Loads active bookmakers with their platform config
+   - Fallback to static scrapers if database unavailable
+
+3. **Neds Bookmaker Enabled** ✅
+   - Updated [seed_all_bookmakers.py](apps/api/src/api/scripts/seed_all_bookmakers.py) - Set `is_active=True` for Neds
+   - Free tier now: Ladbrokes + Neds + Betfair (3 bookmakers)
+
+4. **Sentry Error Tracking** ✅
+   - Created [monitoring.py](apps/api/src/api/core/monitoring.py) - Production error tracking
+   - Added `sentry-sdk` to requirements (API and worker)
+   - `init_sentry()` - Initialize with DSN from environment
+   - `capture_exception()`, `capture_message()`, `add_breadcrumb()` - Error capture with context
+   - Filters transient errors (TimeoutError, ConnectionError)
+   - Integrated into main.py and scrape_service.py
+
+5. **Health Check Endpoints** ✅
+   - Enhanced [health.py](apps/api/src/api/routers/health.py) with production monitoring:
+   - `/health` - Basic health check
+   - `/health/scrapers` - Per-bookmaker status, odds counts, circuit breaker states
+   - `/health/database` - Connection status, upcoming events, response time
+   - `/health/detailed` - Combined comprehensive health status
+
+**Architecture Pattern**:
+```
+Database (bookmaker.scraping_config):
+├── scraper_class: "entain"    ← Maps to EntainScraper
+├── base_url: "https://www.neds.com.au"
+└── platform: "entain"
+
+SCRAPER_CLASSES Registry:
+├── "entain" → EntainScraper
+├── "betfair" → BetfairScraper
+├── "tab" → TABScraper (needs proxy)
+└── Future: punterstech, betmakers, generation_web, betcloud
+```
+
+**Files Created**:
+- [entain_scraper.py](apps/worker/src/scrapers/entain_scraper.py) - Platform scraper for Entain (400+ lines)
+- [monitoring.py](apps/api/src/api/core/monitoring.py) - Sentry integration (200+ lines)
+
+**Files Modified**:
+- [scrape_service.py](apps/worker/src/jobs/scrape_service.py) - Dynamic registry + Sentry integration
+- [health.py](apps/api/src/api/routers/health.py) - Production health endpoints
+- [main.py](apps/api/src/api/main.py) - Sentry initialization
+- [seed_all_bookmakers.py](apps/api/src/api/scripts/seed_all_bookmakers.py) - Neds enabled
+- requirements.txt (API + worker) - Added sentry-sdk
+
+**Next Steps**:
+1. Test Neds scraper end-to-end (run seed, run scrape, verify odds)
+2. Set up Sentry project and add SENTRY_DSN to environment
+3. Start PunterstechScraper implementation (21 bookmakers)
+4. Consider BetMakersScraper (33 bookmakers, SSR approach)
+
+---
+
 ## 2025-12-29 (Sunday)
 
 ### Session 9: Extensive Bookmaker Platform Discovery
