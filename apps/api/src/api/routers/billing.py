@@ -121,12 +121,15 @@ async def create_customer_portal_session(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not user.stripe_customer_id:
-        raise HTTPException(status_code=400, detail="User has no Stripe customer ID")
-
     stripe_service = StripeService()
 
     try:
+        # Ensure Stripe customer exists (creates one if missing)
+        if not user.stripe_customer_id:
+            customer = stripe_service.create_customer(user, user.email)
+            user.stripe_customer_id = customer.id
+            db.commit()
+
         session = stripe_service.create_customer_portal_session(
             customer_id=user.stripe_customer_id,
             return_url=request.return_url

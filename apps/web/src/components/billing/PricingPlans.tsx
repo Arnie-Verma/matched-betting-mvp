@@ -281,11 +281,17 @@ export default function PricingPlans() {
                 </div>
 
                 <button
-                  onClick={() => !isCurrent ? handleSubscribe(plan) : undefined}
-                  disabled={creatingCheckout === plan.name || isCurrent}
+                  onClick={() => {
+                    if (isCurrent) {
+                      handleManageBilling()
+                    } else {
+                      handleSubscribe(plan)
+                    }
+                  }}
+                  disabled={creatingCheckout === plan.name}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
                     isCurrent
-                      ? 'bg-green-100 text-green-800 cursor-not-allowed'
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
                       : plan.name === 'free'
                       ? 'bg-gray-900 text-white hover:bg-gray-800'
                       : isPopular
@@ -299,7 +305,7 @@ export default function PricingPlans() {
                       Loading...
                     </span>
                   ) : isCurrent ? (
-                    'Current Plan'
+                    'Manage subscription'
                   ) : plan.name === 'free' ? (
                     'Try for free'
                   ) : (

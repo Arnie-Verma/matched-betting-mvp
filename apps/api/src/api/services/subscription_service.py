@@ -256,7 +256,7 @@ class SubscriptionService:
         Tier structure (Betfair always included as exchange for lay odds):
         - Free tier: 2 bookmakers (Ladbrokes + Neds) + Betfair
         - Premium tier: 16 bookmakers + Betfair
-        - Diamond tier: All 103 bookmakers + Betfair
+        - Platinum tier: All 103 bookmakers + Betfair
 
         Note: Betfair is ALWAYS included as it's the exchange (provides lay odds).
         """
@@ -276,7 +276,7 @@ class SubscriptionService:
                 "betfair"
             ]
 
-        # Diamond/Platinum tier: All 103 bookmakers
+        # Platinum tier: All 103 bookmakers
         if plan in ["platinum", "diamond"]:
             return [
                 # All bookmakers

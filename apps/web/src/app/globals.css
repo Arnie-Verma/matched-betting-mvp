@@ -120,3 +120,46 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Upgrade CTA styling inside Clerk user menu when on free plan */
+.upgrade-cta {
+  background-color: #f2c037 !important;
+  color: #1f2937 !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  transition: background-color 0.2s ease;
+}
+.upgrade-cta:hover {
+  background-color: #e2b42c !important;
+}
+.upgrade-cta svg,
+.upgrade-cta-icon {
+  color: #1f2937 !important;
+}
+
+/* Highlight Clerk custom action (Upgrade now) only when on free plan */
+.free-plan .cl-userButtonPopoverCustomItemButton {
+  background-color: #f2c037 !important;
+  color: #1f2937 !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  order: -1;
+}
+.free-plan .cl-userButtonPopoverCustomItemButton:hover {
+  background-color: #e2b42c !important;
+}
+
+.free-plan .cl-userButtonPopoverActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.free-plan .cl-userButtonPopoverActionButton {
+  order: 0;
+}
+.free-plan .cl-userButtonPopoverCustomItemButton svg {
+  color: #1f2937 !important;
+}

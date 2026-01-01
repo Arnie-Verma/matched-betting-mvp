@@ -12,16 +12,64 @@ import {
   Menu,
   X,
   Lock,
-  CreditCard
+  CreditCard,
+  Star
 } from 'lucide-react'
 import { useSubscription } from '@/hooks/useSubscription'
+import { clientApi } from '@/lib/clientApi'
+import { useRouter } from 'next/navigation'
 
 export default function PostLoginHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const { isSignedIn } = useUser()
-  const { isPremium } = useSubscription()
+  const { isPremium, plan } = useSubscription()
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+  const manageLabel = plan === 'free' ? 'Upgrade now' : 'Manage Subscription'
+  const manageIcon = plan === 'free'
+    ? <Star className="w-4 h-4 upgrade-cta-icon" fill="currentColor" />
+    : <CreditCard className="w-4 h-4" />
+  const userButtonElements = {
+    avatarBox: "w-8 h-8",
+    ...(plan === 'free'
+      ? {
+          userButtonPopoverCustomItemButton: 'upgrade-cta',
+          userButtonPopoverCustomItemButtonIconBox: 'upgrade-cta-icon',
+          userButtonPopoverActionItemButtonIcon: 'upgrade-cta-icon',
+        }
+      : {})
+  }
+
+  useEffect(() => {
+    if (plan === 'free') {
+      document.body.classList.add('free-plan')
+    } else {
+      document.body.classList.remove('free-plan')
+    }
+    return () => document.body.classList.remove('free-plan')
+  }, [plan])
+
+  const goToPortal = async () => {
+    // If user is on free plan, send them to the billing page to upgrade
+    if (plan === 'free') {
+      router.push('/billing')
+      return
+    }
+
+    try {
+      const res = await clientApi.post('/billing/create-portal-session', {
+        return_url: window.location.origin + '/dashboard'
+      }) as { portal_url: string }
+
+      if (res.portal_url) {
+        window.location.href = res.portal_url
+      }
+    } catch (err) {
+      console.error('Failed to open billing portal', err)
+      alert('Could not open billing portal. Please try again.')
+    }
+  }
 
   // Don't show post-login header if user is not signed in
   if (!isSignedIn) return null
@@ -155,7 +203,7 @@ export default function PostLoginHeader() {
                 <UserButton
                   appearance={{
                     elements: {
-                      avatarBox: "w-8 h-8"
+                      ...userButtonElements
                     }
                   }}
                   userProfileProps={{
@@ -165,11 +213,25 @@ export default function PostLoginHeader() {
                   }}
                 >
                   <UserButton.MenuItems>
-                    <UserButton.Link
-                      label="Manage Subscription"
-                      labelIcon={<CreditCard className="w-4 h-4" />}
-                      href="/billing"
-                    />
+                    {plan === 'free' && (
+                      <UserButton.Action
+                        label={manageLabel}
+                        labelIcon={manageIcon}
+                        onClick={goToPortal}
+                      />
+                    )}
+                    {plan === 'free' ? (
+                      <>
+                        <UserButton.Action label="manageAccount" />
+                        <UserButton.Action label="signOut" />
+                      </>
+                    ) : (
+                      <UserButton.Action
+                        label={manageLabel}
+                        labelIcon={manageIcon}
+                        onClick={goToPortal}
+                      />
+                    )}
                   </UserButton.MenuItems>
                 </UserButton>
               </div>
@@ -181,16 +243,30 @@ export default function PostLoginHeader() {
             <UserButton
               appearance={{
                 elements: {
-                  avatarBox: "w-8 h-8"
+                  ...userButtonElements
                 }
               }}
             >
               <UserButton.MenuItems>
-                <UserButton.Link
-                  label="Manage Subscription"
-                  labelIcon={<CreditCard className="w-4 h-4" />}
-                  href="/billing"
-                />
+                {plan === 'free' && (
+                  <UserButton.Action
+                    label={manageLabel}
+                    labelIcon={manageIcon}
+                    onClick={goToPortal}
+                  />
+                )}
+                {plan === 'free' ? (
+                  <>
+                    <UserButton.Action label="manageAccount" />
+                    <UserButton.Action label="signOut" />
+                  </>
+                ) : (
+                  <UserButton.Action
+                    label={manageLabel}
+                    labelIcon={manageIcon}
+                    onClick={goToPortal}
+                  />
+                )}
               </UserButton.MenuItems>
             </UserButton>
             <button

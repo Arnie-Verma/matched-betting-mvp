@@ -107,7 +107,7 @@ export function PremiumLock({ feature, children }: { feature: string; children: 
         </div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">Premium Feature</h2>
         <p className="text-gray-600 mb-6 max-w-md">
-          This calculator is available on Premium and Diamond plans. Upgrade to unlock all calculators and tools.
+          This calculator is available on Premium and Platinum plans. Upgrade to unlock all calculators and tools.
         </p>
         <a
           href="/billing"

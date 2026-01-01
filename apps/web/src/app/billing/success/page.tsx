@@ -11,12 +11,9 @@ export default function BillingSuccessPage() {
   const sessionId = searchParams.get('session_id')
 
   useEffect(() => {
-    // You could verify the session with your backend here
-    // For now, just simulate a short loading period
     const timer = setTimeout(() => {
       setLoading(false)
     }, 2000)
-
     return () => clearTimeout(timer)
   }, [])
 

@@ -156,6 +156,7 @@ class StripeService:
                 "name": "auto"      # Automatically collect and save customer name for tax ID collection
             },
             "tax_id_collection": {"enabled": True},  # Allow customers to provide tax IDs
+            "allow_promotion_codes": True,  # Show promotion code field in Checkout
         }
 
         # No trial periods
