@@ -11,10 +11,10 @@ const navLinks = [
 
 export default function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-black/5 bg-[rgba(247,243,234,0.92)] backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-white/90 backdrop-blur">
+      <div className="container flex items-center justify-between py-4">
         <Link href="/" className="flex items-center gap-3">
-          <span className="h-10 w-10 rounded-2xl bg-[var(--ink)] text-white flex items-center justify-center text-lg font-semibold">
+          <span className="h-10 w-10 rounded-2xl bg-[var(--brand)] text-white flex items-center justify-center text-lg font-semibold">
             MB
           </span>
           <div className="leading-tight">
@@ -42,17 +42,17 @@ export default function SiteHeader() {
         </div>
 
         <details className="relative md:hidden">
-          <summary className="flex items-center gap-2 rounded-full border border-black/10 px-3 py-2 text-sm font-medium">
+          <summary className="flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 text-sm font-medium">
             <Menu className="h-4 w-4" />
             Menu
           </summary>
-          <div className="absolute right-0 mt-3 w-56 space-y-2 rounded-2xl border border-black/10 bg-white p-4 shadow-lg">
+          <div className="absolute right-0 mt-3 w-56 space-y-2 rounded-2xl border border-[var(--border)] bg-white p-4 shadow-lg">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href} className="block text-sm font-medium text-[var(--ink-muted)]">
                 {link.label}
               </Link>
             ))}
-            <div className="pt-2 border-t border-black/10 space-y-2">
+            <div className="pt-2 border-t border-[var(--border)] space-y-2">
               <Link href={`${appUrl}/sign-in`} className="block text-sm font-medium text-[var(--ink)]">
                 Log in
               </Link>

@@ -94,21 +94,21 @@ const plans = [
 export default function HomePage() {
   return (
     <main>
-      <section className="hero-bg">
-        <div className="mx-auto max-w-6xl px-6 pt-16 pb-20 md:pt-24">
+      <section className="hero-bg section">
+        <div className="container">
           <div className="grid gap-12 md:grid-cols-[1.1fr_0.9fr] md:items-center">
-            <div>
-              <p className="badge reveal" style={{ "--delay": "0s" } as CSSProperties}>
+            <div className="stack-lg">
+              <p className="eyebrow reveal" style={{ "--delay": "0s" } as CSSProperties}>
                 Built for Australia
               </p>
-              <h1 className="mt-6 text-4xl md:text-6xl leading-tight reveal" style={{ "--delay": "0.1s" } as CSSProperties}>
+              <h1 className="display reveal" style={{ "--delay": "0.1s" } as CSSProperties}>
                 Make matched betting feel simple, calm, and profitable.
               </h1>
-              <p className="mt-5 text-lg text-[var(--ink-muted)] max-w-xl reveal" style={{ "--delay": "0.2s" } as CSSProperties}>
+              <p className="lead max-w-xl reveal" style={{ "--delay": "0.2s" } as CSSProperties}>
                 MatchedBetting gives you the odds matcher, calculators, and academy to turn bookmaker promos
                 into predictable profit. No guesswork, no gambling.
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row reveal" style={{ "--delay": "0.3s" } as CSSProperties}>
+              <div className="flex flex-col gap-3 sm:flex-row reveal" style={{ "--delay": "0.3s" } as CSSProperties}>
                 <Link href={`${appUrl}/sign-up`} className="btn-primary">
                   Start free
                   <ArrowUpRight className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default function HomePage() {
                   Explore features
                 </Link>
               </div>
-              <div className="mt-8 flex flex-wrap gap-6 text-sm text-[var(--ink-muted)] reveal" style={{ "--delay": "0.4s" } as CSSProperties}>
+              <div className="flex flex-wrap gap-6 text-sm text-[var(--ink-muted)] reveal" style={{ "--delay": "0.4s" } as CSSProperties}>
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4" />
                   Risk managed strategies
@@ -134,8 +134,8 @@ export default function HomePage() {
             </div>
 
             <div className="relative">
-              <div className="absolute -top-8 -left-6 h-32 w-32 rounded-full bg-[var(--mint)]/70 blur-2xl drift" aria-hidden="true"></div>
-              <div className="absolute bottom-0 right-0 h-40 w-40 rounded-full bg-[var(--rose)]/80 blur-2xl float" aria-hidden="true"></div>
+              <div className="absolute -top-8 -left-6 h-32 w-32 rounded-full bg-[var(--accent)]/15 blur-2xl drift" aria-hidden="true"></div>
+              <div className="absolute bottom-0 right-0 h-40 w-40 rounded-full bg-[var(--profit)]/15 blur-2xl float" aria-hidden="true"></div>
 
               <div className="surface p-6 md:p-8 grid-dots reveal" style={{ "--delay": "0.2s" } as CSSProperties}>
                 <div className="flex items-center justify-between">
@@ -143,7 +143,7 @@ export default function HomePage() {
                     <p className="text-xs text-[var(--ink-muted)]">Bookmaker coverage</p>
                     <p className="text-2xl font-semibold">100+ brands</p>
                   </div>
-                  <div className="h-12 w-12 rounded-2xl bg-[var(--cobalt)] text-white flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-2xl bg-[var(--brand)] text-white flex items-center justify-center">
                     <Sparkles className="h-5 w-5" />
                   </div>
                 </div>
@@ -152,7 +152,7 @@ export default function HomePage() {
                   {["TAB", "Sportsbet", "Betfair", "Neds", "Ladbrokes", "Unibet"].map((label, index) => (
                     <div
                       key={label}
-                      className="rounded-xl border border-black/10 bg-white/80 py-4 font-semibold text-[var(--ink-muted)]"
+                      className="rounded-xl border border-[var(--border)] bg-white/80 py-4 font-semibold text-[var(--ink-muted)]"
                       style={{ animationDelay: `${index * 0.2}s` }}
                     >
                       {label}
@@ -160,7 +160,7 @@ export default function HomePage() {
                   ))}
                 </div>
 
-                <div className="mt-6 flex items-center justify-between rounded-2xl border border-black/10 bg-white/80 px-4 py-3">
+                <div className="mt-6 flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white/80 px-4 py-3">
                   <div>
                     <p className="text-xs text-[var(--ink-muted)]">Average weekly profit</p>
                     <p className="text-lg font-semibold">A$420 - A$850</p>
@@ -173,8 +173,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-padding">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="section">
+        <div className="container">
           <div className="grid gap-6 md:grid-cols-4">
             {highlights.map((item, index) => (
               <div
@@ -182,7 +182,7 @@ export default function HomePage() {
                 className="surface p-6 reveal"
                 style={{ "--delay": `${0.1 * index}s` } as CSSProperties}
               >
-                <div className="mb-4 h-10 w-10 rounded-2xl bg-[var(--sun)]/60 text-[var(--ink)] flex items-center justify-center">
+                <div className="mb-4 h-10 w-10 rounded-2xl bg-[var(--accent-soft)] text-[var(--brand)] flex items-center justify-center">
                   {item.icon}
                 </div>
                 <h3 className="text-lg font-semibold">{item.title}</h3>
@@ -193,11 +193,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-padding">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="section">
+        <div className="container">
           <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
             <div>
-              <p className="badge">How it works</p>
+              <p className="eyebrow">How it works</p>
               <h2 className="mt-4 text-3xl md:text-4xl">A calm, repeatable workflow that pays out.</h2>
               <p className="mt-4 text-[var(--ink-muted)]">
                 We guide you through each step so you never feel lost. Learn once, repeat weekly.
@@ -210,7 +210,7 @@ export default function HomePage() {
               {steps.map((step, index) => (
                 <div key={step.title} className="surface p-6 reveal" style={{ "--delay": `${0.1 * index}s` } as CSSProperties}>
                   <div className="flex items-start gap-4">
-                    <div className="h-10 w-10 rounded-full bg-[var(--cobalt)] text-white flex items-center justify-center font-semibold">
+                    <div className="h-10 w-10 rounded-full bg-[var(--brand)] text-white flex items-center justify-center font-semibold">
                       {index + 1}
                     </div>
                     <div>
@@ -225,11 +225,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-padding">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="section">
+        <div className="container">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="badge">Member stories</p>
+              <p className="eyebrow">Member stories</p>
               <h2 className="mt-4 text-3xl md:text-4xl">Proof that the process works.</h2>
             </div>
             <Link href={`${appUrl}/sign-up`} className="btn-ghost">
@@ -250,11 +250,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-padding">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="section">
+        <div className="container">
           <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="badge">Pricing</p>
+              <p className="eyebrow">Pricing</p>
               <h2 className="mt-4 text-3xl md:text-4xl">Plans that match your pace.</h2>
               <p className="mt-4 text-[var(--ink-muted)]">Start free, then unlock more bookmakers when you are ready.</p>
             </div>
@@ -266,7 +266,7 @@ export default function HomePage() {
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`surface p-6 ${plan.accent ? "border-[var(--coral)]" : ""}`}
+                className={`surface p-6 ${plan.accent ? "border-[var(--accent)]" : ""}`}
               >
                 <h3 className="text-xl font-semibold">{plan.name}</h3>
                 <p className="text-3xl font-semibold mt-3">{plan.price}</p>
@@ -274,7 +274,7 @@ export default function HomePage() {
                 <ul className="mt-6 space-y-2 text-sm text-[var(--ink-muted)]">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-[var(--coral)]" />
+                      <Sparkles className="h-4 w-4 text-[var(--accent)]" />
                       {feature}
                     </li>
                   ))}

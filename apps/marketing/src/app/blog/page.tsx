@@ -40,9 +40,9 @@ const posts = [
 export default function BlogPage() {
   return (
     <main>
-      <section className="section-padding hero-bg">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="badge">Blog</p>
+      <section className="hero-bg section">
+        <div className="container">
+          <p className="eyebrow">Blog</p>
           <h1 className="mt-4 text-4xl md:text-5xl">Strategy notes and matched betting guides.</h1>
           <p className="mt-4 text-[var(--ink-muted)] max-w-2xl">
             Learn how to execute matched betting confidently with walkthroughs, checklists, and strategy tips.
@@ -50,8 +50,8 @@ export default function BlogPage() {
         </div>
       </section>
 
-      <section className="section-padding">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="section">
+        <div className="container">
           <div className="grid gap-6 md:grid-cols-2">
             {posts.map((post, index) => (
               <article

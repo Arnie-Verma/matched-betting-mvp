@@ -12,6 +12,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Summarized current architecture and drafted dual-site plan (marketing vs app)
 - Created new apps/marketing Next.js app skeleton with shared header/footer and global styling
 - Built marketing pages: home, features, features/bookmakers, pricing, blog
+- Implemented unified brand system in marketing app (palette, typography, spacing/layout utilities)
 
 ### Blockers
 - None

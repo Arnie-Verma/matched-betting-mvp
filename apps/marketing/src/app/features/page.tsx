@@ -47,11 +47,11 @@ const featureBlocks = [
 export default function FeaturesPage() {
   return (
     <main>
-      <section className="section-padding hero-bg">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="hero-bg section">
+        <div className="container">
           <div className="grid gap-10 md:grid-cols-[1.1fr_0.9fr] md:items-center">
             <div>
-              <p className="badge">Product tour</p>
+              <p className="eyebrow">Product tour</p>
               <h1 className="mt-4 text-4xl md:text-5xl">Everything you need to run matched betting like a system.</h1>
               <p className="mt-4 text-[var(--ink-muted)]">
                 Tools, training, and coverage built for the Australian market. Start free and scale as you go.
@@ -77,7 +77,7 @@ export default function FeaturesPage() {
                   "Alerts for high value promos",
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-[var(--coral)]"></div>
+                    <div className="h-2 w-2 rounded-full bg-[var(--accent)]"></div>
                     <span>{item}</span>
                   </div>
                 ))}
@@ -87,8 +87,8 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      <section className="section-padding">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="section">
+        <div className="container">
           <div className="grid gap-6 md:grid-cols-3">
             {featureBlocks.map((item, index) => (
               <div
@@ -96,7 +96,7 @@ export default function FeaturesPage() {
                 className="surface p-6 reveal"
                 style={{ "--delay": `${0.1 * index}s` } as CSSProperties}
               >
-                <div className="mb-4 h-10 w-10 rounded-2xl bg-[var(--mint)]/70 flex items-center justify-center text-[var(--ink)]">
+                <div className="mb-4 h-10 w-10 rounded-2xl bg-[var(--accent-soft)] flex items-center justify-center text-[var(--brand)]">
                   {item.icon}
                 </div>
                 <h3 className="text-lg font-semibold">{item.title}</h3>
@@ -107,8 +107,8 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      <section className="section-padding">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="section">
+        <div className="container">
           <div className="surface p-8 md:p-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl md:text-3xl font-semibold">Want to see the bookmaker coverage?</h2>

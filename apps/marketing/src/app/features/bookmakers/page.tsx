@@ -7,13 +7,13 @@ const tiers = [
   {
     name: "Free",
     description: "Start with the essentials.",
-    accent: "bg-[var(--mint)]/60",
+    accent: "bg-[var(--accent-soft)]",
     bookmakers: ["Ladbrokes", "Neds", "Betfair"],
   },
   {
     name: "Premium",
     description: "Unlock high value Australian operators.",
-    accent: "bg-[var(--sun)]/60",
+    accent: "bg-[var(--highlight)]/20",
     bookmakers: [
       "Sportsbet",
       "TAB",
@@ -33,7 +33,7 @@ const tiers = [
   {
     name: "Diamond",
     description: "103+ bookmakers across every major platform.",
-    accent: "bg-[var(--rose)]/70",
+    accent: "bg-[var(--brand)]/12",
     bookmakers: [
       "BetMakers network",
       "Punterstech brands",
@@ -74,11 +74,11 @@ const platforms = [
 export default function BookmakersPage() {
   return (
     <main>
-      <section className="section-padding hero-bg">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="hero-bg section">
+        <div className="container">
           <div className="grid gap-8 md:grid-cols-[1.2fr_0.8fr] md:items-center">
             <div>
-              <p className="badge">Bookmaker coverage</p>
+              <p className="eyebrow">Bookmaker coverage</p>
               <h1 className="mt-4 text-4xl md:text-5xl">Coverage built for Australia.</h1>
               <p className="mt-4 text-[var(--ink-muted)]">
                 We map coverage by platform so you always know how many bookmakers are included at each tier.
@@ -95,7 +95,7 @@ export default function BookmakersPage() {
             </div>
             <div className="surface p-6">
               <div className="flex items-center gap-3">
-                <BadgeCheck className="h-5 w-5 text-[var(--coral)]" />
+                <BadgeCheck className="h-5 w-5 text-[var(--accent)]" />
                 <div>
                   <div className="text-sm text-[var(--ink-muted)]">Total coverage</div>
                   <div className="text-2xl font-semibold">103+ bookmakers</div>
@@ -103,7 +103,10 @@ export default function BookmakersPage() {
               </div>
               <div className="mt-6 grid gap-3 text-sm">
                 {platforms.map((item) => (
-                  <div key={item.title} className="flex items-center justify-between rounded-xl border border-black/10 bg-white/70 px-3 py-2">
+                  <div
+                    key={item.title}
+                    className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-white/70 px-3 py-2"
+                  >
                     <span className="font-semibold">{item.title}</span>
                     <span className="text-[var(--ink-muted)]">{item.detail}</span>
                   </div>
@@ -114,8 +117,8 @@ export default function BookmakersPage() {
         </div>
       </section>
 
-      <section className="section-padding">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="section">
+        <div className="container">
           <div className="grid gap-6 md:grid-cols-3">
             {tiers.map((tier, index) => (
               <div
@@ -131,7 +134,7 @@ export default function BookmakersPage() {
                 <div className="mt-4 space-y-2 text-sm">
                   {tier.bookmakers.map((bookmaker) => (
                     <div key={bookmaker} className="flex items-center gap-2 text-[var(--ink-muted)]">
-                      <span className="h-2 w-2 rounded-full bg-[var(--coral)]"></span>
+                      <span className="h-2 w-2 rounded-full bg-[var(--accent)]"></span>
                       {bookmaker}
                     </div>
                   ))}
@@ -142,12 +145,12 @@ export default function BookmakersPage() {
         </div>
       </section>
 
-      <section className="section-padding">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="section">
+        <div className="container">
           <div className="surface p-8 md:p-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-3">
-                <Rocket className="h-5 w-5 text-[var(--coral)]" />
+                <Rocket className="h-5 w-5 text-[var(--accent)]" />
                 <h2 className="text-2xl md:text-3xl font-semibold">Building coverage fast</h2>
               </div>
               <p className="mt-3 text-[var(--ink-muted)]">

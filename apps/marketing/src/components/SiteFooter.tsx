@@ -11,8 +11,8 @@ const footerLinks = [
 
 export default function SiteFooter() {
   return (
-    <footer className="border-t border-black/10 bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-12">
+    <footer className="border-t border-[var(--border)] bg-white">
+      <div className="container py-12">
         <div className="surface p-8 md:p-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="badge">Ready to start</p>
@@ -40,7 +40,11 @@ export default function SiteFooter() {
             <div className="text-sm font-semibold">Explore</div>
             <div className="mt-3 space-y-2">
               {footerLinks.map((link) => (
-                <Link key={link.href} href={link.href} className="block text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]">
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="block text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]"
+                >
                   {link.label}
                 </Link>
               ))}

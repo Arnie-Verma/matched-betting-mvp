@@ -45,9 +45,9 @@ const plans = [
 export default function PricingPage() {
   return (
     <main>
-      <section className="section-padding hero-bg">
-        <div className="mx-auto max-w-6xl px-6 text-center">
-          <p className="badge">Pricing</p>
+      <section className="hero-bg section">
+        <div className="container text-center">
+          <p className="eyebrow">Pricing</p>
           <h1 className="mt-4 text-4xl md:text-5xl">Choose the plan that fits your pace.</h1>
           <p className="mt-4 text-[var(--ink-muted)] max-w-2xl mx-auto">
             Start free and upgrade when you are ready to unlock more bookmakers, tools, and support.
@@ -55,13 +55,13 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="section-padding">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="section">
+        <div className="container">
           <div className="grid gap-6 md:grid-cols-3">
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`surface p-8 ${plan.highlight ? "border-[var(--coral)]" : ""}`}
+                className={`surface p-8 ${plan.highlight ? "border-[var(--accent)]" : ""}`}
               >
                 {plan.highlight && (
                   <div className="badge mb-4">
@@ -78,7 +78,7 @@ export default function PricingPage() {
                 <ul className="mt-6 space-y-3 text-sm">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-[var(--ink-muted)]">
-                      <Check className="h-4 w-4 text-[var(--coral)]" />
+                      <Check className="h-4 w-4 text-[var(--accent)]" />
                       {feature}
                     </li>
                   ))}
