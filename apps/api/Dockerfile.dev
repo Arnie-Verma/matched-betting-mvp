@@ -35,4 +35,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --no-cache-dir --upgrade pip
 
-CMD bash -lc "pip install -r requirements.txt -r requirements-dev.txt && pip install -e . && playwright install chromium && uvicorn api.main:app --host 0.0.0.0 --port ${API_PORT:-8000} --reload --reload-dir src"
+# Pre-install dependencies during build so the container can start quickly
+COPY apps/api/requirements.txt apps/api/requirements-dev.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
+
+# Copy the app for editable install and Playwright assets
+COPY apps/api/pyproject.toml ./pyproject.toml
+COPY apps/api/src ./src
+COPY apps/api/alembic ./alembic
+COPY apps/api/alembic.ini ./alembic.ini
+RUN pip install --no-cache-dir -e . && playwright install chromium
+
+CMD bash -lc "uvicorn api.main:app --host 0.0.0.0 --port ${API_PORT:-8000} --reload --reload-dir src"

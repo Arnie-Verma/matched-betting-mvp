@@ -6,6 +6,7 @@ src/api/core/__init__.py
 src/api/core/auth.py
 src/api/core/config.py
 src/api/core/database.py
+src/api/core/monitoring.py
 src/api/db/seed_nba_data.py
 src/api/db/seed_odds_data.py
 src/api/db/seed_plans.py
