@@ -4,6 +4,23 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-01-01 (Thursday)
+
+### Completed
+- Reviewed CLAUDE.md, DAILY.md, DISCOVERY_SUMMARY.md, SCRAPER_STRATEGY.md
+- Inspected repo structure (apps/web, apps/api, apps/worker, infra) and marketing app state
+- Summarized current architecture and drafted dual-site plan (marketing vs app)
+- Created new apps/marketing Next.js app skeleton with shared header/footer and global styling
+- Built marketing pages: home, features, features/bookmakers, pricing, blog
+
+### Blockers
+- None
+
+### Next Steps
+- Configure subdomain split (marketing root + app subdomain) and set NEXT_PUBLIC_APP_URL
+- Plan DNS/hosting + Clerk subdomain auth settings
+- Verify marketing + web apps locally and adjust copy/visuals as needed
+
 ## 2025-12-30 (Monday)
 
 ### Session 11: Phase 1 Production Readiness Implementation
