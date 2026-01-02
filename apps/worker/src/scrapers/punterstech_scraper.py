@@ -80,9 +80,9 @@ PUNTERSTECH_BOOKMAKERS = {
     "cashcage": ("cashcage", "https://api.public.cashcage.com.au", "https://www.cashcage.com.au"),
     "teambet": ("teambet", "https://api.public.teambet.com.au", "https://www.teambet.com.au"),
     "betvista": ("betvista", "https://api.public.betvista.com.au", "https://www.betvista.com.au"),
-    # Corrected URLs (need verification)
+    # Corrected URLs (verified 2026-01-03)
     "topbet": ("topbet", "https://api.public.topbet.au", "https://www.topbet.au"),
-    "chasebet": ("chasebet", "https://api.public.chasebet.au", "https://www.chasebet.au"),
+    "chasebet": ("chasebet", "https://api.public.chasebet.com.au", "https://www.chasebet.com.au"),
     "betbuzz": ("betbuzz", "https://api.public.betbuzz.au", "https://www.betbuzz.au"),
     "betalpha": ("betalpha", "https://api.public.betalpha.au", "https://www.betalpha.au"),
     "ripperbet": ("ripperbet", "https://api.public.ripperbet.au", "https://www.ripperbet.au"),

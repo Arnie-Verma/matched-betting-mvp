@@ -907,7 +907,7 @@ def seed_all_bookmakers(db: Session):
             "display_name": "BlondeBet",
             "website_url": "https://www.blondebet.com.au",
             "base_url": "https://api.public.blondebet.com.au",
-            "is_active": False,
+            "is_active": True,  # ENABLED 2026-01-03 - API verified working
             "scraping_config": {
                 "tier": "diamond",
                 "platform": "punterstech",
@@ -922,7 +922,7 @@ def seed_all_bookmakers(db: Session):
             "display_name": "BetFocus",
             "website_url": "https://www.betfocus.com.au",
             "base_url": "https://api.public.betfocus.com.au",
-            "is_active": False,
+            "is_active": True,  # ENABLED 2026-01-03 - API verified working
             "scraping_config": {
                 "tier": "diamond",
                 "platform": "punterstech",
@@ -937,7 +937,7 @@ def seed_all_bookmakers(db: Session):
             "display_name": "CashCage",
             "website_url": "https://www.cashcage.com.au",
             "base_url": "https://api.public.cashcage.com.au",
-            "is_active": False,
+            "is_active": True,  # ENABLED 2026-01-03 - API verified working
             "scraping_config": {
                 "tier": "diamond",
                 "platform": "punterstech",
@@ -952,7 +952,7 @@ def seed_all_bookmakers(db: Session):
             "display_name": "LightningBet",
             "website_url": "https://www.lightningbet.com.au",
             "base_url": "https://api.public.lightningbet.com.au",
-            "is_active": False,
+            "is_active": True,  # ENABLED 2026-01-03 - API verified working
             "scraping_config": {
                 "tier": "diamond",
                 "platform": "punterstech",
@@ -997,7 +997,7 @@ def seed_all_bookmakers(db: Session):
             "display_name": "BetAlpha",
             "website_url": "https://www.betalpha.au",
             "base_url": "https://api.public.betalpha.au",
-            "is_active": False,  # Verify API works before enabling
+            "is_active": False,  # DNS failure 2026-01-03 - domain may be offline
             "scraping_config": {
                 "tier": "diamond",
                 "platform": "punterstech",
@@ -1027,7 +1027,7 @@ def seed_all_bookmakers(db: Session):
             "display_name": "TrueBet",
             "website_url": "https://www.truebet.com.au",
             "base_url": "https://api.public.truebet.com.au",
-            "is_active": False,
+            "is_active": True,  # ENABLED 2026-01-03 - API verified working
             "scraping_config": {
                 "tier": "diamond",
                 "platform": "punterstech",
@@ -1042,7 +1042,7 @@ def seed_all_bookmakers(db: Session):
             "display_name": "WizBet",
             "website_url": "https://www.wizbet.com.au",
             "base_url": "https://api.public.wizbet.com.au",
-            "is_active": False,
+            "is_active": True,  # ENABLED 2026-01-03 - API verified working
             "scraping_config": {
                 "tier": "diamond",
                 "platform": "punterstech",
@@ -1087,7 +1087,7 @@ def seed_all_bookmakers(db: Session):
             "display_name": "TeamBet",
             "website_url": "https://www.teambet.com.au",
             "base_url": "https://api.public.teambet.com.au",
-            "is_active": False,
+            "is_active": True,  # ENABLED 2026-01-03 - API verified working
             "scraping_config": {
                 "tier": "diamond",
                 "platform": "punterstech",
@@ -1131,9 +1131,9 @@ def seed_all_bookmakers(db: Session):
             "code": "chasebet",
             "name": "ChaseBet",
             "display_name": "ChaseBet",
-            "website_url": "https://www.chasebet.au",
-            "base_url": "https://api.public.chasebet.au",
-            "is_active": False,  # Verify API works before enabling
+            "website_url": "https://www.chasebet.com.au",
+            "base_url": "https://api.public.chasebet.com.au",
+            "is_active": False,  # DNS failure 2026-01-03 - API domain doesn't resolve
             "scraping_config": {
                 "tier": "diamond",
                 "platform": "punterstech",
@@ -1148,7 +1148,7 @@ def seed_all_bookmakers(db: Session):
             "display_name": "BetVista",
             "website_url": "https://www.betvista.com.au",
             "base_url": "https://api.public.betvista.com.au",
-            "is_active": False,
+            "is_active": True,  # ENABLED 2026-01-03 - API verified working
             "scraping_config": {
                 "tier": "diamond",
                 "platform": "punterstech",

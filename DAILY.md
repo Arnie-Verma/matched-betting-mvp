@@ -4,25 +4,28 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
-## 2026-01-03 (Friday) - Session 3: Docker Memory Fix + Testing Remaining Bookmakers
+## 2026-01-03 (Friday) - Session 3: Docker Fix + 18 Punterstech Bookmakers Live
 
 ### Completed
 - Fixed Docker memory issue (ENOMEM errors causing API/web crashes):
   - Root cause: uvicorn --reload flag using watchfiles library consuming too much memory
   - Fixed by removing --reload and --reload-dir flags from Dockerfile.dev
   - Rebuilt containers, services now stable
-- Enabled 10 Punterstech bookmakers from Session 2 (diamond tier):
-  - tradiebet, mintbet, betchamps, starsports, topbet, betblitz, betbuzz, ripperbet, millennialbet, betreal
-- Verified frontend authentication working after container restart
-- Identified 12 remaining disabled Punterstech bookmakers requiring testing
+- Tested all remaining Punterstech bookmakers (10 total):
+  - 8 WORKING: blondebet, betfocus, cashcage, lightningbet, truebet, wizbet, teambet, betvista
+  - 2 DNS FAILURES: chasebet (.com.au), betalpha (.au) - domains don't resolve
+- Enabled 8 additional Punterstech bookmakers (18 total active):
+  - Previously: tradiebet, mintbet, betchamps, starsports, topbet, betblitz, betbuzz, ripperbet, millennialbet, betreal
+  - Newly enabled: blondebet, betfocus, cashcage, lightningbet, truebet, wizbet, teambet, betvista
+- Fixed chasebet URL to .com.au (still DNS failure - API subdomain doesn't exist)
 
 ### Blockers
-- None - Docker stability issues resolved
+- chasebet & betalpha: API subdomains don't resolve (may be offline or different API pattern)
 
 ### Next Steps
-- Fix chasebet URL (.com.au confirmed by user) and betalpha URL (.au confirmed)
-- Test 10 remaining untested Punterstech bookmakers (betfocus, lightningbet, blondebet, wizbet, truebet, cashcage, teambet, betvista, + 2 corrected)
-- Enable all working bookmakers to maximize diamond tier value
+- Run full scrape test with all 18 Punterstech + Betfair + Ladbrokes + Neds
+- Verify odds matching working on frontend
+- Investigate chasebet/betalpha if they come online
 
 ---
 
