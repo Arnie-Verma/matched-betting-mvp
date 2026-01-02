@@ -373,7 +373,7 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
                   <div className="flex items-start gap-2 text-xs text-yellow-900">
                     <span className="text-base leading-none mt-0.5">⚠️</span>
                     <span>
-                      You'll lose about <strong>{formatCurrency(Math.abs(calc.qualifyingLoss))}</strong> ({formatPercentage(calc.pnlPercentage)}) to unlock bonus bets worth much more.
+                      You&apos;ll lose about <strong>{formatCurrency(Math.abs(calc.qualifyingLoss))}</strong> ({formatPercentage(calc.pnlPercentage)}) to unlock bonus bets worth much more.
                     </span>
                   </div>
                 </div>

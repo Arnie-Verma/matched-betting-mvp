@@ -157,14 +157,14 @@ export default function TrueOddsCalculatorPage() {
         <div className="flex gap-3">
           <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-800">
-            <strong>True Odds</strong> are fair odds after removing the bookmaker's margin.
+            <strong>True Odds</strong> are fair odds after removing the bookmaker&apos;s margin.
             {isUnderround ? (
               <span className="block mt-1 text-green-700">
                 <strong>Under-round detected!</strong> This could indicate missing outcomes or arbitrage potential.
               </span>
             ) : (
               <span className="block mt-1">
-                The overround ({formatPercentage(displayOverround, false)}) is the bookmaker's built-in profit margin.
+                The overround ({formatPercentage(displayOverround, false)}) is the bookmaker&apos;s built-in profit margin.
               </span>
             )}
           </div>

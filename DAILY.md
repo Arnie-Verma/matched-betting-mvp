@@ -13,6 +13,8 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Created new apps/marketing Next.js app skeleton with shared header/footer and global styling
 - Built marketing pages: home, features, features/bookmakers, pricing, blog
 - Implemented unified brand system in marketing app (palette, typography, spacing/layout utilities)
+- Began applying unified brand system to apps/web (tokens, typography, navigation, home/how-it-works/dashboard)
+- Removed unused app routes (how-it-works) and redirected app root to dashboard/sign-in
 
 ### Blockers
 - None

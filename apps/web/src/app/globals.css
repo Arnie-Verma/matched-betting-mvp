@@ -6,8 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-code);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -44,72 +44,92 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067);
+  --radius: 1.125rem;
+  --background: #f6f8fb;
+  --foreground: #0b1220;
+  --card: #ffffff;
+  --card-foreground: #0b1220;
+  --popover: #ffffff;
+  --popover-foreground: #0b1220;
+  --primary: #2957d5;
+  --primary-foreground: #ffffff;
+  --secondary: #e6edff;
+  --secondary-foreground: #102a43;
+  --muted: #eef2f7;
+  --muted-foreground: #64748b;
+  --accent: #e6edff;
+  --accent-foreground: #102a43;
+  --destructive: #b91c1c;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #2957d5;
+  --chart-1: #2957d5;
+  --chart-2: #0f766e;
+  --chart-3: #102a43;
+  --chart-4: #b45309;
+  --chart-5: #64748b;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0b1220;
+  --sidebar-primary: #102a43;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e6edff;
+  --sidebar-accent-foreground: #102a43;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #2957d5;
+  --brand: #102a43;
+  --brand-strong: #0b1e34;
+  --accent-strong: #1f46b8;
+  --accent-soft: #e6edff;
+  --profit: #0f766e;
+  --highlight: #b45309;
+  --ink: #0b1220;
+  --ink-muted: #64748b;
+  --bg: #f6f8fb;
+  --surface: #ffffff;
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
+  --background: #070b14;
+  --foreground: #e6edf6;
+  --card: #0b1220;
+  --card-foreground: #e6edf6;
+  --popover: #0b1220;
+  --popover-foreground: #e6edf6;
+  --primary: #2957d5;
+  --primary-foreground: #f8fafc;
+  --secondary: #0f1b2d;
+  --secondary-foreground: #e6edf6;
+  --muted: #0f1b2d;
+  --muted-foreground: #93a4b7;
+  --accent: #0f1b2d;
+  --accent-foreground: #e6edf6;
+  --destructive: #b91c1c;
+  --border: #1b2536;
+  --input: #1b2536;
+  --ring: #2957d5;
+  --chart-1: #3b6ff0;
+  --chart-2: #19a79b;
+  --chart-3: #93a4b7;
+  --chart-4: #d08a2d;
+  --chart-5: #64748b;
+  --sidebar: #0b1220;
+  --sidebar-foreground: #e6edf6;
+  --sidebar-primary: #2957d5;
+  --sidebar-primary-foreground: #f8fafc;
+  --sidebar-accent: #0f1b2d;
+  --sidebar-accent-foreground: #e6edf6;
+  --sidebar-border: #1b2536;
+  --sidebar-ring: #2957d5;
+  --brand: #2957d5;
+  --brand-strong: #1f46b8;
+  --accent-strong: #1f46b8;
+  --accent-soft: #1b2740;
+  --profit: #19a79b;
+  --highlight: #d08a2d;
+  --ink: #e6edf6;
+  --ink-muted: #93a4b7;
+  --bg: #070b14;
+  --surface: #0b1220;
 }
 
 @layer base {
@@ -117,38 +137,47 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
   }
 }
 
 /* Upgrade CTA styling inside Clerk user menu when on free plan */
 .upgrade-cta {
-  background-color: #f2c037 !important;
-  color: #1f2937 !important;
+  background-color: var(--highlight) !important;
+  color: #ffffff !important;
   font-weight: 700 !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
   padding: 10px 12px !important;
   transition: background-color 0.2s ease;
 }
 .upgrade-cta:hover {
-  background-color: #e2b42c !important;
+  background-color: #9a3412 !important;
 }
 .upgrade-cta svg,
 .upgrade-cta-icon {
-  color: #1f2937 !important;
+  color: #ffffff !important;
 }
 
 /* Highlight Clerk custom action (Upgrade now) only when on free plan */
 .free-plan .cl-userButtonPopoverCustomItemButton {
-  background-color: #f2c037 !important;
-  color: #1f2937 !important;
+  background-color: var(--highlight) !important;
+  color: #ffffff !important;
   font-weight: 700 !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
   padding: 10px 12px !important;
   order: -1;
 }
 .free-plan .cl-userButtonPopoverCustomItemButton:hover {
-  background-color: #e2b42c !important;
+  background-color: #9a3412 !important;
 }
 
 .free-plan .cl-userButtonPopoverActions {
@@ -161,5 +190,5 @@
   order: 0;
 }
 .free-plan .cl-userButtonPopoverCustomItemButton svg {
-  color: #1f2937 !important;
+  color: #ffffff !important;
 }

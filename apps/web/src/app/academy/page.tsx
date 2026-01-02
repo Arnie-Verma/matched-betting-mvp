@@ -98,7 +98,7 @@ export default async function AcademyPage() {
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Master the art of matched betting with our comprehensive course library.
-            From complete beginner to advanced strategies - we've got you covered.
+            From complete beginner to advanced strategies - we&apos;ve got you covered.
           </p>
         </div>
 
