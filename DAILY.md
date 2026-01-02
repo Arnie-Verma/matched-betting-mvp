@@ -4,6 +4,28 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-01-03 (Friday) - Session 3: Docker Memory Fix + Testing Remaining Bookmakers
+
+### Completed
+- Fixed Docker memory issue (ENOMEM errors causing API/web crashes):
+  - Root cause: uvicorn --reload flag using watchfiles library consuming too much memory
+  - Fixed by removing --reload and --reload-dir flags from Dockerfile.dev
+  - Rebuilt containers, services now stable
+- Enabled 10 Punterstech bookmakers from Session 2 (diamond tier):
+  - tradiebet, mintbet, betchamps, starsports, topbet, betblitz, betbuzz, ripperbet, millennialbet, betreal
+- Verified frontend authentication working after container restart
+- Identified 12 remaining disabled Punterstech bookmakers requiring testing
+
+### Blockers
+- None - Docker stability issues resolved
+
+### Next Steps
+- Fix chasebet URL (.com.au confirmed by user) and betalpha URL (.au confirmed)
+- Test 10 remaining untested Punterstech bookmakers (betfocus, lightningbet, blondebet, wizbet, truebet, cashcage, teambet, betvista, + 2 corrected)
+- Enable all working bookmakers to maximize diamond tier value
+
+---
+
 ## 2026-01-02 (Friday) - Session 2: Punterstech Integration Complete
 
 ### Completed
@@ -21,6 +43,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Cross-bookmaker matching validation: 43 events have Betfair + Punterstech odds together
 - Updated seed_all_bookmakers.py with corrected URLs and enabled bookmakers
 - Updated punterstech_scraper.py PUNTERSTECH_BOOKMAKERS dict with corrected URLs
+- Fixed Dockerfile.dev to remove --reload flag (prevents memory exhaustion)
 
 **Files Modified:**
 1. [apps/api/src/api/scripts/seed_all_bookmakers.py](apps/api/src/api/scripts/seed_all_bookmakers.py):
