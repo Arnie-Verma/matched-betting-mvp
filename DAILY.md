@@ -4,6 +4,36 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-01-02 (Friday)
+
+### Completed
+- Reviewed CLAUDE.md, DAILY.md, DISCOVERY_SUMMARY.md, SCRAPER_STRATEGY.md
+- Analyzed current scraper architecture (base.py, entain_scraper.py, scrape_service.py)
+- Understood dynamic scraper registry pattern and production-ready foundations
+- Created production scaling plan for 100+ bookmakers with 5-phase roadmap
+- Reverse-engineered Punterstech frontend bundle to confirm next-to-go/quick-markets payloads
+- Refactored Punterstech scraper to use direct API (next-to-go + quick-markets) with concurrency control
+- Session start: referenced previous blockers/next steps (Punterstech validation + Unibet next)
+- Started dev Docker stack, ran migrations + seed_all_bookmakers
+- Validated Punterstech scrape + DB save (tradiebet soccer, multi-sport via ScrapeService)
+- Ran Ladbrokes soccer scrape (success) and Betfair soccer scrape (required higher timeout)
+- Fixed competition normalization to strip season/round prefixes for Punterstech matching
+- Validated Punterstech endpoints across 21 brands (14 OK, 7 failing DNS/SSL)
+- Re-scraped tradiebet/mintbet multi-sport and confirmed matched groups vs Betfair
+
+### Blockers
+- None - clear path forward for all platforms
+
+### Next Steps
+- Frontend verification: confirm Punterstech odds are matching with Ladbrokes/Betfair
+- Decide which Punterstech brands to activate and correct failing base URLs
+- Decide on Betfair timeout (raise BOOKMAKER_TIMEOUT_SECONDS or per-bookmaker override)
+- Phase 1B: Implement UnibetScraper (1 Premium bookmaker, 1-2 days, READY NOW)
+- Phase 2: Research Gen Web & BetCloud sports APIs (parallel investigation)
+- Phase 3: Implement BetMakersScraper (33 bookmakers, SSR approach)
+
+---
+
 ## 2026-01-01 (Thursday)
 
 ### Completed

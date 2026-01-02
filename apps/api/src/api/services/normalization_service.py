@@ -40,6 +40,7 @@ class NormalizationService:
         # EPL variations
         'premier league': 'epl',
         'english premier league': 'epl',
+        'england premier league': 'epl',
         'epl': 'epl',
         # Bundesliga
         'german bundesliga': 'bundesliga',
@@ -48,19 +49,26 @@ class NormalizationService:
         'spanish la liga': 'laliga',
         'la liga': 'laliga',
         'spanish primera division': 'laliga',
+        'spain la liga': 'laliga',
         # Serie A
         'italian serie a': 'seriea',
         'serie a': 'seriea',
+        'italy serie a': 'seriea',
         # Ligue 1
         'french ligue 1': 'ligue1',
         'ligue 1': 'ligue1',
+        'france ligue 1': 'ligue1',
         # A-League
         'a-league men': 'aleague',
         'a-league': 'aleague',
+        'a-league women': 'aleaguewomen',
+        'australia a-league': 'aleague',
+        'australia a-league women': 'aleaguewomen',
         # NBA
         'nba': 'nba',
         # NBL
         'nbl': 'nbl',
+        'australia nbl': 'nbl',
         # NHL
         'nhl': 'nhl',
         # AFL
@@ -381,6 +389,11 @@ class NormalizationService:
         if not name:
             return ""
         norm = name.lower().strip()
+        # Strip season prefixes like "2025/2026 " or "2025 "
+        norm = re.sub(r'^\d{4}(?:/\d{4})?\s+', '', norm)
+        # Strip trailing phase markers like "- Round 20" or "- Regular Season"
+        norm = re.sub(r'\s*-\s*(round\s+\d+|regular season)\s*$', '', norm)
+        norm = norm.strip()
         return self.COMPETITION_MAP.get(norm, norm)
 
     @lru_cache(maxsize=10000)
