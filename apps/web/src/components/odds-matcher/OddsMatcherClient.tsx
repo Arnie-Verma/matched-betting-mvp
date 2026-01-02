@@ -327,7 +327,7 @@ export function OddsMatcherClient() {
 
       {/* Refresh Button */}
       <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           {lastRefresh && (
             <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
           )}
@@ -342,7 +342,7 @@ export function OddsMatcherClient() {
         <button
           onClick={refreshOdds}
           disabled={loading}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed transition-colors"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           REFRESH ODDS
@@ -351,7 +351,7 @@ export function OddsMatcherClient() {
 
       {/* Scrape Progress Notice */}
       {showPerformanceNotice && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg">
+        <div className="bg-secondary border border-[var(--accent-soft)] text-[var(--brand)] px-4 py-3 rounded-lg">
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
               <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -363,7 +363,7 @@ export function OddsMatcherClient() {
               <p className="font-medium">
                 {scrapeStatus || 'Fetching latest odds from bookmakers...'}
               </p>
-              <p className="text-sm text-blue-600 mt-1">
+              <p className="text-sm text-primary/90 mt-1">
                 This typically takes 60-90 seconds
               </p>
             </div>
@@ -373,7 +373,7 @@ export function OddsMatcherClient() {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        <div className="bg-[var(--danger-soft)] border border-[var(--danger-border)] text-destructive px-4 py-3 rounded-lg">
           {error}
         </div>
       )}
@@ -388,7 +388,7 @@ export function OddsMatcherClient() {
       {/* Infinite Scroll Trigger */}
       <div ref={loadMoreRef} className="h-10 flex items-center justify-center">
         {loadingMore && (
-          <div className="flex items-center gap-2 text-gray-500">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -397,7 +397,7 @@ export function OddsMatcherClient() {
           </div>
         )}
         {!hasMore && opportunities.length > 0 && !loading && (
-          <span className="text-gray-400 text-sm">No more opportunities</span>
+          <span className="text-muted-foreground/60 text-sm">No more opportunities</span>
         )}
       </div>
 

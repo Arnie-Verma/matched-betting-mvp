@@ -78,8 +78,8 @@ function MultiCalculatorContent() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Multi Calculator</h1>
-        <p className="text-gray-600 mt-2">Calculate expected value for multi-leg bets</p>
+        <h1 className="text-3xl font-bold text-foreground">Multi Calculator</h1>
+        <p className="text-muted-foreground mt-2">Calculate expected value for multi-leg bets</p>
       </div>
 
       {/* Advanced Toggle */}
@@ -88,8 +88,8 @@ function MultiCalculatorContent() {
           onClick={() => setShowAdvanced(!showAdvanced)}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
             showAdvanced
-              ? 'bg-blue-100 text-blue-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-secondary text-primary/90'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
           }`}
         >
           <Settings className="w-4 h-4" />
@@ -98,11 +98,11 @@ function MultiCalculatorContent() {
       </div>
 
       {/* Promo Options */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+      <div className="bg-card rounded-xl border border-border p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-700">Any leg fail</span>
-            <button className="text-gray-400 hover:text-gray-600">
+            <span className="font-medium text-foreground/80">Any leg fail</span>
+            <button className="text-muted-foreground/60 hover:text-muted-foreground">
               <HelpCircle className="w-4 h-4" />
             </button>
           </div>
@@ -113,14 +113,14 @@ function MultiCalculatorContent() {
               onChange={(e) => setAnyLegFail(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            <div className="w-11 h-6 bg-muted/80 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-input after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
           </label>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-700">Is SGM</span>
-            <button className="text-gray-400 hover:text-gray-600">
+            <span className="font-medium text-foreground/80">Is SGM</span>
+            <button className="text-muted-foreground/60 hover:text-muted-foreground">
               <HelpCircle className="w-4 h-4" />
             </button>
           </div>
@@ -131,17 +131,17 @@ function MultiCalculatorContent() {
               onChange={(e) => setIsSGM(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            <div className="w-11 h-6 bg-muted/80 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-input after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
           </label>
         </div>
       </div>
 
       {/* Stake Input */}
-      <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+      <div className="bg-secondary rounded-xl p-4 border border-[var(--accent-soft)]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Label className="text-blue-800 font-medium">Stake</Label>
-            <button className="text-blue-400 hover:text-blue-600">
+            <Label className="text-[var(--brand)] font-medium">Stake</Label>
+            <button className="text-primary/70 hover:text-primary">
               <HelpCircle className="w-4 h-4" />
             </button>
           </div>
@@ -150,7 +150,7 @@ function MultiCalculatorContent() {
             inputMode="decimal"
             value={stakeStr}
             onChange={(e) => setStakeStr(e.target.value)}
-            className="w-32 px-3 py-2 border border-blue-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-32 px-3 py-2 border border-input rounded-lg text-center font-semibold focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         </div>
       </div>
@@ -158,11 +158,11 @@ function MultiCalculatorContent() {
       {/* Advanced Options */}
       {showAdvanced && (
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-pink-50 rounded-xl p-4 border border-pink-100">
+          <div className="bg-[var(--highlight-soft)] rounded-xl p-4 border border-[var(--highlight-border)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label className="text-pink-800 font-medium">Overround</Label>
-                <button className="text-pink-400 hover:text-pink-600">
+                <Label className="text-[var(--highlight)] font-medium">Overround</Label>
+                <button className="text-[var(--highlight)] hover:text-[var(--highlight)]">
                   <HelpCircle className="w-4 h-4" />
                 </button>
               </div>
@@ -172,18 +172,18 @@ function MultiCalculatorContent() {
                   inputMode="decimal"
                   value={overroundStr}
                   onChange={(e) => setOverroundStr(e.target.value)}
-                  className="w-20 px-3 py-2 border border-pink-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                  className="w-20 px-3 py-2 border border-[var(--highlight-border)] rounded-lg text-center font-semibold focus:ring-2 focus:ring-[var(--highlight)]/30 focus:border-[var(--highlight)]"
                 />
-                <span className="bg-pink-200 text-pink-800 px-3 py-2 rounded-lg font-medium">%</span>
+                <span className="bg-[var(--highlight-soft)] text-[var(--highlight)] px-3 py-2 rounded-lg font-medium">%</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
+          <div className="bg-[var(--accent-soft)] rounded-xl p-4 border border-[var(--accent-soft)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label className="text-purple-800 font-medium">Bonus bet retention</Label>
-                <button className="text-purple-400 hover:text-purple-600">
+                <Label className="text-[var(--brand)] font-medium">Bonus bet retention</Label>
+                <button className="text-[var(--brand)] hover:text-[var(--brand)]">
                   <HelpCircle className="w-4 h-4" />
                 </button>
               </div>
@@ -193,9 +193,9 @@ function MultiCalculatorContent() {
                   inputMode="decimal"
                   value={bonusRetentionStr}
                   onChange={(e) => setBonusRetentionStr(e.target.value)}
-                  className="w-20 px-3 py-2 border border-purple-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-20 px-3 py-2 border border-[var(--accent-soft)] rounded-lg text-center font-semibold focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
-                <span className="bg-purple-200 text-purple-800 px-3 py-2 rounded-lg font-medium">%</span>
+                <span className="bg-[var(--accent-soft)] text-[var(--brand)] px-3 py-2 rounded-lg font-medium">%</span>
               </div>
             </div>
           </div>
@@ -207,21 +207,21 @@ function MultiCalculatorContent() {
         {legs.map((leg, index) => (
           <div
             key={leg.id}
-            className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between"
+            className="bg-card rounded-xl border border-border p-4 flex items-center justify-between"
           >
-            <span className="font-medium text-gray-700">Leg {index + 1}</span>
+            <span className="font-medium text-foreground/80">Leg {index + 1}</span>
             <div className="flex items-center gap-3">
               <input
                 type="text"
                 inputMode="decimal"
                 value={leg.oddsStr}
                 onChange={(e) => updateLegOdds(leg.id, e.target.value)}
-                className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-24 px-3 py-2 border border-border rounded-lg text-center font-semibold focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
               {legs.length > 1 && (
                 <button
                   onClick={() => removeLeg(leg.id)}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 text-muted-foreground/60 hover:text-destructive hover:bg-[var(--danger-soft)] rounded-lg transition-colors"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -234,31 +234,31 @@ function MultiCalculatorContent() {
       {/* Add Leg Button */}
       <button
         onClick={addLeg}
-        className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 font-medium hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+        className="w-full py-3 border-2 border-dashed border-input rounded-xl text-muted-foreground font-medium hover:border-primary hover:text-primary hover:bg-secondary transition-colors flex items-center justify-center gap-2"
       >
         <Plus className="w-5 h-5" />
         Add Leg
       </button>
 
       {/* Results Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-muted border-b border-border">
             <tr>
-              <th className="text-left py-3 px-4 font-medium text-gray-700">Outcome</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Probability</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Profit/Loss</th>
+              <th className="text-left py-3 px-4 font-medium text-foreground/80">Outcome</th>
+              <th className="text-right py-3 px-4 font-medium text-foreground/80">Probability</th>
+              <th className="text-right py-3 px-4 font-medium text-foreground/80">Profit/Loss</th>
             </tr>
           </thead>
           <tbody>
             {result.outcomes.map((outcome, index) => (
-              <tr key={index} className="border-b border-gray-100 last:border-0">
+              <tr key={index} className="border-b border-border last:border-0">
                 <td className="py-3 px-4 font-medium">{outcome.name}</td>
-                <td className="text-right py-3 px-4 text-blue-600 font-semibold">
+                <td className="text-right py-3 px-4 text-primary font-semibold">
                   {formatPercentage(outcome.probability, false)}
                 </td>
                 <td className={`text-right py-3 px-4 font-bold ${
-                  outcome.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'
+                  outcome.profitLoss >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
                 }`}>
                   {outcome.profitLoss >= 0 ? '+' : ''}{formatCurrency(outcome.profitLoss)}
                 </td>
@@ -271,17 +271,17 @@ function MultiCalculatorContent() {
       {/* Total EV */}
       <div className={`rounded-xl p-4 border ${
         result.expectedValue >= 0
-          ? 'bg-green-50 border-green-200'
-          : 'bg-red-50 border-red-200'
+          ? 'bg-[var(--profit-soft)] border-[var(--profit-border)]'
+          : 'bg-[var(--danger-soft)] border-[var(--danger-border)]'
       }`}>
         <div className="flex items-center justify-between">
           <span className={`font-medium ${
-            result.expectedValue >= 0 ? 'text-green-800' : 'text-red-800'
+            result.expectedValue >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
           }`}>
             Total EV
           </span>
           <span className={`text-xl font-bold ${
-            result.expectedValue >= 0 ? 'text-green-600' : 'text-red-600'
+            result.expectedValue >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
           }`}>
             {formatCurrency(result.expectedValue)}
           </span>
@@ -291,7 +291,7 @@ function MultiCalculatorContent() {
       {/* Long Term EV Link */}
       <a
         href="/calculators/ev"
-        className="block w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium text-center transition-colors flex items-center justify-center gap-2"
+        className="block w-full py-3 px-4 bg-[var(--profit)] hover:bg-[var(--profit)]/90 text-white rounded-xl font-medium text-center transition-colors flex items-center justify-center gap-2"
       >
         <span className="text-lg">📈</span>
         Estimate Long-Term EV
@@ -299,12 +299,12 @@ function MultiCalculatorContent() {
       </a>
 
       {/* Info Box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+      <div className="bg-secondary border border-input rounded-xl p-4">
         <div className="flex gap-3">
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
+          <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-[var(--brand)]">
             <strong>Multi Calculator</strong> estimates expected value (EV) for multi-leg bets.
-            <ul className="mt-2 space-y-1 list-disc list-inside text-blue-700">
+            <ul className="mt-2 space-y-1 list-disc list-inside text-primary/90">
               <li><strong>Any leg fail:</strong> Promo where any losing leg = bonus refund</li>
               <li><strong>SGM:</strong> Same Game Multi (legs from same match)</li>
               <li><strong>Overround:</strong> Bookmaker margin to account for</li>

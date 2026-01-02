@@ -57,8 +57,8 @@ export default function CalculatorsIndexPage() {
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Calculators</h1>
-        <p className="text-gray-600 mt-2 max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold text-foreground">Calculators</h1>
+        <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
           Professional betting calculators to help you make informed decisions and maximize your profits.
         </p>
       </div>
@@ -72,26 +72,26 @@ export default function CalculatorsIndexPage() {
             <Link
               key={calc.href}
               href={calc.href}
-              className={`block bg-white rounded-xl border border-gray-200 p-6 transition-all hover:shadow-lg hover:border-blue-300 ${
+              className={`block bg-card rounded-xl border border-border p-6 transition-all hover:shadow-lg hover:border-primary ${
                 isLocked ? 'opacity-75' : ''
               }`}
             >
               <div className="flex items-start gap-4">
                 <div className={`p-3 rounded-xl ${
                   calc.isPremium
-                    ? 'bg-purple-100 text-purple-600'
-                    : 'bg-blue-100 text-blue-600'
+                    ? 'bg-[var(--highlight-soft)] text-[var(--highlight)]'
+                    : 'bg-secondary text-primary'
                 }`}>
                   {calc.icon}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold text-gray-900">{calc.name}</h2>
+                    <h2 className="text-lg font-semibold text-foreground">{calc.name}</h2>
                     {calc.isPremium && (
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                         isPremium
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-[var(--profit-soft)] text-[var(--profit)]'
+                          : 'bg-muted text-muted-foreground'
                       }`}>
                         {isPremium ? (
                           'Premium'
@@ -104,7 +104,7 @@ export default function CalculatorsIndexPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">{calc.description}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{calc.description}</p>
                 </div>
               </div>
             </Link>
@@ -114,14 +114,14 @@ export default function CalculatorsIndexPage() {
 
       {/* Upgrade CTA for free users */}
       {!isPremium && !isLoading && (
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white text-center">
+        <div className="bg-gradient-to-r from-[var(--brand)] to-[var(--accent-strong)] rounded-xl p-6 text-white text-center">
           <h3 className="text-xl font-bold mb-2">Unlock All Calculators</h3>
-          <p className="text-blue-100 mb-4">
+          <p className="text-white/70 mb-4">
             Upgrade to Premium to access Multi Calculator and Long Term EV Calculator
           </p>
           <Link
             href="/billing"
-            className="inline-block px-6 py-3 bg-white text-blue-600 rounded-xl font-medium hover:bg-blue-50 transition-colors"
+            className="inline-block px-6 py-3 bg-white text-[var(--brand)] rounded-xl font-medium hover:bg-white/90 transition-colors"
           >
             View Plans
           </Link>

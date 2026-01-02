@@ -62,8 +62,8 @@ export default function BackLayCalculatorPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Back/Lay</h1>
-        <p className="text-gray-600 mt-2">Calculate lay stakes for matched betting</p>
+        <h1 className="text-3xl font-bold text-foreground">Back/Lay</h1>
+        <p className="text-muted-foreground mt-2">Calculate lay stakes for matched betting</p>
       </div>
 
       {/* Advanced Toggle */}
@@ -72,8 +72,8 @@ export default function BackLayCalculatorPage() {
           onClick={() => setShowAdvanced(!showAdvanced)}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
             showAdvanced
-              ? 'bg-blue-100 text-blue-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-secondary text-primary'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
           }`}
         >
           <Settings className="w-4 h-4" />
@@ -82,14 +82,14 @@ export default function BackLayCalculatorPage() {
       </div>
 
       {/* Bet Type Toggle */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
         <div className="grid grid-cols-2">
           <button
             onClick={() => setBetType('normal')}
             className={`py-3 px-4 text-center font-medium transition-colors ${
               betType === 'normal'
-                ? 'bg-white text-gray-900 border-b-2 border-blue-600'
-                : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                ? 'bg-card text-foreground border-b-2 border-primary'
+                : 'bg-muted text-muted-foreground hover:bg-muted'
             }`}
           >
             Normal
@@ -98,8 +98,8 @@ export default function BackLayCalculatorPage() {
             onClick={() => setBetType('bonus')}
             className={`py-3 px-4 text-center font-medium transition-colors ${
               betType === 'bonus'
-                ? 'bg-white text-gray-900 border-b-2 border-blue-600'
-                : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                ? 'bg-card text-foreground border-b-2 border-primary'
+                : 'bg-muted text-muted-foreground hover:bg-muted'
             }`}
           >
             Bonus
@@ -109,18 +109,18 @@ export default function BackLayCalculatorPage() {
 
       {/* Commission (Advanced) */}
       {showAdvanced && (
-        <div className="bg-pink-50 rounded-xl p-4 border border-pink-100">
+        <div className="bg-[var(--highlight-soft)] rounded-xl p-4 border border-[var(--highlight-border)]">
           <div className="flex items-center justify-between">
-            <Label className="text-pink-800 font-medium">Commission</Label>
+            <Label className="text-[var(--highlight)] font-medium">Commission</Label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 inputMode="decimal"
                 value={commissionStr}
                 onChange={(e) => setCommissionStr(e.target.value)}
-                className="w-20 px-3 py-2 border border-pink-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                className="w-20 px-3 py-2 border border-[var(--highlight-border)] rounded-lg text-center font-semibold focus:ring-2 focus:ring-[var(--highlight)]/30 focus:border-[var(--highlight)]"
               />
-              <span className="bg-pink-200 text-pink-800 px-3 py-2 rounded-lg font-medium">%</span>
+              <span className="bg-[var(--highlight-soft)] text-[var(--highlight)] px-3 py-2 rounded-lg font-medium">%</span>
             </div>
           </div>
         </div>
@@ -129,63 +129,63 @@ export default function BackLayCalculatorPage() {
       {/* Input Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Bookie Card */}
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
-          <h3 className="text-blue-800 font-semibold mb-4">Bookie</h3>
+        <div className="bg-secondary border border-[var(--accent-soft)] rounded-xl p-5">
+          <h3 className="text-[var(--brand)] font-semibold mb-4">Bookie</h3>
           <div className="space-y-4">
             <div>
-              <Label className="text-sm text-gray-600">Odds</Label>
+              <Label className="text-sm text-muted-foreground">Odds</Label>
               <input
                 type="text"
                 inputMode="decimal"
                 value={backOddsStr}
                 onChange={(e) => setBackOddsStr(e.target.value)}
-                className="w-full mt-1 px-4 py-3 border border-blue-200 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full mt-1 px-4 py-3 border border-input rounded-lg text-lg font-semibold focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             </div>
             <div>
-              <Label className="text-sm text-gray-600">Stake</Label>
+              <Label className="text-sm text-muted-foreground">Stake</Label>
               <input
                 type="text"
                 inputMode="decimal"
                 value={backStakeStr}
                 onChange={(e) => setBackStakeStr(e.target.value)}
-                className="w-full mt-1 px-4 py-3 border border-blue-200 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full mt-1 px-4 py-3 border border-input rounded-lg text-lg font-semibold focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             </div>
           </div>
         </div>
 
         {/* Betfair Card */}
-        <div className="bg-rose-50 border border-rose-100 rounded-xl p-5">
-          <h3 className="text-rose-800 font-semibold mb-4">Betfair</h3>
+        <div className="bg-[var(--profit-soft)] border border-[var(--profit-border)] rounded-xl p-5">
+          <h3 className="text-[var(--profit)] font-semibold mb-4">Betfair</h3>
           <div className="space-y-4">
             <div>
-              <Label className="text-sm text-gray-600">Odds</Label>
+              <Label className="text-sm text-muted-foreground">Odds</Label>
               <input
                 type="text"
                 inputMode="decimal"
                 value={layOddsStr}
                 onChange={(e) => setLayOddsStr(e.target.value)}
-                className="w-full mt-1 px-4 py-3 border border-rose-200 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                className="w-full mt-1 px-4 py-3 border border-[var(--profit-border)] rounded-lg text-lg font-semibold focus:ring-2 focus:ring-[var(--profit)]/30 focus:border-[var(--profit)]"
               />
             </div>
-            <div className="bg-white border border-rose-200 rounded-lg p-4">
+            <div className="bg-card border border-[var(--profit-border)] rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm text-gray-500">Stake</div>
-                  <div className="text-2xl font-bold text-rose-800">
+                  <div className="text-sm text-muted-foreground">Stake</div>
+                  <div className="text-2xl font-bold text-[var(--profit)]">
                     {formatCurrency(result.layStake)}
                   </div>
                 </div>
                 <button
                   onClick={copyLayStake}
-                  className="p-2 bg-rose-100 hover:bg-rose-200 rounded-lg transition-colors"
+                  className="p-2 bg-[var(--profit-soft)] hover:bg-[var(--profit-border)] rounded-lg transition-colors"
                   title="Copy lay stake"
                 >
                   {copiedStake ? (
-                    <Check className="w-5 h-5 text-green-600" />
+                    <Check className="w-5 h-5 text-[var(--profit)]" />
                   ) : (
-                    <Copy className="w-5 h-5 text-rose-600" />
+                    <Copy className="w-5 h-5 text-[var(--profit)]" />
                   )}
                 </button>
               </div>
@@ -197,17 +197,17 @@ export default function BackLayCalculatorPage() {
       {/* Result Summary */}
       <div className={`rounded-xl p-4 border ${
         result.qualifyingLoss >= 0
-          ? 'bg-green-50 border-green-200'
-          : 'bg-red-50 border-red-200'
+          ? 'bg-[var(--profit-soft)] border-[var(--profit-border)]'
+          : 'bg-[var(--danger-soft)] border-[var(--danger-border)]'
       }`}>
         <div className="flex items-center justify-between">
           <span className={`font-medium ${
-            result.qualifyingLoss >= 0 ? 'text-green-800' : 'text-red-800'
+            result.qualifyingLoss >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
           }`}>
             {result.qualifyingLoss >= 0 ? 'Profit' : 'Loss'}
           </span>
           <span className={`text-xl font-bold ${
-            result.qualifyingLoss >= 0 ? 'text-green-600' : 'text-red-600'
+            result.qualifyingLoss >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
           }`}>
             {formatCurrency(Math.abs(result.qualifyingLoss))}
           </span>
@@ -215,44 +215,44 @@ export default function BackLayCalculatorPage() {
       </div>
 
       {/* Scenario Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-muted border-b border-border">
             <tr>
-              <th className="text-left py-3 px-4 font-medium text-gray-700">Winner</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Bookie</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Betfair</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Avail</th>
+              <th className="text-left py-3 px-4 font-medium text-foreground/80">Winner</th>
+              <th className="text-right py-3 px-4 font-medium text-foreground/80">Bookie</th>
+              <th className="text-right py-3 px-4 font-medium text-foreground/80">Betfair</th>
+              <th className="text-right py-3 px-4 font-medium text-foreground/80">Avail</th>
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b border-gray-100">
+            <tr className="border-b border-border">
               <td className="py-3 px-4 font-medium">Bookie</td>
-              <td className="text-right py-3 px-4 text-green-600 font-semibold">
+              <td className="text-right py-3 px-4 text-[var(--profit)] font-semibold">
                 +{formatCurrency(betType === 'bonus'
                   ? backStake * (backOdds - 1)
                   : backStake * (backOdds - 1)
                 )}
               </td>
-              <td className="text-right py-3 px-4 text-red-600 font-semibold">
+              <td className="text-right py-3 px-4 text-destructive font-semibold">
                 -{formatCurrency(result.layLiability)}
               </td>
               <td className={`text-right py-3 px-4 font-bold ${
-                result.profitIfBackWins >= 0 ? 'text-green-600' : 'text-red-600'
+                result.profitIfBackWins >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
               }`}>
                 {formatCurrency(result.profitIfBackWins)}
               </td>
             </tr>
             <tr>
               <td className="py-3 px-4 font-medium">Betfair</td>
-              <td className="text-right py-3 px-4 text-red-600 font-semibold">
+              <td className="text-right py-3 px-4 text-destructive font-semibold">
                 {betType === 'bonus' ? formatCurrency(0) : `-${formatCurrency(backStake)}`}
               </td>
-              <td className="text-right py-3 px-4 text-green-600 font-semibold">
+              <td className="text-right py-3 px-4 text-[var(--profit)] font-semibold">
                 +{formatCurrency(result.layStake * (1 - commission / 100))}
               </td>
               <td className={`text-right py-3 px-4 font-bold ${
-                result.profitIfLayWins >= 0 ? 'text-green-600' : 'text-red-600'
+                result.profitIfLayWins >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
               }`}>
                 {formatCurrency(result.profitIfLayWins)}
               </td>
@@ -263,10 +263,10 @@ export default function BackLayCalculatorPage() {
 
       {/* Info Box */}
       {betType === 'normal' && result.qualifyingLoss < 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+        <div className="bg-[var(--highlight-soft)] border border-[var(--highlight-border)] rounded-xl p-4">
           <div className="flex gap-3">
-            <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-amber-800">
+            <Info className="w-5 h-5 text-[var(--highlight)] flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-[var(--highlight)]">
               <strong>Qualifying Loss:</strong> This small loss unlocks bonus bets worth much more.
               A {formatPercentage(result.pnlPercentage)} qualifying loss is normal for matched betting.
             </div>
@@ -275,10 +275,10 @@ export default function BackLayCalculatorPage() {
       )}
 
       {betType === 'bonus' && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+        <div className="bg-[var(--profit-soft)] border border-[var(--profit-border)] rounded-xl p-4">
           <div className="flex gap-3">
-            <Info className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-green-800">
+            <Info className="w-5 h-5 text-[var(--profit)] flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-[var(--profit)]">
               <strong>Bonus Bet:</strong> With a free bet, you keep an average of{' '}
               <strong>{formatCurrency(result.qualifyingLoss)}</strong> (
               {formatPercentage((result.qualifyingLoss / backStake) * 100)} of face value) regardless of outcome.

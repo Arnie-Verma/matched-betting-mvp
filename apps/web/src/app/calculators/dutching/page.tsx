@@ -129,8 +129,8 @@ export default function DutchingCalculatorPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Dutching Calculator</h1>
-        <p className="text-gray-600 mt-2">Split stakes across multiple outcomes for equal profit</p>
+        <h1 className="text-3xl font-bold text-foreground">Dutching Calculator</h1>
+        <p className="text-muted-foreground mt-2">Split stakes across multiple outcomes for equal profit</p>
       </div>
 
       {/* Outcome Entries */}
@@ -142,21 +142,21 @@ export default function DutchingCalculatorPage() {
           return (
             <div
               key={entry.id}
-              className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4"
+              className="bg-card rounded-xl border border-border p-4 flex items-center gap-4"
             >
               <div className="flex-1">
-                <Label className="text-sm text-gray-600">Outcome {index + 1} Odds</Label>
+                <Label className="text-sm text-muted-foreground">Outcome {index + 1} Odds</Label>
                 <input
                   type="text"
                   inputMode="decimal"
                   value={entry.oddsStr}
                   onChange={(e) => updateOdds(entry.id, e.target.value)}
-                  className="w-full mt-1 px-4 py-3 border border-gray-200 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full mt-1 px-4 py-3 border border-border rounded-lg text-lg font-semibold focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
               </div>
               <div className="flex-1">
-                <Label className="text-sm text-gray-600">
-                  Stake {isAnchor && <span className="text-blue-600">(enter)</span>}
+                <Label className="text-sm text-muted-foreground">
+                  Stake {isAnchor && <span className="text-primary">(enter)</span>}
                 </Label>
                 {isAnchor ? (
                   <input
@@ -165,10 +165,10 @@ export default function DutchingCalculatorPage() {
                     value={entry.stakeStr}
                     onChange={(e) => updateStake(entry.id, e.target.value)}
                     placeholder="Enter stake"
-                    className="w-full mt-1 px-4 py-3 border border-blue-200 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-blue-50"
+                    className="w-full mt-1 px-4 py-3 border border-input rounded-lg text-lg font-semibold focus:ring-2 focus:ring-primary/30 focus:border-primary bg-secondary"
                   />
                 ) : (
-                  <div className="mt-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-lg font-semibold text-gray-700">
+                  <div className="mt-1 px-4 py-3 bg-muted border border-border rounded-lg text-lg font-semibold text-foreground/80">
                     {result.isValid ? formatCurrency(calculatedStake) : '-'}
                   </div>
                 )}
@@ -176,7 +176,7 @@ export default function DutchingCalculatorPage() {
               {entries.length > 2 && (
                 <button
                   onClick={() => removeOutcome(entry.id)}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors mt-6"
+                  className="p-2 text-muted-foreground/60 hover:text-destructive hover:bg-[var(--danger-soft)] rounded-lg transition-colors mt-6"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -189,43 +189,43 @@ export default function DutchingCalculatorPage() {
       {/* Add Outcome Button */}
       <button
         onClick={addOutcome}
-        className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 font-medium hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+        className="w-full py-3 border-2 border-dashed border-input rounded-xl text-muted-foreground font-medium hover:border-primary hover:text-primary hover:bg-secondary transition-colors flex items-center justify-center gap-2"
       >
         <Plus className="w-5 h-5" />
         Add Outcome
       </button>
 
       {/* Results Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-muted border-b border-border">
             <tr>
-              <th className="text-left py-3 px-4 font-medium text-gray-700">Outcome</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Stake</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Profit/Loss</th>
+              <th className="text-left py-3 px-4 font-medium text-foreground/80">Outcome</th>
+              <th className="text-right py-3 px-4 font-medium text-foreground/80">Stake</th>
+              <th className="text-right py-3 px-4 font-medium text-foreground/80">Profit/Loss</th>
             </tr>
           </thead>
           <tbody>
             {result.isValid && entries.map((entry, index) => (
-              <tr key={entry.id} className="border-b border-gray-100 last:border-0">
+              <tr key={entry.id} className="border-b border-border last:border-0">
                 <td className="py-3 px-4 font-medium">Outcome {index + 1}</td>
                 <td className="text-right py-3 px-4 font-semibold">
                   {formatCurrency(result.stakes[index])}
                 </td>
                 <td className={`text-right py-3 px-4 font-bold ${
-                  result.profit >= 0 ? 'text-green-600' : 'text-red-600'
+                  result.profit >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
                 }`}>
                   {result.profit >= 0 ? '+' : ''}{formatCurrency(result.profit)}
                 </td>
               </tr>
             ))}
-            <tr className="bg-gray-50 border-t border-gray-200">
-              <td className="py-3 px-4 font-bold text-gray-700">Total</td>
+            <tr className="bg-muted border-t border-border">
+              <td className="py-3 px-4 font-bold text-foreground/80">Total</td>
               <td className="text-right py-3 px-4 font-bold">
                 {formatCurrency(result.totalStake)}
               </td>
               <td className={`text-right py-3 px-4 font-bold ${
-                result.profit >= 0 ? 'text-green-600' : 'text-red-600'
+                result.profit >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
               }`}>
                 {result.profit >= 0 ? '+' : ''}{formatCurrency(result.profit)}
               </td>
@@ -237,19 +237,19 @@ export default function DutchingCalculatorPage() {
       {/* Profit/Loss Summary */}
       <div className={`rounded-xl p-4 border ${
         result.isGuaranteedProfit
-          ? 'bg-green-50 border-green-200'
+          ? 'bg-[var(--profit-soft)] border-[var(--profit-border)]'
           : result.profit >= 0
-          ? 'bg-green-50 border-green-200'
-          : 'bg-red-50 border-red-200'
+          ? 'bg-[var(--profit-soft)] border-[var(--profit-border)]'
+          : 'bg-[var(--danger-soft)] border-[var(--danger-border)]'
       }`}>
         <div className="flex items-center justify-between">
           <span className={`font-medium ${
-            result.profit >= 0 ? 'text-green-800' : 'text-red-800'
+            result.profit >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
           }`}>
             {result.isGuaranteedProfit ? 'Guaranteed Profit' : result.profit >= 0 ? 'Profit' : 'Loss'} (any outcome)
           </span>
           <span className={`text-xl font-bold ${
-            result.profit >= 0 ? 'text-green-600' : 'text-red-600'
+            result.profit >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
           }`}>
             {result.profit >= 0 ? '+' : ''}{formatCurrency(result.profit)}
           </span>
@@ -257,14 +257,14 @@ export default function DutchingCalculatorPage() {
       </div>
 
       {/* Info Box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+      <div className="bg-secondary border border-input rounded-xl p-4">
         <div className="flex gap-3">
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
+          <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-[var(--brand)]">
             <strong>Dutching</strong> distributes your stake across multiple outcomes so you get the same profit regardless of which outcome wins.
             Enter your stake for Outcome 1 and the calculator will determine the other stakes.
             {result.isGuaranteedProfit && (
-              <span className="block mt-1 text-green-700">
+              <span className="block mt-1 text-[var(--profit)]">
                 <strong>Arbitrage detected!</strong> These odds guarantee profit no matter which outcome wins.
               </span>
             )}

@@ -86,8 +86,8 @@ function LongTermEVContent() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Long Term EV Calculator</h1>
-        <p className="text-gray-600 mt-2">Simulate expected value over many bets</p>
+        <h1 className="text-3xl font-bold text-foreground">Long Term EV Calculator</h1>
+        <p className="text-muted-foreground mt-2">Simulate expected value over many bets</p>
       </div>
 
       {/* Advanced Toggle */}
@@ -96,8 +96,8 @@ function LongTermEVContent() {
           onClick={() => setShowAdvanced(!showAdvanced)}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
             showAdvanced
-              ? 'bg-blue-100 text-blue-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-secondary text-primary/90'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
           }`}
         >
           <Settings className="w-4 h-4" />
@@ -106,11 +106,11 @@ function LongTermEVContent() {
       </div>
 
       {/* Number of Bets */}
-      <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+      <div className="bg-secondary rounded-xl p-4 border border-[var(--accent-soft)]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Label className="text-blue-800 font-medium">Number of bets</Label>
-            <button className="text-blue-400 hover:text-blue-600">
+            <Label className="text-[var(--brand)] font-medium">Number of bets</Label>
+            <button className="text-primary/70 hover:text-primary">
               <HelpCircle className="w-4 h-4" />
             </button>
           </div>
@@ -119,17 +119,17 @@ function LongTermEVContent() {
             inputMode="numeric"
             value={numBetsStr}
             onChange={(e) => setNumBetsStr(e.target.value)}
-            className="w-32 px-3 py-2 border border-blue-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-32 px-3 py-2 border border-input rounded-lg text-center font-semibold focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         </div>
       </div>
 
       {/* Promo Options */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+      <div className="bg-card rounded-xl border border-border p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-700">Any leg fail</span>
-            <button className="text-gray-400 hover:text-gray-600">
+            <span className="font-medium text-foreground/80">Any leg fail</span>
+            <button className="text-muted-foreground/60 hover:text-muted-foreground">
               <HelpCircle className="w-4 h-4" />
             </button>
           </div>
@@ -140,14 +140,14 @@ function LongTermEVContent() {
               onChange={(e) => setAnyLegFail(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            <div className="w-11 h-6 bg-muted/80 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-input after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
           </label>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-700">Is SGM</span>
-            <button className="text-gray-400 hover:text-gray-600">
+            <span className="font-medium text-foreground/80">Is SGM</span>
+            <button className="text-muted-foreground/60 hover:text-muted-foreground">
               <HelpCircle className="w-4 h-4" />
             </button>
           </div>
@@ -158,17 +158,17 @@ function LongTermEVContent() {
               onChange={(e) => setIsSGM(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            <div className="w-11 h-6 bg-muted/80 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-input after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
           </label>
         </div>
       </div>
 
       {/* Stake Input */}
-      <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
+      <div className="bg-[var(--accent-soft)] rounded-xl p-4 border border-[var(--accent-soft)]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Label className="text-purple-800 font-medium">Stake</Label>
-            <button className="text-purple-400 hover:text-purple-600">
+            <Label className="text-[var(--brand)] font-medium">Stake</Label>
+            <button className="text-[var(--brand)] hover:text-[var(--brand)]">
               <HelpCircle className="w-4 h-4" />
             </button>
           </div>
@@ -177,7 +177,7 @@ function LongTermEVContent() {
             inputMode="decimal"
             value={stakeStr}
             onChange={(e) => setStakeStr(e.target.value)}
-            className="w-32 px-3 py-2 border border-purple-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-32 px-3 py-2 border border-[var(--accent-soft)] rounded-lg text-center font-semibold focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         </div>
       </div>
@@ -185,11 +185,11 @@ function LongTermEVContent() {
       {/* Advanced Options */}
       {showAdvanced && (
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-pink-50 rounded-xl p-4 border border-pink-100">
+          <div className="bg-[var(--highlight-soft)] rounded-xl p-4 border border-[var(--highlight-border)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label className="text-pink-800 font-medium">Overround</Label>
-                <button className="text-pink-400 hover:text-pink-600">
+                <Label className="text-[var(--highlight)] font-medium">Overround</Label>
+                <button className="text-[var(--highlight)] hover:text-[var(--highlight)]">
                   <HelpCircle className="w-4 h-4" />
                 </button>
               </div>
@@ -199,18 +199,18 @@ function LongTermEVContent() {
                   inputMode="decimal"
                   value={overroundStr}
                   onChange={(e) => setOverroundStr(e.target.value)}
-                  className="w-20 px-3 py-2 border border-pink-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                  className="w-20 px-3 py-2 border border-[var(--highlight-border)] rounded-lg text-center font-semibold focus:ring-2 focus:ring-[var(--highlight)]/30 focus:border-[var(--highlight)]"
                 />
-                <span className="bg-pink-200 text-pink-800 px-3 py-2 rounded-lg font-medium">%</span>
+                <span className="bg-[var(--highlight-soft)] text-[var(--highlight)] px-3 py-2 rounded-lg font-medium">%</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
+          <div className="bg-[var(--highlight-soft)] rounded-xl p-4 border border-[var(--highlight-border)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label className="text-amber-800 font-medium">Bonus bet retention</Label>
-                <button className="text-amber-400 hover:text-amber-600">
+                <Label className="text-[var(--highlight)] font-medium">Bonus bet retention</Label>
+                <button className="text-[var(--highlight)] hover:text-[var(--highlight)]">
                   <HelpCircle className="w-4 h-4" />
                 </button>
               </div>
@@ -220,9 +220,9 @@ function LongTermEVContent() {
                   inputMode="decimal"
                   value={bonusRetentionStr}
                   onChange={(e) => setBonusRetentionStr(e.target.value)}
-                  className="w-20 px-3 py-2 border border-amber-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  className="w-20 px-3 py-2 border border-[var(--highlight-border)] rounded-lg text-center font-semibold focus:ring-2 focus:ring-[var(--highlight)]/30 focus:border-[var(--highlight)]"
                 />
-                <span className="bg-amber-200 text-amber-800 px-3 py-2 rounded-lg font-medium">%</span>
+                <span className="bg-[var(--highlight-soft)] text-[var(--highlight)] px-3 py-2 rounded-lg font-medium">%</span>
               </div>
             </div>
           </div>
@@ -234,21 +234,21 @@ function LongTermEVContent() {
         {legs.map((leg, index) => (
           <div
             key={leg.id}
-            className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between"
+            className="bg-card rounded-xl border border-border p-4 flex items-center justify-between"
           >
-            <span className="font-medium text-gray-700">Leg {index + 1}</span>
+            <span className="font-medium text-foreground/80">Leg {index + 1}</span>
             <div className="flex items-center gap-3">
               <input
                 type="text"
                 inputMode="decimal"
                 value={leg.oddsStr}
                 onChange={(e) => updateLegOdds(leg.id, e.target.value)}
-                className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-24 px-3 py-2 border border-border rounded-lg text-center font-semibold focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
               {legs.length > 1 && (
                 <button
                   onClick={() => removeLeg(leg.id)}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 text-muted-foreground/60 hover:text-destructive hover:bg-[var(--danger-soft)] rounded-lg transition-colors"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -261,7 +261,7 @@ function LongTermEVContent() {
       {/* Add Leg Button */}
       <button
         onClick={addLeg}
-        className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 font-medium hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+        className="w-full py-3 border-2 border-dashed border-input rounded-xl text-muted-foreground font-medium hover:border-primary hover:text-primary hover:bg-secondary transition-colors flex items-center justify-center gap-2"
       >
         <Plus className="w-5 h-5" />
         Add Leg
@@ -271,7 +271,7 @@ function LongTermEVContent() {
       <button
         onClick={runSimulation}
         disabled={isSimulating}
-        className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-medium text-lg transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-primary hover:bg-primary/90 disabled:bg-primary/60 text-white rounded-xl font-medium text-lg transition-colors flex items-center justify-center gap-2"
       >
         {isSimulating ? (
           <>
@@ -291,32 +291,32 @@ function LongTermEVContent() {
         <>
           {/* Summary Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-              <div className="text-sm text-gray-500">Expected Profit</div>
+            <div className="bg-card rounded-xl border border-border p-4 text-center">
+              <div className="text-sm text-muted-foreground">Expected Profit</div>
               <div className={`text-xl font-bold ${
-                result.expectedProfit >= 0 ? 'text-green-600' : 'text-red-600'
+                result.expectedProfit >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
               }`}>
                 {formatCurrency(result.expectedProfit)}
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-              <div className="text-sm text-gray-500">Per Bet</div>
+            <div className="bg-card rounded-xl border border-border p-4 text-center">
+              <div className="text-sm text-muted-foreground">Per Bet</div>
               <div className={`text-xl font-bold ${
-                result.expectedProfitPerBet >= 0 ? 'text-green-600' : 'text-red-600'
+                result.expectedProfitPerBet >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
               }`}>
                 {formatCurrency(result.expectedProfitPerBet)}
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-              <div className="text-sm text-gray-500">Std Deviation</div>
-              <div className="text-xl font-bold text-gray-900">
+            <div className="bg-card rounded-xl border border-border p-4 text-center">
+              <div className="text-sm text-muted-foreground">Std Deviation</div>
+              <div className="text-xl font-bold text-foreground">
                 {formatCurrency(result.standardDeviation)}
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-              <div className="text-sm text-gray-500">Profit Probability</div>
+            <div className="bg-card rounded-xl border border-border p-4 text-center">
+              <div className="text-sm text-muted-foreground">Profit Probability</div>
               <div className={`text-xl font-bold ${
-                result.probabilityOfProfit >= 50 ? 'text-green-600' : 'text-amber-600'
+                result.probabilityOfProfit >= 50 ? 'text-[var(--profit)]' : 'text-[var(--highlight)]'
               }`}>
                 {formatPercentage(result.probabilityOfProfit, false)}
               </div>
@@ -324,21 +324,21 @@ function LongTermEVContent() {
           </div>
 
           {/* Range */}
-          <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
-            <div className="text-sm text-gray-600 mb-2">90% Confidence Interval</div>
+          <div className="bg-muted rounded-xl border border-border p-4">
+            <div className="text-sm text-muted-foreground mb-2">90% Confidence Interval</div>
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-sm text-gray-500">Worst (5%)</span>
+                <span className="text-sm text-muted-foreground">Worst (5%)</span>
                 <div className={`text-lg font-bold ${
-                  result.worstCase >= 0 ? 'text-green-600' : 'text-red-600'
+                  result.worstCase >= 0 ? 'text-[var(--profit)]' : 'text-destructive'
                 }`}>
                   {formatCurrency(result.worstCase)}
                 </div>
               </div>
-              <div className="flex-1 mx-4 h-2 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-full"></div>
+              <div className="flex-1 mx-4 h-2 bg-gradient-to-r from-[var(--danger-soft)] via-[var(--highlight-soft)] to-[var(--profit-soft)] rounded-full"></div>
               <div className="text-right">
-                <span className="text-sm text-gray-500">Best (95%)</span>
-                <div className="text-lg font-bold text-green-600">
+                <span className="text-sm text-muted-foreground">Best (95%)</span>
+                <div className="text-lg font-bold text-[var(--profit)]">
                   {formatCurrency(result.bestCase)}
                 </div>
               </div>
@@ -348,12 +348,12 @@ function LongTermEVContent() {
       )}
 
       {/* Info Box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+      <div className="bg-secondary border border-input rounded-xl p-4">
         <div className="flex gap-3">
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
+          <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-[var(--brand)]">
             <strong>Long-Term EV</strong> uses Monte Carlo simulation to estimate outcomes over many bets.
-            <ul className="mt-2 space-y-1 list-disc list-inside text-blue-700">
+            <ul className="mt-2 space-y-1 list-disc list-inside text-primary/90">
               <li>Results based on 1,000 simulated scenarios</li>
               <li>Standard deviation shows variance/risk</li>
               <li>90% confidence interval shows likely outcome range</li>

@@ -168,7 +168,7 @@ export default function PricingPlans() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
   }
@@ -182,28 +182,28 @@ export default function PricingPlans() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <h1 className="text-4xl font-bold text-foreground mb-4">
           Choose Your Plan
         </h1>
-        <p className="text-xl text-gray-600 mb-8">
+        <p className="text-xl text-muted-foreground mb-8">
           Scale your matched betting with the right plan for you
         </p>
       </div>
 
       {/* Current Subscription Status */}
       {subscriptionStatus && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+        <div className="bg-secondary border border-[var(--accent-soft)] rounded-lg p-6 mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold text-blue-900">
+              <h3 className="text-lg font-semibold text-[var(--brand)]">
                 Current Plan: {subscriptionStatus.current_plan.charAt(0).toUpperCase() + subscriptionStatus.current_plan.slice(1)}
               </h3>
-              <p className="text-blue-700">
+              <p className="text-primary">
                 Status: {subscriptionStatus.plan_status}
                 {subscriptionStatus.subscription?.is_trial && ' (Trial)'}
               </p>
               {subscriptionStatus.subscription?.current_period_end && (
-                <p className="text-sm text-blue-600">
+                <p className="text-sm text-primary">
                   {subscriptionStatus.subscription.is_active
                     ? `Renews on ${new Date(subscriptionStatus.subscription.current_period_end).toLocaleDateString()}`
                     : `Ended on ${new Date(subscriptionStatus.subscription.current_period_end).toLocaleDateString()}`
@@ -214,7 +214,7 @@ export default function PricingPlans() {
             {hasActiveSubscription && (
               <button
                 onClick={handleManageBilling}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
               >
                 Manage Billing
               </button>
@@ -233,13 +233,13 @@ export default function PricingPlans() {
           return (
             <div
               key={plan.id}
-              className={`relative bg-white rounded-2xl shadow-lg border-2 transition-all hover:shadow-xl ${
-                isPopular ? 'border-blue-500' : 'border-gray-200'
-              } ${isCurrent ? 'ring-2 ring-green-500' : ''}`}
+              className={`relative bg-card rounded-2xl shadow-lg border-2 transition-all hover:shadow-xl ${
+                isPopular ? 'border-primary' : 'border-border'
+              } ${isCurrent ? 'ring-2 ring-[var(--profit)]' : ''}`}
             >
               {isPopular && (
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-primary text-white px-4 py-1 rounded-full text-sm font-medium">
                     Most Popular
                   </span>
                 </div>
@@ -247,33 +247,33 @@ export default function PricingPlans() {
 
               {isCurrent && (
                 <div className="absolute top-4 right-4">
-                  <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-[var(--profit)] text-white px-3 py-1 rounded-full text-sm font-medium">
                     Current Plan
                   </span>
                 </div>
               )}
 
               <div className="p-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                <h3 className="text-2xl font-bold text-foreground mb-2">
                   {plan.display_name}
                 </h3>
 
                 <div className="mb-4">
-                  <span className="text-4xl font-bold text-gray-900">
+                  <span className="text-4xl font-bold text-foreground">
                     {formatPrice(price)}
                   </span>
-                  <span className="text-gray-600 ml-1">/month</span>
+                  <span className="text-muted-foreground ml-1">/month</span>
                 </div>
 
-                <p className="text-gray-600 text-sm mb-6">{plan.description}</p>
+                <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
 
                 <div className="mb-6">
-                  <p className="font-semibold text-gray-900 mb-3">
+                  <p className="font-semibold text-foreground mb-3">
                     {plan.display_name} includes:
                   </p>
                   <ul className="space-y-2">
                     {getFeatureList(plan).map((feature, index) => (
-                      <li key={index} className="text-sm text-gray-700">
+                      <li key={index} className="text-sm text-foreground/80">
                         {feature}
                       </li>
                     ))}
@@ -291,12 +291,12 @@ export default function PricingPlans() {
                   disabled={creatingCheckout === plan.name}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
                     isCurrent
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'bg-primary text-white hover:bg-primary/90'
                       : plan.name === 'free'
-                      ? 'bg-gray-900 text-white hover:bg-gray-800'
+                      ? 'bg-[var(--brand)] text-white hover:bg-[var(--brand-strong)]'
                       : isPopular
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                      ? 'bg-primary text-white hover:bg-primary/90'
+                      : 'bg-[var(--brand)] text-white hover:bg-[var(--brand-strong)]'
                   } ${creatingCheckout === plan.name ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {creatingCheckout === plan.name ? (
@@ -314,7 +314,7 @@ export default function PricingPlans() {
                 </button>
 
                 {plan.name !== 'free' && !isCurrent && (
-                  <p className="text-xs text-gray-500 text-center mt-3">
+                  <p className="text-xs text-muted-foreground text-center mt-3">
                     Cancel anytime
                   </p>
                 )}
@@ -326,9 +326,9 @@ export default function PricingPlans() {
 
       {/* FAQ or Additional Info */}
       <div className="mt-16 text-center">
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           All plans include GST. Need help choosing? {' '}
-          <a href="mailto:support@matchedbetting.com" className="text-blue-600 hover:underline">
+          <a href="mailto:support@matchedbetting.com" className="text-primary hover:underline">
             Contact our team
           </a>
         </p>

@@ -186,24 +186,24 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
             </DialogTitle>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1.5"
+              className="p-2 hover:bg-muted rounded-lg transition-colors flex items-center gap-1.5"
               title="Advanced Settings"
             >
-              <Settings className={`w-5 h-5 ${showAdvanced ? 'text-blue-600' : 'text-gray-600'}`} />
-              <span className={`text-sm font-medium ${showAdvanced ? 'text-blue-600' : 'text-gray-600'}`}>
+              <Settings className={`w-5 h-5 ${showAdvanced ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className={`text-sm font-medium ${showAdvanced ? 'text-primary' : 'text-muted-foreground'}`}>
                 Advanced
               </span>
             </button>
           </div>
-          <div className="text-sm text-gray-600 flex items-center gap-3 mt-2">
+          <div className="text-sm text-muted-foreground flex items-center gap-3 mt-2">
             <span className="text-lg">{getSportEmoji()}</span>
-            <span className="font-medium text-gray-900">{odds.event_name}</span>
-            <span className="text-gray-400">•</span>
+            <span className="font-medium text-foreground">{odds.event_name}</span>
+            <span className="text-muted-foreground/60">•</span>
             <span>{odds.competition_name}</span>
-            <span className="text-gray-400">•</span>
+            <span className="text-muted-foreground/60">•</span>
             <span className="uppercase text-xs font-medium">{odds.market_type.replace('_', ' ')}</span>
           </div>
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             {formatEventTime()}
           </div>
         </DialogHeader>
@@ -212,17 +212,17 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
           {/* Outcome pill */}
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-2">
-              <span className="text-sm text-gray-600 font-semibold">Outcome:</span>
-              <span className="text-lg text-gray-900">{odds.selection_name}</span>
+              <span className="text-sm text-muted-foreground font-semibold">Outcome:</span>
+              <span className="text-lg text-foreground">{odds.selection_name}</span>
             </div>
-            <div className={`px-3 py-1 rounded-full text-sm font-medium ${odds.bet_type === 'bonus' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+            <div className={`px-3 py-1 rounded-full text-sm font-medium ${odds.bet_type === 'bonus' ? 'bg-[var(--profit-soft)] text-[var(--profit)]' : 'bg-secondary text-primary/90'}`}>
               {odds.bet_type === 'bonus' ? 'Bonus Bet' : 'Normal Bet'}
             </div>
           </div>
 
           {/* Advanced Settings */}
           {showAdvanced && (
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="p-4 bg-muted rounded-lg border border-border">
               <div className="max-w-xs">
                 <Label htmlFor="commission" className="text-sm font-medium">
                   Betfair Commission (%)
@@ -235,9 +235,9 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
                   step="0.5"
                   value={commission * 100}
                   onChange={(e) => setCommission(parseFloat(e.target.value) / 100)}
-                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full mt-1 px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   Typically 5-6% (for Australian users)
                 </div>
               </div>
@@ -246,14 +246,14 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
 
           {/* Two-column action cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+            <div className="bg-secondary border border-[var(--accent-soft)] rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-blue-800">Bookie</span>
-                <span className="text-xs text-blue-700">{odds.back_bookmaker_name}</span>
+                <span className="text-sm font-semibold text-[var(--brand)]">Bookie</span>
+                <span className="text-xs text-primary/90">{odds.back_bookmaker_name}</span>
               </div>
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="back-odds" className="text-xs font-medium text-gray-700">Odds</Label>
+                  <Label htmlFor="back-odds" className="text-xs font-medium text-foreground/80">Odds</Label>
                   <input
                     id="back-odds"
                     type="number"
@@ -261,11 +261,11 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
                     step="0.01"
                     value={backOdds}
                     onChange={(e) => setBackOdds(parseFloat(e.target.value))}
-                    className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold bg-white"
+                    className="w-full mt-1 px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary text-lg font-semibold bg-card"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="back-stake" className="text-xs font-medium text-gray-700">Stake</Label>
+                  <Label htmlFor="back-stake" className="text-xs font-medium text-foreground/80">Stake</Label>
                   <input
                     id="back-stake"
                     type="number"
@@ -273,20 +273,20 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
                     step="1"
                     value={backStake}
                     onChange={(e) => setBackStake(parseFloat(e.target.value))}
-                    className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold bg-white"
+                    className="w-full mt-1 px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary text-lg font-semibold bg-card"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="bg-rose-50 border border-rose-100 rounded-lg p-4">
+            <div className="bg-[var(--profit-soft)] border border-[var(--profit-border)] rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-rose-800">Betfair</span>
-                <span className="text-xs text-rose-700">{(commission * 100).toFixed(1)}% commission</span>
+                <span className="text-sm font-semibold text-[var(--profit)]">Betfair</span>
+                <span className="text-xs text-[var(--profit)]">{(commission * 100).toFixed(1)}% commission</span>
               </div>
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="lay-odds" className="text-xs font-medium text-gray-700">Lay Odds</Label>
+                  <Label htmlFor="lay-odds" className="text-xs font-medium text-foreground/80">Lay Odds</Label>
                   <input
                     id="lay-odds"
                     type="number"
@@ -294,24 +294,24 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
                     step="0.01"
                     value={layOdds}
                     onChange={(e) => setLayOdds(parseFloat(e.target.value))}
-                    className="w-full mt-1 px-3 py-2 border border-rose-200 rounded-md focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-lg font-semibold bg-white"
+                    className="w-full mt-1 px-3 py-2 border border-[var(--profit-border)] rounded-md focus:ring-2 focus:ring-[var(--profit)]/30 focus:border-[var(--profit)] text-lg font-semibold bg-card"
                   />
                 </div>
-                <div className="bg-white border border-rose-200 rounded-md p-3 flex items-center justify-between">
+                <div className="bg-card border border-[var(--profit-border)] rounded-md p-3 flex items-center justify-between">
                   <div>
-                    <div className="text-xs text-gray-500">Lay Stake</div>
-                    <div className="text-xl font-bold text-rose-800">{formatCurrency(calc.layStake)}</div>
-                    <div className="text-xs text-gray-500">Liability: {formatCurrency(calc.layLiability)}</div>
+                    <div className="text-xs text-muted-foreground">Lay Stake</div>
+                    <div className="text-xl font-bold text-[var(--profit)]">{formatCurrency(calc.layStake)}</div>
+                    <div className="text-xs text-muted-foreground">Liability: {formatCurrency(calc.layLiability)}</div>
                   </div>
                   <button
                     onClick={copyLayStake}
-                    className="p-2 bg-rose-100 hover:bg-rose-200 rounded-lg transition-colors"
+                    className="p-2 bg-[var(--profit-soft)] hover:bg-[var(--profit-border)] rounded-lg transition-colors"
                     title="Copy lay stake"
                   >
                     {copiedStake ? (
-                      <Check className="w-5 h-5 text-green-600" />
+                      <Check className="w-5 h-5 text-[var(--profit)]" />
                     ) : (
-                      <Copy className="w-5 h-5 text-rose-600" />
+                      <Copy className="w-5 h-5 text-[var(--profit)]" />
                     )}
                   </button>
                 </div>
@@ -320,38 +320,38 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
           </div>
 
           {/* Scenario table */}
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="border border-border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-muted">
                 <tr>
-                  <th className="text-left py-2 px-3 font-medium text-gray-700">Winner</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-700">Bookie</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-700">Betfair</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-700">Avail</th>
+                  <th className="text-left py-2 px-3 font-medium text-foreground/80">Winner</th>
+                  <th className="text-right py-2 px-3 font-medium text-foreground/80">Bookie</th>
+                  <th className="text-right py-2 px-3 font-medium text-foreground/80">Betfair</th>
+                  <th className="text-right py-2 px-3 font-medium text-foreground/80">Avail</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-t bg-white">
+                <tr className="border-t bg-card">
                   <td className="py-2 px-3 font-medium">{odds.selection_name}</td>
-                  <td className="text-right py-2 px-3 text-green-700 font-semibold">
+                  <td className="text-right py-2 px-3 text-[var(--profit)] font-semibold">
                     +{formatCurrency(odds.bet_type === 'bonus' ? backStake * (backOdds - 1) : (backStake * backOdds) - backStake)}
                   </td>
-                  <td className="text-right py-2 px-3 text-red-700 font-semibold">
+                  <td className="text-right py-2 px-3 text-destructive font-semibold">
                     -{formatCurrency(calc.layLiability)}
                   </td>
-                  <td className={`text-right py-2 px-3 font-bold ${calc.profitIfBackWins >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                  <td className={`text-right py-2 px-3 font-bold ${calc.profitIfBackWins >= 0 ? 'text-[var(--profit)]' : 'text-destructive'}`}>
                     {formatCurrency(calc.profitIfBackWins)}
                   </td>
                 </tr>
-                <tr className="border-t bg-white">
+                <tr className="border-t bg-card">
                   <td className="py-2 px-3 font-medium">Other outcome</td>
-                  <td className="text-right py-2 px-3 text-red-700 font-semibold">
+                  <td className="text-right py-2 px-3 text-destructive font-semibold">
                     {odds.bet_type === 'bonus' ? formatCurrency(0) : `-${formatCurrency(backStake)}`}
                   </td>
-                  <td className="text-right py-2 px-3 text-green-700 font-semibold">
+                  <td className="text-right py-2 px-3 text-[var(--profit)] font-semibold">
                     +{formatCurrency(calc.layStake - (calc.layStake * commission))}
                   </td>
-                  <td className={`text-right py-2 px-3 font-bold ${calc.profitIfLayWins >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                  <td className={`text-right py-2 px-3 font-bold ${calc.profitIfLayWins >= 0 ? 'text-[var(--profit)]' : 'text-destructive'}`}>
                     {formatCurrency(calc.profitIfLayWins)}
                   </td>
                 </tr>
@@ -360,17 +360,17 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
           </div>
 
           {/* Info + copy summary (moved here) */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-start justify-between gap-4">
+          <div className="bg-muted border border-border rounded-lg p-4 flex items-start justify-between gap-4">
             <div>
-              <div className={`text-lg font-bold ${calc.qualifyingLoss >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+              <div className={`text-lg font-bold ${calc.qualifyingLoss >= 0 ? 'text-[var(--profit)]' : 'text-destructive'}`}>
                 {calc.qualifyingLoss >= 0 ? 'Profit' : 'Loss'} {formatCurrency(Math.abs(calc.qualifyingLoss))}
               </div>
-              <div className="text-sm text-gray-600 mt-1">
+              <div className="text-sm text-muted-foreground mt-1">
                 {calc.pnlPercentage >= 0 ? 'PnL' : 'Qualifying Loss'} {formatPercentage(calc.pnlPercentage)}
               </div>
               {odds.bet_type === 'normal' && calc.qualifyingLoss < 0 && (
-                <div className="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <div className="flex items-start gap-2 text-xs text-yellow-900">
+                <div className="mt-3 p-3 bg-[var(--highlight-soft)] rounded-lg border border-[var(--highlight-border)]">
+                  <div className="flex items-start gap-2 text-xs text-[var(--highlight)]">
                     <span className="text-base leading-none mt-0.5">⚠️</span>
                     <span>
                       You&apos;ll lose about <strong>{formatCurrency(Math.abs(calc.qualifyingLoss))}</strong> ({formatPercentage(calc.pnlPercentage)}) to unlock bonus bets worth much more.
@@ -379,8 +379,8 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
                 </div>
               )}
               {odds.bet_type === 'bonus' && (
-                <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-start gap-2 text-xs text-green-900">
+                <div className="mt-3 p-3 bg-[var(--profit-soft)] rounded-lg border border-[var(--profit-border)]">
+                  <div className="flex items-start gap-2 text-xs text-[var(--profit)]">
                     <span className="text-base leading-none mt-0.5">🎁</span>
                     <span>
                       <strong>Bonus Bet:</strong> Free bet with average profit of <strong>{formatCurrency(calc.qualifyingLoss)}</strong>
@@ -391,13 +391,13 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
             </div>
             <button
               onClick={copySummary}
-              className="p-2 hover:bg-blue-100 rounded-lg transition-colors self-start"
+              className="p-2 hover:bg-secondary rounded-lg transition-colors self-start"
               title="Copy summary"
             >
               {copiedSummary ? (
-                <Check className="w-5 h-5 text-green-600" />
+                <Check className="w-5 h-5 text-[var(--profit)]" />
               ) : (
-                <Copy className="w-5 h-5 text-blue-600" />
+                <Copy className="w-5 h-5 text-primary" />
               )}
             </button>
           </div>
@@ -407,14 +407,14 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
             <div className="flex gap-2">
               <button
                 onClick={() => window.open(getBookmakerUrl(odds.back_bookmaker_code), '_blank')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all hover:shadow-lg flex items-center gap-2 text-sm"
+                className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all hover:shadow-lg flex items-center gap-2 text-sm"
               >
                 <ExternalLink className="w-4 h-4" />
                 Open {odds.back_bookmaker_name}
               </button>
               <button
                 onClick={() => window.open(getBookmakerUrl('betfair'), '_blank')}
-                className="px-4 py-2 bg-yellow-500 text-white rounded-xl hover:bg-yellow-600 transition-all hover:shadow-lg flex items-center gap-2 text-sm"
+                className="px-4 py-2 bg-[var(--highlight)] text-white rounded-xl hover:bg-[var(--highlight)]/90 transition-all hover:shadow-lg flex items-center gap-2 text-sm"
               >
                 <ExternalLink className="w-4 h-4" />
                 Open Betfair
@@ -428,14 +428,14 @@ Qualifying Loss: ${formatCurrency(calc.qualifyingLoss)} (${formatPercentage(calc
                     onStakeChange(backStake)
                     onClose()
                   }}
-                  className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all hover:shadow-lg text-sm"
+                  className="px-4 py-2 bg-[var(--profit)] text-white rounded-xl hover:bg-[var(--profit)]/90 transition-all hover:shadow-lg text-sm"
                 >
                   Update Stake
                 </button>
               )}
               <button
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-sm"
+                className="px-4 py-2 border border-input rounded-xl hover:bg-muted transition-colors text-sm"
               >
                 Close
               </button>

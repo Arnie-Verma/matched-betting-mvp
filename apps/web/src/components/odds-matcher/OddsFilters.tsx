@@ -154,16 +154,16 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
   )
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm p-6 space-y-4">
+    <div className="bg-card rounded-lg border shadow-sm p-6 space-y-4">
       {/* Primary Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Stake Amount */}
         <div>
-          <Label htmlFor="stake" className="text-sm font-medium text-gray-700 mb-1 block">
+          <Label htmlFor="stake" className="text-sm font-medium text-foreground/80 mb-1 block">
             Stake Amount (AUD)
           </Label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
             <input
               id="stake"
               type="number"
@@ -172,18 +172,18 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
               value={stakeInput}
               onChange={handleStakeChange}
               onBlur={handleStakeBlur}
-              className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-8 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
             />
           </div>
         </div>
 
         {/* Bet Type Toggle */}
         <div>
-          <Label htmlFor="bet-type" className="text-sm font-medium text-gray-700 mb-1 block">
+          <Label htmlFor="bet-type" className="text-sm font-medium text-foreground/80 mb-1 block">
             Bet Type
           </Label>
           <div className="flex items-center gap-3 h-10">
-            <span className={`text-sm ${!filters.betType || filters.betType === 'normal' ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+            <span className={`text-sm ${!filters.betType || filters.betType === 'normal' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
               Normal
             </span>
             <Switch
@@ -191,29 +191,29 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
               checked={filters.betType === 'bonus'}
               onCheckedChange={handleBetTypeChange}
             />
-            <span className={`text-sm ${filters.betType === 'bonus' ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+            <span className={`text-sm ${filters.betType === 'bonus' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
               Bonus
             </span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {filters.betType === 'bonus' ? 'Free bets - no stake returned' : 'Regular bets - stake returned'}
           </p>
         </div>
 
         {/* Search */}
         <div>
-          <Label htmlFor="search" className="text-sm font-medium text-gray-700 mb-1 block">
+          <Label htmlFor="search" className="text-sm font-medium text-foreground/80 mb-1 block">
             Search Events
           </Label>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
             <input
               id="search"
               type="text"
               placeholder="Team name or event..."
               value={filters.search}
               onChange={handleSearchChange}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
             />
           </div>
         </div>
@@ -222,7 +222,7 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
       {/* Advanced Filters Toggle */}
       <button
         onClick={() => setShowAdvanced(!showAdvanced)}
-        className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+        className="text-sm text-primary hover:text-primary/90 font-medium"
       >
         {showAdvanced ? '− Hide' : '+ Show'} Advanced Filters
       </button>
@@ -232,34 +232,34 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
         <div className="space-y-4 pt-4 border-t">
           {/* Bookmaker Filter */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label className="text-sm font-medium text-foreground/80 mb-2 block">
               Bookmakers
             </Label>
             <div ref={bookmakersRef} className="relative">
               <button
                 onClick={() => setShowBookmakers(!showBookmakers)}
-                className="w-full md:w-64 flex items-center justify-between gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="w-full md:w-64 flex items-center justify-between gap-2 px-4 py-2 border border-input rounded-lg hover:bg-muted transition-colors"
               >
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-foreground/80">
                   {filters.bookmakers.length === 0
                     ? 'All Bookmakers'
                     : `${filters.bookmakers.length} selected`}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showBookmakers ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showBookmakers ? 'rotate-180' : ''}`} />
               </button>
 
               {showBookmakers && (
-                <div className="absolute z-10 mt-1 w-full md:w-64 bg-white border border-gray-300 rounded-lg shadow-lg">
+                <div className="absolute z-10 mt-1 w-full md:w-64 bg-card border border-input rounded-lg shadow-lg">
                   {/* Search input */}
-                  <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                  <div className="p-2 border-b border-border sticky top-0 bg-card">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                       <input
                         type="text"
                         placeholder="Search bookmakers..."
                         value={bookmakerSearch}
                         onChange={(e) => setBookmakerSearch(e.target.value)}
-                        className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full pl-9 pr-3 py-1.5 text-sm border border-input rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary"
                         onClick={(e) => e.stopPropagation()}
                       />
                     </div>
@@ -270,19 +270,19 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
                       filteredBookmakers.map(bookmaker => (
                         <label
                           key={bookmaker.code}
-                          className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          className="flex items-center gap-3 px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
                         >
                           <input
                             type="checkbox"
                             checked={filters.bookmakers.includes(bookmaker.code)}
                             onChange={() => handleBookmakerToggle(bookmaker.code)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="w-4 h-4 text-primary border-input rounded focus:ring-primary/30"
                           />
-                          <span className="text-sm text-gray-700">{bookmaker.name}</span>
+                          <span className="text-sm text-foreground/80">{bookmaker.name}</span>
                         </label>
                       ))
                     ) : (
-                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                      <div className="px-4 py-3 text-sm text-muted-foreground text-center">
                         No bookmakers found
                       </div>
                     )}
@@ -294,34 +294,34 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
 
           {/* Leagues Filter */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label className="text-sm font-medium text-foreground/80 mb-2 block">
               Leagues
             </Label>
             <div ref={leaguesRef} className="relative">
               <button
                 onClick={() => setShowLeagues(!showLeagues)}
-                className="w-full md:w-64 flex items-center justify-between gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="w-full md:w-64 flex items-center justify-between gap-2 px-4 py-2 border border-input rounded-lg hover:bg-muted transition-colors"
               >
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-foreground/80">
                   {filters.sports.length === 0
                     ? 'All Leagues'
                     : `${filters.sports.length} selected`}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showLeagues ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showLeagues ? 'rotate-180' : ''}`} />
               </button>
 
               {showLeagues && (
-                <div className="absolute z-10 mt-1 w-full md:w-64 bg-white border border-gray-300 rounded-lg shadow-lg">
+                <div className="absolute z-10 mt-1 w-full md:w-64 bg-card border border-input rounded-lg shadow-lg">
                   {/* Search input */}
-                  <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                  <div className="p-2 border-b border-border sticky top-0 bg-card">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                       <input
                         type="text"
                         placeholder="Search leagues..."
                         value={leagueSearch}
                         onChange={(e) => setLeagueSearch(e.target.value)}
-                        className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full pl-9 pr-3 py-1.5 text-sm border border-input rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary"
                         onClick={(e) => e.stopPropagation()}
                       />
                     </div>
@@ -332,7 +332,7 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
                       filteredLeagues.map(league => (
                         <label
                           key={league.id}
-                          className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          className="flex items-center gap-3 px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
                         >
                           <input
                             type="checkbox"
@@ -345,13 +345,13 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
                                 : [...current, leagueCode]
                               onFiltersChange({ ...filters, sports: updated })
                             }}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="w-4 h-4 text-primary border-input rounded focus:ring-primary/30"
                           />
-                          <span className="text-sm text-gray-700">{league.short_name}</span>
+                          <span className="text-sm text-foreground/80">{league.short_name}</span>
                         </label>
                       ))
                     ) : (
-                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                      <div className="px-4 py-3 text-sm text-muted-foreground text-center">
                         No leagues found
                       </div>
                     )}

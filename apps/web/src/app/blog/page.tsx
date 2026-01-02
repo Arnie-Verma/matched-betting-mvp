@@ -76,15 +76,15 @@ export default function BlogPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <section className="bg-white py-16">
+      <section className="bg-card py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
               Matched Betting Blog
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Expert insights, strategies, and the latest updates from the world of matched betting.
               Learn from professionals and stay ahead of the game.
             </p>
@@ -98,32 +98,32 @@ export default function BlogPage() {
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar */}
             <div className="lg:w-1/4">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
+              <div className="bg-card rounded-xl shadow-sm border border-border p-6 sticky top-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Categories</h3>
                 <div className="space-y-2">
                   {categories.map((category) => (
                     <div key={category.name} className="flex items-center justify-between">
-                      <span className="text-gray-700 hover:text-blue-600 cursor-pointer">
+                      <span className="text-foreground/80 hover:text-primary cursor-pointer">
                         {category.name}
                       </span>
-                      <span className="text-sm text-gray-500">({category.count})</span>
+                      <span className="text-sm text-muted-foreground">({category.count})</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Newsletter Signup */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <h4 className="text-md font-semibold text-gray-900 mb-2">Stay Updated</h4>
-                  <p className="text-sm text-gray-600 mb-4">
+                <div className="mt-8 pt-6 border-t border-border">
+                  <h4 className="text-md font-semibold text-foreground mb-2">Stay Updated</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
                     Get the latest matched betting tips and strategies delivered to your inbox.
                   </p>
                   <div className="space-y-2">
                     <input
                       type="email"
                       placeholder="Your email"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
-                    <button className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                    <button className="w-full bg-primary text-white py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
                       Subscribe
                     </button>
                   </div>
@@ -135,27 +135,27 @@ export default function BlogPage() {
             <div className="lg:w-3/4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {posts.map((post) => (
-                  <article key={post.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-                    <div className="h-48 bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-500">Blog Image</span>
+                  <article key={post.id} className="bg-card rounded-xl shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="h-48 bg-muted flex items-center justify-center">
+                      <span className="text-muted-foreground">Blog Image</span>
                     </div>
 
                     <div className="p-6">
                       <div className="flex items-center space-x-2 mb-3">
-                        <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+                        <span className="bg-secondary text-[var(--brand)] text-xs font-medium px-2 py-1 rounded">
                           {post.category}
                         </span>
                       </div>
 
-                      <h2 className="text-xl font-semibold text-gray-900 mb-3 hover:text-blue-600 cursor-pointer">
+                      <h2 className="text-xl font-semibold text-foreground mb-3 hover:text-primary cursor-pointer">
                         {post.title}
                       </h2>
 
-                      <p className="text-gray-600 mb-4 line-clamp-3">
+                      <p className="text-muted-foreground mb-4 line-clamp-3">
                         {post.excerpt}
                       </p>
 
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
                         <div className="flex items-center space-x-4">
                           <div className="flex items-center">
                             <User className="w-4 h-4 mr-1" />
@@ -174,7 +174,7 @@ export default function BlogPage() {
 
                       <Link
                         href={`/blog/${post.id}`}
-                        className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
+                        className="inline-flex items-center text-primary hover:text-primary/90 font-medium"
                       >
                         Read More
                         <ArrowRight className="w-4 h-4 ml-1" />
@@ -186,7 +186,7 @@ export default function BlogPage() {
 
               {/* Load More */}
               <div className="text-center mt-12">
-                <button className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors">
+                <button className="bg-muted text-foreground/80 px-6 py-3 rounded-lg hover:bg-muted/80 transition-colors">
                   Load More Posts
                 </button>
               </div>
@@ -196,17 +196,17 @@ export default function BlogPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-blue-600">
+      <section className="py-16 bg-[var(--brand)]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
             Ready to Start Your Matched Betting Journey?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-white/70 mb-8">
             Join thousands of successful matched bettors and start earning today
           </p>
           <Link
             href="/sign-up"
-            className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+            className="bg-white text-[var(--brand)] px-8 py-4 rounded-lg font-semibold hover:bg-white/90 transition-colors"
           >
             Get Started Free
           </Link>

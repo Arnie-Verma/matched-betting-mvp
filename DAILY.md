@@ -15,6 +15,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Implemented unified brand system in marketing app (palette, typography, spacing/layout utilities)
 - Began applying unified brand system to apps/web (tokens, typography, navigation, home/how-it-works/dashboard)
 - Removed unused app routes (how-it-works) and redirected app root to dashboard/sign-in
+- Restyled remaining apps/web pages and odds-matcher/calculator UI to match the unified brand system
 
 ### Blockers
 - None
