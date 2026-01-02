@@ -63,28 +63,31 @@ logger = logging.getLogger(__name__)
 
 # Punterstech bookmaker configurations
 # Format: (code, api_base_url, website_url)
+# URLs verified 2026-01-02
 PUNTERSTECH_BOOKMAKERS = {
+    # Working/Verified brands
     "tradiebet": ("tradiebet", "https://api.public.tradie.bet", "https://www.tradie.bet"),
     "mintbet": ("mintbet", "https://api.public.mintbet.au", "https://www.mintbet.com.au"),
-    "xbet": ("xbet", "https://api.public.xbet.com.au", "https://www.xbet.com.au"),
     "millennialbet": ("millennialbet", "https://api.public.millennialbet.com.au", "https://www.millennialbet.com.au"),
     "betreal": ("betreal", "https://api.public.betreal.com.au", "https://www.betreal.com.au"),
     "betblitz": ("betblitz", "https://api.public.betblitz.com.au", "https://www.betblitz.com.au"),
     "betchamps": ("betchamps", "https://api.public.betchamps.com.au", "https://www.betchamps.com.au"),
-    "topbet": ("topbet", "https://api.public.topbet.com.au", "https://www.topbet.com.au"),
     "betfocus": ("betfocus", "https://api.public.betfocus.com.au", "https://www.betfocus.com.au"),
     "lightningbet": ("lightningbet", "https://api.public.lightningbet.com.au", "https://www.lightningbet.com.au"),
-    "chasebet": ("chasebet", "https://api.public.chasebet.com.au", "https://www.chasebet.com.au"),
     "blondebet": ("blondebet", "https://api.public.blondebet.com.au", "https://www.blondebet.com.au"),
     "wizbet": ("wizbet", "https://api.public.wizbet.com.au", "https://www.wizbet.com.au"),
-    "betbuzz": ("betbuzz", "https://api.public.betbuzz.com.au", "https://www.betbuzz.com.au"),
-    "alphabet": ("alphabet", "https://api.public.alphabet.bet", "https://www.alphabet.bet"),
     "truebet": ("truebet", "https://api.public.truebet.com.au", "https://www.truebet.com.au"),
-    "ripperbet": ("ripperbet", "https://api.public.ripperbet.com.au", "https://www.ripperbet.com.au"),
-    "starsports": ("starsports", "https://api.public.starsports.bet", "https://www.starsports.bet"),
     "cashcage": ("cashcage", "https://api.public.cashcage.com.au", "https://www.cashcage.com.au"),
     "teambet": ("teambet", "https://api.public.teambet.com.au", "https://www.teambet.com.au"),
     "betvista": ("betvista", "https://api.public.betvista.com.au", "https://www.betvista.com.au"),
+    # Corrected URLs (need verification)
+    "topbet": ("topbet", "https://api.public.topbet.au", "https://www.topbet.au"),
+    "chasebet": ("chasebet", "https://api.public.chasebet.au", "https://www.chasebet.au"),
+    "betbuzz": ("betbuzz", "https://api.public.betbuzz.au", "https://www.betbuzz.au"),
+    "betalpha": ("betalpha", "https://api.public.betalpha.au", "https://www.betalpha.au"),
+    "ripperbet": ("ripperbet", "https://api.public.ripperbet.au", "https://www.ripperbet.au"),
+    "starsports": ("starsports", "https://api.public.starsports.com.au", "https://www.starsports.com.au"),
+    # xbet removed - domain not found/defunct
 }
 
 

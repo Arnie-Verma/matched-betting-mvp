@@ -34,6 +34,7 @@ from scrapers.tab_scraper import TABScraper
 from scrapers.betfair_scraper import BetfairScraper
 from scrapers.ladbrokes_scraper import LadbrokesScraper
 from scrapers.entain_scraper import EntainScraper
+from scrapers.punterstech_scraper import PunterstechScraper
 from scrapers.base import BaseScraper, ScrapeResult, ScraperStatus
 from jobs.save_odds import save_scrape_result_to_db
 from jobs.cleanup_service import CleanupService
@@ -66,11 +67,11 @@ logger = logging.getLogger(__name__)
 # 3. Update bookmaker.scraping_config in database to use new scraper_class
 # =============================================================================
 SCRAPER_CLASSES: Dict[str, Type[BaseScraper]] = {
-    "entain": EntainScraper,      # Ladbrokes, Neds, Unibet
-    "betfair": BetfairScraper,    # Betfair Exchange
-    "tab": TABScraper,            # TAB (needs proxy)
+    "entain": EntainScraper,            # Ladbrokes, Neds
+    "betfair": BetfairScraper,          # Betfair Exchange
+    "tab": TABScraper,                  # TAB (needs proxy)
+    "punterstech": PunterstechScraper,  # 21 bookmakers (TradieBET, MintBet, etc.)
     # Future platform scrapers:
-    # "punterstech": PunterstechScraper,    # 21 bookmakers
     # "betmakers": BetMakersScraper,        # 33 bookmakers
     # "generation_web": GenerationWebScraper,  # 22 bookmakers
     # "betcloud": BetCloudScraper,          # 26 bookmakers
