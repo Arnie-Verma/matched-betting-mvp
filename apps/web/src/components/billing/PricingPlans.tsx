@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs'
 import { clientApi } from '@/lib/clientApi'
 
 interface Plan {
@@ -61,7 +61,8 @@ export default function PricingPlans() {
   const [loading, setLoading] = useState(true)
   const billingCycle = 'monthly' // Only monthly billing
   const [creatingCheckout, setCreatingCheckout] = useState<string | null>(null)
-  const { user } = useUser()
+  const { user, isLoaded } = useUser()
+  const { getToken } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -72,9 +73,19 @@ export default function PricingPlans() {
         setPlans((plansRes as PlansResponse).plans)
 
         // Only fetch subscription status if user is authenticated
-        if (user) {
+        if (user && isLoaded) {
           try {
-            const statusRes = await clientApi.get('/billing/subscription')
+            const token = await getToken({ template: 'mb-api' })
+            const response = await fetch('/api/proxy/billing/subscription', {
+              headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+              credentials: 'include'
+            })
+
+            if (!response.ok) {
+              throw new Error(`Subscription request failed: ${response.statusText}`)
+            }
+
+            const statusRes = await response.json()
             setSubscriptionStatus(statusRes as SubscriptionStatus)
           } catch (error) {
             console.error('Error fetching subscription status:', error)
@@ -88,7 +99,7 @@ export default function PricingPlans() {
     }
 
     fetchData()
-  }, [user])
+  }, [user, isLoaded, getToken])
 
   const formatPrice = (cents: number | null) => {
     if (!cents) return '$0'

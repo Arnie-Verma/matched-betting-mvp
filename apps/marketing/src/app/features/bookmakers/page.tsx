@@ -31,7 +31,7 @@ const tiers = [
     ],
   },
   {
-    name: "Diamond",
+    name: "Platinum",
     description: "103+ bookmakers across every major platform.",
     accent: "bg-[var(--brand)]/12",
     bookmakers: [
@@ -154,7 +154,7 @@ export default function BookmakersPage() {
                 <h2 className="text-2xl md:text-3xl font-semibold">Building coverage fast</h2>
               </div>
               <p className="mt-3 text-[var(--ink-muted)]">
-                We are actively expanding platform scrapers so Diamond members get every Australian bookmaker.
+                We are actively expanding platform scrapers so Platinum members get every Australian bookmaker.
               </p>
             </div>
             <Link href={`${appUrl}/sign-up`} className="btn-outline">

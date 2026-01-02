@@ -66,7 +66,7 @@ def seed_plans(db: Session):
         },
         {
             "name": "platinum",
-            "display_name": "Diamond",
+            "display_name": "Platinum",
             "description": "Everything you need",
             "price_monthly_cents": 3500,  # $35 AUD
             "price_yearly_cents": 35000,  # $350 AUD (2 months free)

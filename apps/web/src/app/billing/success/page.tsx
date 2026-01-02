@@ -2,13 +2,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function BillingSuccessPage() {
   const [loading, setLoading] = useState(true)
-  const searchParams = useSearchParams()
-  const sessionId = searchParams.get('session_id')
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,11 +73,6 @@ export default function BillingSuccessPage() {
           </Link>
         </div>
 
-        {sessionId && (
-          <p className="text-xs text-muted-foreground/60 mt-6">
-            Session ID: {sessionId}
-          </p>
-        )}
       </div>
     </div>
   )

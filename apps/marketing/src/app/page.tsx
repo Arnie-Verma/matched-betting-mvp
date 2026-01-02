@@ -84,7 +84,7 @@ const plans = [
     accent: true,
   },
   {
-    name: "Diamond",
+    name: "Platinum",
     price: "A$35",
     description: "Full market coverage and power tools.",
     features: ["103+ bookmakers", "Advanced tools", "Custom alerts"],

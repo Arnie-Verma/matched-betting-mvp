@@ -128,7 +128,8 @@ class StripeService:
         user: User,
         price_id: str,
         success_url: str,
-        cancel_url: str
+        cancel_url: str,
+        plan_name: Optional[str] = None
     ) -> stripe.checkout.Session:
         """Create a Stripe checkout session for subscription"""
         # Ensure user has a Stripe customer ID
@@ -158,6 +159,11 @@ class StripeService:
             "tax_id_collection": {"enabled": True},  # Allow customers to provide tax IDs
             "allow_promotion_codes": True,  # Show promotion code field in Checkout
         }
+
+        if plan_name:
+            session_data["subscription_data"] = {
+                "metadata": {"plan_name": plan_name.lower()}
+            }
 
         # No trial periods
 

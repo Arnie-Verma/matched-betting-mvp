@@ -3,6 +3,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from pydantic import BaseModel
 
 from api.core.database import get_db
@@ -87,13 +88,25 @@ async def create_checkout_session(
         db.refresh(user)
 
     stripe_service = StripeService()
+    plan = (
+        db.query(Plan)
+        .filter(
+            or_(
+                Plan.stripe_price_monthly_id == request.price_id,
+                Plan.stripe_price_yearly_id == request.price_id
+            )
+        )
+        .first()
+    )
+    plan_name = plan.name if plan else None
 
     try:
         session = stripe_service.create_checkout_session(
             user=user,
             price_id=request.price_id,
             success_url=request.success_url,
-            cancel_url=request.cancel_url
+            cancel_url=request.cancel_url,
+            plan_name=plan_name
         )
 
         # Update user's stripe_customer_id if not set

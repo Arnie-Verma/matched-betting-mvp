@@ -29,7 +29,7 @@ const plans = [
     highlight: true,
   },
   {
-    name: "Diamond",
+    name: "Platinum",
     price: "A$35",
     cadence: "per month",
     description: "Full market access and advanced tools.",

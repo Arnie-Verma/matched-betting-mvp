@@ -33,20 +33,20 @@ def main():
         if results["created"]:
             print(f"\nCreated ({len(results['created'])}):")
             for item in results["created"]:
-                print(f"  ✓ {item}")
+                print(f"  - {item}")
 
         if results["updated"]:
             print(f"\nUpdated ({len(results['updated'])}):")
             for item in results["updated"]:
-                print(f"  ✓ {item}")
+                print(f"  - {item}")
 
         if results["errors"]:
             print(f"\nErrors ({len(results['errors'])}):")
             for error in results["errors"]:
-                print(f"  ✗ {error}")
+                print(f"  - {error}")
             sys.exit(1)
 
-        print(f"\n✅ Successfully processed all plans!")
+        print("\nSuccessfully processed all plans!")
 
 
 if __name__ == "__main__":
