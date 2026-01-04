@@ -1,0 +1,53 @@
+{
+  "bookmaker": "WinnersBet",
+  "base_url": "https://www.winnersbet.com.au",
+  "sport_paths": [
+    "/sports/soccer",
+    "/sports/afl",
+    "/sports/nrl"
+  ],
+  "timestamp": "2026-01-04T05:39:10.014253",
+  "endpoints_captured": 1,
+  "unique_endpoints": 1,
+  "endpoints": {
+    "/v2/customer/3ca710f7-50a9-4a2f-a6fa-58c912a7e984/2/token": {
+      "full_url": "https://accounts.livechatinc.com/v2/customer/3ca710f7-50a9-4a2f-a6fa-58c912a7e984/2/token",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "access_token",
+        "entity_id",
+        "expires_in",
+        "organization_id",
+        "token_type"
+      ],
+      "response_size": 209,
+      "sports_where_found": [
+        "soccer"
+      ]
+    }
+  },
+  "odds_endpoints": [],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/v2/customer/3ca710f7-50a9-4a2f-a6fa-58c912a7e984/2/token"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://accounts.livechatinc.com/v2/customer/3ca710f7-50a9-4a2f-a6fa-58c912a7e984/2/token",
+      "endpoint": "/v2/customer/3ca710f7-50a9-4a2f-a6fa-58c912a7e984/2/token",
+      "sport": "soccer",
+      "status": 200,
+      "size": 209,
+      "sample": {
+        "access_token": "us-south1:yV2aRXg5SD6hJYPJzUsmRg",
+        "entity_id": "d0ec91cd-cb04-4d52-b017-1458bb09b3ec",
+        "expires_in": 14400,
+        "organization_id": "3ca710f7-50a9-4a2f-a6fa-58c912a7e984",
+        "token_type": "Bearer"
+      }
+    }
+  ]
+}

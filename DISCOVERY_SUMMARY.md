@@ -1,11 +1,11 @@
-# Platform Discovery Summary (2025-12-30)
+# Platform Discovery Summary (2026-01-04)
 
 ## Executive Summary
 
-Completed comprehensive automated research on **5 major Australian bookmaker platforms** by capturing network traffic from 11+ sites across multiple sports. Key findings:
+Completed comprehensive automated research on **5 major Australian bookmaker platforms** plus targeted discovery updates (2026-01-04). Key findings:
 - **3 bookmakers working NOW**: Ladbrokes, Neds (Entain), Betfair
-- **2 platforms ready to implement**: Punterstech (21 bookmakers), Kindred/Unibet (1 bookmaker)
-- **3 platforms need investigation**: BetMakers (SSR approach clear), Generation Web & BetCloud (hidden APIs)
+- **3 platforms ready to implement**: Punterstech (21 bookmakers), Kindred/Unibet (1 bookmaker), BetCloud (26 bookmakers)
+- **2 platforms still need deeper work**: BetMakers (SSR extraction), Generation Web (odds endpoint still hidden; betapi endpoints found)
 
 **Ownership Correction (2025-12-30)**:
 - ✅ **Entain** owns Ladbrokes + Neds (confirmed same platform/API)
@@ -17,8 +17,8 @@ Completed comprehensive automated research on **5 major Australian bookmaker pla
 - **Total bookmakers**: 103 across all platforms
 - **Methodology**: Enhanced Playwright-based multi-sport network traffic interception
 - **Sports tested**: Soccer, AFL, NRL, Football (to find all endpoints)
-- **Data collected**: 13 JSON files with API patterns documented
-- **Research dates**: 2025-12-28 to 2025-12-30
+- **Data collected**: 17 JSON files with API patterns documented
+- **Research dates**: 2025-12-28 to 2026-01-04
 
 ---
 
@@ -83,9 +83,9 @@ GET  /sportssilks/supportedsports            ← Team/sport metadata
 
 ---
 
-### 3. Generation Web (22 bookmakers) - ⚠️ CONFIGURATION ENDPOINTS FOUND
+### 3. Generation Web (22 bookmakers) - ⚠️ CONFIGURATION + JS ENDPOINTS FOUND
 
-**Status**: Partial API found, sports betting odds endpoint hidden
+**Status**: Partial API found, sports betting odds endpoint still hidden
 
 **Discovery Results (Multi-Sport Research)**:
 - ✅ Found 2 consistent endpoints across all 3 sports
@@ -100,6 +100,15 @@ GET  /sportssilks/supportedsports            ← Team/sport metadata
 - Endpoint consistency confirms single API pattern across Generation Web bookmakers
 - Response keys: `hotevents`, `sportAZ` suggest market/sport configuration, not odds
 
+**Targeted Updates (2026-01-04)**:
+- EliteBet JS bundle references additional betapi endpoints:
+  - `POST /sportutility/getAllSports` payload: `{"sportcode":"all","isHome": true|false}`
+  - `POST /sportutility/getUpcomingSport` (payload not yet captured)
+  - `POST /sportutility/getSportAZ` payload: `{}`
+  - `POST /sportutility2/getSportHighlights` payload: `{"sportcode":"all","trending":1,"featured":0,"futures":0}`
+- JS also references `/api/racing/getRaceDayEvents` and `/api/racing/getRacePrices` (likely Next.js API routes on `https://www.{domain}`).
+- Direct HTTP calls to betapi return HTML error/500; Playwright captures JSON responses, so browser context or extra headers are likely required.
+
 **Implementation Approach**:
 1. ✅ Configuration endpoints working and documented
 2. ⚠️ Need to find sports betting odds endpoint
@@ -112,38 +121,33 @@ GET  /sportssilks/supportedsports            ← Team/sport metadata
 
 ---
 
-### 4. BetCloud (26 bookmakers) - ⚠️ RACING-ONLY APIS, SPORTS HIDDEN
+### 4. BetCloud (26 bookmakers) - ✅ SPORTS ODDS API FOUND
 
-**Status**: Racing API complete, sports betting API missing
+**Status**: Sports odds endpoints confirmed (2026-01-04)
 
-**Discovery Results (Multi-Sport Research)**:
-- ✅ Racing API working: `/punter/races/next-to-jump`
-- ✅ Captured: 4 endpoints (racing, config, offerings, homepage)
-- ✅ Endpoints identical between WellBet and BetGalaxy
-- ✅ Tested across 3 sports (soccer, AFL, NRL) → NO NEW ENDPOINTS
-- ⚠️ Sports betting API completely absent from captures
+**Discovery Results (Targeted 2026-01-04)**:
+- ✅ `GET /punter/general/offerings` → `offered_sports` with `sport_id`
+- ✅ `GET /punter/sports/competitions-tournaments?sport_id={id}` → competition list
+- ✅ `GET /punter/sports/upcoming-matches-group-by-sport` → per-sport upcoming matches with `main_markets` odds
+- ✅ `GET /punter/sports/upcoming-matches-by-time?limit=50&sport_id={id}&top_markets=false` → detailed match list with `main_markets`
+- ✅ `GET /punter/races/next-to-jump?race_type=...` → racing (already known)
 
-**Key Findings**:
-- WellBet tested across 3 sports → always captured same 4 endpoints
-- BetGalaxy tested across 3 sports → always captured same 4 endpoints
-- Racing data readily available (~3.4KB per response)
-- Response shows "offered_sports" list but no endpoint to fetch actual odds
-- All 4 endpoints appear in all sports sessions (no sport-specific APIs)
+**Header Requirement**:
+- API calls must use `Origin`/`Referer` for the non-www base domain (e.g., `https://wellbet.com.au/`, `https://betgalaxy.com.au/`).
+- Using `www` in Origin/Referer returns 403.
+
+**Response Structure (sports odds)**:
+- `upcoming-matches-by-time` returns `items[]` with:
+  - `match_id`, `match_name`, `competition_name`, `match_start_time`
+  - `main_markets[]` → `propositions[]` → `odds` (decimal)
+- `upcoming-matches-group-by-sport` returns per-sport `upcoming_matches[]` with `main_markets`.
 
 **Implementation Approach**:
-1. ✅ Racing APIs working and documented
-2. ⚠️ Sports betting APIs hidden or loaded differently
-   - May use AJAX/XHR after page render (not captured during initial load)
-   - May use WebSocket for real-time odds
-   - May embed odds in HTML response body
-   - May use different endpoint pattern not triggered by page navigation
+1. Call `offerings` to map sport display names to `sport_id`.
+2. Fetch matches via `upcoming-matches-by-time` (or grouped endpoint for fast snapshots).
+3. Parse `main_markets` → `propositions` → `odds`.
 
-**Next Steps for Completion**:
-1. Inspect HTML response body for embedded JSON
-2. Check for WebSocket connections on sports pages
-3. Monitor Network tab for delayed XHR requests after page render
-
-**Expected Implementation**: **2-3 days research + 3-5 days implementation**
+**Expected Implementation**: **2-3 days**
 **Value**: **26 bookmakers with 1 scraper**
 
 ---
@@ -183,7 +187,7 @@ GET /sportsbook-feeds/settings                           → Config (50KB)
 
 ---
 
-## Implementation Roadmap (Updated 2025-12-30)
+## Implementation Roadmap (Updated 2026-01-04)
 
 ### Phase 0: Currently Working ✅
 - Entain (Ladbrokes + Neds): 2 bookmakers
@@ -214,14 +218,14 @@ GET /sportsbook-feeds/settings                           → Config (50KB)
 - Difficulty: Medium (find hidden sports betting endpoint)
 - Status: Configuration endpoints found, odds endpoint needs investigation
 
-### Phase 4: BetCloud (26 bookmakers) - RESEARCH NEEDED
-- Timeline: 2-3 days research + 3-5 days implementation
+### Phase 4: BetCloud (26 bookmakers) - READY
+- Timeline: 2-3 days
 - Value: 26 bookmakers (26% of target)
-- Difficulty: Medium-Hard (sports API hidden)
-- Status: Racing API complete, sports API needs investigation
+- Difficulty: Medium (parse main_markets/propositions)
+- Status: Sports odds endpoints confirmed; requires non-www Origin/Referer
 
 **Total Timeline**: 2-3 weeks for 103-bookmaker coverage with 5 platform scrapers
-**Critical Path**: Complete Phase 1 + 1b immediately (no blockers), proceed with Phases 2-4 in parallel
+**Critical Path**: Complete Phase 1 + 1b immediately, build BetCloud + BetMakers in parallel while Generation Web discovery continues
 
 ---
 
@@ -232,14 +236,14 @@ GET /sportsbook-feeds/settings                           → Config (50KB)
 - **Kindred/Unibet**: ✅ None
 - **BetMakers**: ✅ None
 - **Generation Web**: ⚠️ Unknown (limited data)
-- **BetCloud**: ✅ None
+- **BetCloud**: ✅ None (requires non-www Origin/Referer)
 **Conclusion**: No proxy required for any discovered platform
 
 ### Authentication Requirements
 - **Punterstech**: ✅ Public (no auth)
 - **BetMakers**: ✅ Public (HTML embedded)
 - **Generation Web**: ⚠️ Unknown
-- **BetCloud**: ✅ Public
+- **BetCloud**: ✅ Public (Origin/Referer required)
 
 ---
 
@@ -256,6 +260,8 @@ Located in `discovery_output/`:
 - `winnersbet_20251229_072000.json` - WinnersBet (1 endpoint, initial)
 - `elitebet_20251229_122024.json` - EliteBet (3 endpoints, multi-sport) ✅ **ENHANCED**
 - `winnersbet_20251229_122103.json` - WinnersBet (1 endpoint, multi-sport) ✅ **ENHANCED**
+- `elitebet_20260104_053836.json` - EliteBet (targeted rerun)
+- `winnersbet_20260104_053910.json` - WinnersBet (targeted rerun)
 
 **BetMakers** (Initial discovery - SSR):
 - `realbookie_20251229_073815.json` - RealBookie (0 APIs - SSR)
@@ -266,11 +272,13 @@ Located in `discovery_output/`:
 - `betgalaxy_20251229_073953.json` - BetGalaxy (4 endpoints, initial - racing only)
 - `wellbet_20251229_122512.json` - WellBet (4 endpoints, multi-sport) ✅ **ENHANCED**
 - `betgalaxy_20251229_122555.json` - BetGalaxy (4 endpoints, multi-sport) ✅ **ENHANCED**
+- `wellbet_20260104_053950.json` - WellBet (targeted rerun)
+- `betgalaxy_20260104_054029.json` - BetGalaxy (targeted rerun)
 
 **Kindred** (New discovery 2025-12-30):
 - `unibet_20251230_071610.json` - Unibet (14 endpoints, 1.9MB odds data) ✅ **COMPLETE**
 
-**Total Data**: 13 JSON files representing 11 bookmakers across 5 platforms with multi-sport coverage
+**Total Data**: 17 JSON files representing 11 bookmakers across 5 platforms (includes targeted reruns)
 
 ---
 
@@ -280,29 +288,30 @@ Located in `discovery_output/`:
 ✅ **Entain (Ladbrokes + Neds)**: 2 bookmakers working (same platform/API)
 ✅ **Betfair (Exchange)**: 1 exchange working
 
-### What's Ready to Implement (22+ bookmakers)
+### What's Ready to Implement (81+ bookmakers)
 ✅ **Punterstech (21 bookmakers)**: Complete API documented. Single scraper handles all 21 sites.
 ✅ **Kindred/Unibet (1 bookmaker)**: Complete API discovered. 1.9MB single endpoint for all matches.
 ✅ **BetMakers (33 bookmakers)**: SSR approach clear. Use Playwright + DOM parsing.
+✅ **BetCloud (26 bookmakers)**: Sports odds endpoints confirmed; parse `main_markets`/`propositions`.
 
-### What Needs Investigation (48 bookmakers)
-⚠️ **Generation Web (22 bookmakers)**: Configuration endpoints found. Need to find sports betting odds endpoint.
-⚠️ **BetCloud (26 bookmakers)**: Racing API found. Need to find sports betting odds endpoint.
+### What Needs Investigation (22 bookmakers)
+⚠️ **Generation Web (22 bookmakers)**: Configuration endpoints found. Odds endpoint still hidden; betapi JS endpoints identified.
 
-### Blockers Resolved (2025-12-30)
+### Blockers Resolved (2026-01-04)
 - ✅ Multi-sport automated research working
 - ✅ Can now test platforms across soccer, AFL, NRL to find all endpoints
 - ✅ Eliminated false hypothesis that hidden endpoints only in certain sports
-- ✅ Confirmed Generation Web & BetCloud odds must use different loading method
+- ✅ Confirmed BetCloud sports odds endpoints (`/punter/sports/*`) and header requirement (non-www Origin/Referer)
 - ✅ **Corrected ownership**: Unibet is Kindred (NOT Entain), confirmed Neds works with Ladbrokes scraper
 - ✅ **Discovered Unibet API**: Complete with 1.9MB football endpoint
 
 ---
 
-**Last Updated**: 2025-12-30
+**Last Updated**: 2026-01-04
 **Tool**: `discovery.py` (Enhanced Playwright-based automated multi-sport research)
-**Status**: Ready to start implementation
+**Status**: Ready to start implementation (BetCloud endpoints confirmed)
 **Next Steps**:
 1. Build PunterstechScraper (2-3 days, 21 bookmakers)
 2. Build UnibetScraper (1-2 days, 1 Premium bookmaker)
-3. Investigate Gen Web & BetCloud sports APIs in parallel
+3. Build BetCloud scraper using `/punter/sports/*` endpoints
+4. Continue Generation Web discovery (find odds endpoint or DOM fallback)

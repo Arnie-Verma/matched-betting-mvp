@@ -4,6 +4,26 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-01-04 (Sunday)
+
+### Completed
+- Read CLAUDE.md, SCRAPER_STRATEGY.md, DISCOVERY_SUMMARY.md, DAILY.md
+- Inspected scraper architecture (BaseScraper, Entain, Punterstech, scrape_service, save_odds)
+- Ran targeted discovery for Generation Web + BetCloud (docker discovery.py) and saved new outputs
+- Inspected JS bundles and Playwright request headers to uncover BetCloud sports endpoints
+- Confirmed BetCloud sports odds endpoints + required Origin/Referer headers; captured soccer sport_id
+- Captured Generation Web betapi payloads from Playwright (getSportAZ/getSportHighlights); odds endpoint still missing
+- Updated SCRAPER_STRATEGY.md with new findings and status updates
+- Updated DISCOVERY_SUMMARY.md to reflect latest discovery findings
+
+### Blockers
+- Generation Web odds endpoints still not identified; betapi returns HTML error outside Playwright context
+
+### Next Steps
+- Build BetCloud scraper using /punter/sports endpoints (main_markets -> propositions -> odds)
+- Continue Generation Web discovery (find odds endpoint or fall back to DOM/SSR extraction)
+- Decide whether to update DISCOVERY_SUMMARY.md to reflect latest findings
+
 ## 2026-01-03 (Friday) - Session 3: Docker Fix + 18 Punterstech Bookmakers Live
 
 ### Completed

@@ -1,0 +1,348 @@
+{
+  "bookmaker": "BetGalaxy",
+  "base_url": "https://www.betgalaxy.com.au",
+  "sport_paths": [
+    "/sports/soccer",
+    "/sports/afl",
+    "/sports/nrl"
+  ],
+  "timestamp": "2026-01-04T05:40:29.055017",
+  "endpoints_captured": 48,
+  "unique_endpoints": 4,
+  "endpoints": {
+    "/generic/config/fields.desktopbetgalaxy": {
+      "full_url": "https://api.betgalaxy.com.au/generic/config/fields.desktopbetgalaxy",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "sys",
+        "total",
+        "skip",
+        "limit",
+        "items"
+      ],
+      "response_size": 115,
+      "sports_where_found": [
+        "soccer",
+        "afl",
+        "nrl"
+      ]
+    },
+    "/punter/general/offerings": {
+      "full_url": "https://api.betgalaxy.com.au/punter/general/offerings",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "offered_sports",
+        "offered_race_types",
+        "offered_racing_futures"
+      ],
+      "response_size": 1312,
+      "sports_where_found": [
+        "soccer",
+        "afl",
+        "nrl"
+      ]
+    },
+    "/punter/content/homepage": {
+      "full_url": "https://api.betgalaxy.com.au/punter/content/homepage",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": null,
+      "response_size": 1426,
+      "sports_where_found": [
+        "soccer",
+        "afl",
+        "nrl"
+      ]
+    },
+    "/punter/races/next-to-jump": {
+      "full_url": "https://api.betgalaxy.com.au/punter/races/next-to-jump?race_type=Greyhounds&limit=11&t=5",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": null,
+      "response_size": 3442,
+      "sports_where_found": [
+        "soccer",
+        "afl",
+        "nrl"
+      ]
+    }
+  },
+  "odds_endpoints": [],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/generic/config/fields.desktopbetgalaxy",
+      "/punter/general/offerings",
+      "/punter/content/homepage",
+      "/punter/races/next-to-jump"
+    ],
+    "nrl": [
+      "/generic/config/fields.desktopbetgalaxy",
+      "/punter/general/offerings",
+      "/punter/content/homepage",
+      "/punter/races/next-to-jump"
+    ],
+    "afl": [
+      "/generic/config/fields.desktopbetgalaxy",
+      "/punter/general/offerings",
+      "/punter/content/homepage",
+      "/punter/races/next-to-jump"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://api.betgalaxy.com.au/generic/config/fields.desktopbetgalaxy",
+      "endpoint": "/generic/config/fields.desktopbetgalaxy",
+      "sport": "soccer",
+      "status": 200,
+      "size": 115,
+      "sample": {
+        "sys": {
+          "type": "..."
+        },
+        "total": 1,
+        "skip": 0,
+        "limit": 100,
+        "items": [
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://api.betgalaxy.com.au/punter/general/offerings",
+      "endpoint": "/punter/general/offerings",
+      "sport": "soccer",
+      "status": 200,
+      "size": 1312,
+      "sample": {
+        "offered_sports": [
+          "...",
+          "...",
+          "..."
+        ],
+        "offered_race_types": [
+          "...",
+          "...",
+          "..."
+        ],
+        "offered_racing_futures": {
+          "sport_id": "...",
+          "display_name": "...",
+          "cashout_offered": "..."
+        }
+      }
+    },
+    {
+      "url": "https://api.betgalaxy.com.au/punter/content/homepage",
+      "endpoint": "/punter/content/homepage",
+      "sport": "soccer",
+      "status": 200,
+      "size": 1426,
+      "sample": [
+        {
+          "type": "...",
+          "content_info": "..."
+        },
+        {
+          "type": "...",
+          "content_info": "..."
+        },
+        {
+          "type": "...",
+          "content_info": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://api.betgalaxy.com.au/punter/races/next-to-jump?race_type=Greyhounds&limit=11&t=5",
+      "endpoint": "/punter/races/next-to-jump",
+      "sport": "soccer",
+      "status": 200,
+      "size": 3442,
+      "sample": [
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://api.betgalaxy.com.au/punter/races/next-to-jump?race_type=Horse+Racing&limit=11&t=5",
+      "endpoint": "/punter/races/next-to-jump",
+      "sport": "soccer",
+      "status": 200,
+      "size": 3459,
+      "sample": [
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://api.betgalaxy.com.au/punter/races/next-to-jump?race_type=Harness+Racing&limit=11&t=5",
+      "endpoint": "/punter/races/next-to-jump",
+      "sport": "soccer",
+      "status": 200,
+      "size": 3505,
+      "sample": [
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://api.betgalaxy.com.au/punter/races/next-to-jump?race_type=Horse+Racing&limit=11",
+      "endpoint": "/punter/races/next-to-jump",
+      "sport": "soccer",
+      "status": 200,
+      "size": 3459,
+      "sample": [
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://api.betgalaxy.com.au/punter/races/next-to-jump?race_type=Horse+Racing&limit=11&t=5",
+      "endpoint": "/punter/races/next-to-jump",
+      "sport": "soccer",
+      "status": 200,
+      "size": 3459,
+      "sample": [
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        },
+        {
+          "race_id": "...",
+          "venue_name": "...",
+          "venue_country": "...",
+          "start_time": "...",
+          "race_number": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://api.betgalaxy.com.au/generic/config/fields.desktopbetgalaxy",
+      "endpoint": "/generic/config/fields.desktopbetgalaxy",
+      "sport": "soccer",
+      "status": 200,
+      "size": 115,
+      "sample": {
+        "sys": {
+          "type": "..."
+        },
+        "total": 1,
+        "skip": 0,
+        "limit": 100,
+        "items": [
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://api.betgalaxy.com.au/generic/config/fields.desktopbetgalaxy",
+      "endpoint": "/generic/config/fields.desktopbetgalaxy",
+      "sport": "afl",
+      "status": 200,
+      "size": 115,
+      "sample": {
+        "sys": {
+          "type": "..."
+        },
+        "total": 1,
+        "skip": 0,
+        "limit": 100,
+        "items": [
+          "..."
+        ]
+      }
+    }
+  ]
+}
