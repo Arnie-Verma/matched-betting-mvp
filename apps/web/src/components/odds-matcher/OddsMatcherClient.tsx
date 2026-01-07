@@ -293,9 +293,11 @@ export function OddsMatcherClient() {
   }
 
   const refreshOdds = async () => {
-    setLoading(true)
+    // Clear previous state
     setError(null)
     setScrapeStatus(null)
+    setShowPerformanceNotice(false)  // Hide any previous scrape banner
+    setLoading(true)  // Show loading state for table
 
     try {
       const response = await fetch('/api/proxy/odds/refresh', {
@@ -325,7 +327,6 @@ export function OddsMatcherClient() {
         }
         setError(message)
         setScrapeStatus(null)
-        setShowPerformanceNotice(false)
         await fetchOpportunities(true)
         return
       }
@@ -348,13 +349,14 @@ export function OddsMatcherClient() {
 
         const success = await pollJobStatus(refreshData.job_id)
 
-        setShowPerformanceNotice(false)
-
         if (!success) {
           // Still fetch cached odds even if refresh failed
           console.warn('[OddsMatcherClient] Refresh may have failed, fetching cached odds')
         }
       }
+
+      // Always hide banner before fetching opportunities
+      setShowPerformanceNotice(false)
 
       // Fetch opportunities (fresh or cached)
       await fetchOpportunities(true)
