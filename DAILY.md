@@ -6,6 +6,60 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ## 2026-01-07 (Wednesday)
 
+### Session 4: Multi-Sport Data Quality Investigation & Market Filter Fix
+
+**Goal**: Investigate why odds matcher returns only Soccer while Outmatched shows 4+ sports. Implement fix.
+
+**Problem Statement**:
+- User's app: 62 Soccer-only opportunities from Wizbet
+- Outmatched: Hundreds across Soccer, Basketball, Ice Hockey, Boxing
+- Request: "Can you look at our odds matcher, betfair scraper, and bookmaker scrapers to determine the difference?"
+
+**Investigation Completed**:
+
+1. **Market Name Filtering Bug Found & Fixed** ([odds_matcher.py](apps/api/src/api/routers/odds_matcher.py:522-544))
+   - **Problem**: Market filter searched for `'%moneyline%'` (no space) but database stores `"Money Line"` (with space)
+   - **Impact**: Basketball (140 Money Line markets) and Ice Hockey (126 Money Line markets) silently filtered out
+   - **Fix Applied**: Changed patterns to use wildcards: `'%money%line%'` and `'%head%to%head%'` to handle space variations
+   - **Verification**: Database confirmed:
+     - Basketball: 140 Money Line + 215 Head To Head markets now matched
+     - Ice Hockey: 126 Money Line + 143 Head To Head markets now matched
+     - Boxing: 25 Match Odds + 24 H2H + 31 Fight Betting markets
+     - Soccer: 396 Result + 291 Match Odds markets
+
+2. **Betfair Scraper Configuration Verified**
+   - Competition URLs already defined for all 6 sports (lines 64-91)
+   - Scraper is configured to scrape: soccer, basketball, ice_hockey, boxing, afl, nrl
+   - **Root Issue**: Betfair is NOT CAPTURING LAY ODDS for Basketball/Ice Hockey
+
+3. **Betfair Lay Odds Gap Identified** (Critical Finding)
+   - Database analysis shows Betfair only has lay odds for:
+     - **Soccer**: 334 lay odds ✓
+     - **Boxing**: 9 lay odds ✓
+     - **Basketball**: 0 lay odds ✗
+     - **Ice Hockey**: 0 lay odds ✗
+   - **Why**: Odds matcher requires BOTH back odds (bookmakers) AND lay odds (Betfair exchange)
+   - Without Betfair lay odds, opportunities cannot be generated
+
+**Technical Details**:
+- Market filter query tested: 0 opportunities found even with fix because Betfair lay odds missing
+- Database has bookmaker odds: Ladbrokes, Neds, Punterstech bookmakers all cover Basketball/Hockey
+- Missing link: Betfair needs to provide lay odds for these sports
+
+**Files Modified**:
+- [apps/api/src/api/routers/odds_matcher.py](apps/api/src/api/routers/odds_matcher.py) - Lines 538-539: Market name pattern matching fix
+
+**Commit**: aba9dda - "fix(odds-matcher): Support multi-sport market name variations"
+
+**Key Conclusion**:
+Market filtering fix is correct and necessary. However, the real limitation for Basketball/Hockey opportunities is Betfair's lay odds availability, not the odds matcher logic. Opportunities require both:
+1. ✅ Back odds from bookmakers (available for all sports)
+2. ❌ Lay odds from Betfair (only Soccer + Boxing currently)
+
+**Action Required**:
+- Investigation: Why isn't Betfair scraper capturing basketball/hockey markets?
+- Possible causes: Betfair UI doesn't load markets for those sports, or parsing logic missing
+
 ### Session 3: Strategic Assessment - Production Scaling for 100+ Bookmakers & 1000+ Users
 
 **Goal**: Comprehensive review of current architecture, bottlenecks, and prioritized roadmap for production scale.
