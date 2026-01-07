@@ -4,6 +4,47 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-01-07 (Wednesday)
+
+### Session 2: Odds Matcher Debugging & Filter Fix
+
+**Problem**: Odds matcher showing "Failed to fetch odds" and filters not working correctly.
+
+**Root cause identified**: Competition code mismatch between frontend and backend normalization.
+- Frontend sends codes like `a-league`, `la liga`, `serie a`, `ligue 1`
+- Backend normalization wasn't mapping these to canonical forms (`aleague`, `laliga`, `seriea`, `ligue1`)
+
+**Fix applied**: Updated [normalization_service.py](apps/api/src/api/services/normalization_service.py) COMPETITION_MAP to include frontend filter codes.
+
+**Verified working**:
+- Odds matcher returns 973 opportunities
+- Auth token minting working (`mintedToken? true`)
+- Competition normalization working for both frontend codes and database names
+- Database has 19,756 current odds across 22 active bookmakers
+
+### Session 1
+
+### Completed
+- Session start: read CLAUDE.md, SCRAPER_STRATEGY.md, DISCOVERY_SUMMARY.md, DAILY.md
+- Inspected scraper architecture (BaseScraper, Entain, Punterstech, scrape_service, save_odds)
+- Reviewed seeding config for platform/tier mapping and active bookmakers
+- Documented current scraper architecture and production-scale next-step plan
+- Wired odds matcher filters to server-side params and added competition code filtering; fixed odds table key collisions
+- Guarded odds matcher fetches against stale responses to prevent refresh overriding active filters
+- Added pytest-asyncio dev dependency and updated Punterstech scraper/tests for compatibility
+- Ran API and worker pytest suites (health, matching engine, punterstech tests)
+- Limited bookmaker filter list to plan-allowed bookmakers and pruned invalid selections
+- Improved odds matcher error messaging for API failures
+- Added odds matcher refresh fallback and aligned plan feature defaults to avoid 403s
+
+### Blockers
+- Generation Web odds endpoints still not identified; betapi returns HTML error outside Playwright context
+
+### Next Steps
+- Build BetCloud scraper using /punter/sports endpoints (main_markets -> propositions -> odds)
+- Implement Unibet scraper (Kindred API)
+- Continue Generation Web discovery (find odds endpoint or fall back to DOM/SSR extraction)
+
 ## 2026-01-04 (Sunday)
 
 ### Completed

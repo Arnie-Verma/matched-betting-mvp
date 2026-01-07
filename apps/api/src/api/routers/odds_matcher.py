@@ -33,6 +33,7 @@ class OddsMatcherFilters(BaseModel):
     bet_type: BetType = Field(default=BetType.NORMAL)
     bookmaker_codes: Optional[List[str]] = None  # Filter by specific bookmakers
     sport_codes: Optional[List[str]] = None  # Filter by sports
+    competition_codes: Optional[List[str]] = None  # Filter by normalized competition codes
     competition_ids: Optional[List[int]] = None  # Filter by competitions
     search: Optional[str] = None  # Search event names
     min_rating: Optional[Decimal] = Field(default=None, ge=Decimal("0"), le=Decimal("100"))
@@ -313,6 +314,7 @@ async def get_matcher_opportunities(
     bet_type: BetType = Query(default=BetType.NORMAL),
     bookmaker_codes: Optional[str] = Query(default=None, description="Comma-separated bookmaker codes"),
     sport_codes: Optional[str] = Query(default=None, description="Comma-separated sport codes"),
+    competition_codes: Optional[str] = Query(default=None, description="Comma-separated competition codes"),
     competition_ids: Optional[str] = Query(default=None, description="Comma-separated competition IDs"),
     search: Optional[str] = Query(default=None, description="Search event names"),
     min_rating: Optional[Decimal] = Query(default=None, ge=Decimal("0"), le=Decimal("100")),
@@ -377,6 +379,7 @@ async def get_matcher_opportunities(
     # Parse comma-separated filters
     bookmaker_filter = bookmaker_codes.split(",") if bookmaker_codes else None
     sport_filter = sport_codes.split(",") if sport_codes else None
+    competition_code_filter = competition_codes.split(",") if competition_codes else None
     competition_filter = [int(x) for x in competition_ids.split(",")] if competition_ids else None
 
     # Apply plan restrictions: filter to only allowed bookmakers
@@ -413,6 +416,7 @@ async def get_matcher_opportunities(
     logger.info(f"Date range: {date_from} to {date_to}")
     logger.info(f"Sport filter: {sport_filter}")
     logger.info(f"Competition filter: {competition_filter}")
+    logger.info(f"Competition codes: {competition_code_filter}")
     logger.info(f"Search filter: {search}")
 
     events_query = db.query(Event).join(Competition).join(Sport)
@@ -446,6 +450,24 @@ async def get_matcher_opportunities(
     query_time = time.time() - query_start
     logger.info(f"⏱️  [MATCHER] Events query took {query_time:.2f}s, found {len(events)} events")
 
+    # Apply competition code filter using normalization (handles season prefixes/suffixes)
+    if competition_code_filter:
+        normalized_codes = {
+            normalize_competition_name(code.strip())
+            for code in competition_code_filter
+            if code.strip()
+        }
+        if normalized_codes:
+            filtered_events = []
+            for event in events:
+                comp_name = ""
+                if event.competition:
+                    comp_name = event.competition.name or event.competition.short_name or ""
+                if normalize_competition_name(comp_name) in normalized_codes:
+                    filtered_events.append(event)
+            events = filtered_events
+            logger.info(f"[MATCHER] Competition code filter applied: {len(events)} events match {normalized_codes}")
+
     print(f"\n>>> Found {len(events)} events in date range {date_from} to {date_to}")
     print(f">>> Bookmaker filter: {bookmaker_filter}\n")
 
@@ -455,7 +477,13 @@ async def get_matcher_opportunities(
     if not events:
         logger.warning("No events found - returning empty list")
         print(">>> No events found - returning empty list")
-        return []
+        return PaginatedOddsResponse(
+            items=[],
+            total=0,
+            offset=offset,
+            limit=limit,
+            has_more=False
+        )
 
     # Group events by normalized name to handle duplicate events from different bookmakers
     # Uses NormalizationService (Phase 4) for centralized team/event mappings

@@ -5,7 +5,6 @@ import { OddsFilters } from './OddsFilters'
 import { OddsTable } from './OddsTable'
 import { BetCalculatorModal } from './BetCalculatorModal'
 import { RefreshCw } from 'lucide-react'
-import { normalizeLeagueName } from './leagueNormalization'
 
 export type BetType = 'normal' | 'bonus'
 
@@ -77,11 +76,15 @@ export function OddsMatcherClient() {
   const [showPerformanceNotice, setShowPerformanceNotice] = useState(false)
   const [scrapeStatus, setScrapeStatus] = useState<string | null>(null)
   const [debouncedStake, setDebouncedStake] = useState(100)
+  const [debouncedSearch, setDebouncedSearch] = useState('')
 
   const [selectedOdds, setSelectedOdds] = useState<OddsMatch | null>(null)
 
   // Refs for infinite scroll
   const hasInitialized = useRef(false)
+  const skipInitialFilterFetch = useRef(true)
+  const filtersRef = useRef(filters)
+  const requestToken = useRef(0)
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const currentOffset = useRef(0)
 
@@ -99,20 +102,28 @@ export function OddsMatcherClient() {
     return () => clearTimeout(handle)
   }, [filters.stake])
 
-  // Refetch opportunities when bet type or debounced stake changes (recalculates with new parameters)
+  // Debounce search input to avoid rapid refetches
   useEffect(() => {
-    if (opportunities.length > 0) {
-      fetchOpportunities(true) // Reset to first page
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.betType, debouncedStake])
+    const handle = setTimeout(() => setDebouncedSearch(filters.search.trim()), 300)
+    return () => clearTimeout(handle)
+  }, [filters.search])
+
+  useEffect(() => {
+    filtersRef.current = filters
+  }, [filters])
 
   const fetchOpportunities = useCallback(async (reset = false) => {
+    const token = reset ? ++requestToken.current : requestToken.current
     const offset = reset ? 0 : currentOffset.current
+    const currentFilters = filtersRef.current
 
     if (reset) {
       setLoading(true)
+      setLoadingMore(false)
       currentOffset.current = 0
+      setOpportunities([])
+      setTotalCount(0)
+      setHasMore(false)
     } else {
       setLoadingMore(true)
     }
@@ -121,17 +132,40 @@ export function OddsMatcherClient() {
     try {
       const params = new URLSearchParams()
       params.append('stake', debouncedStake.toString())
-      params.append('bet_type', filters.betType)
+      params.append('bet_type', currentFilters.betType)
       params.append('limit', PAGE_SIZE.toString())
       params.append('offset', offset.toString())
+      if (currentFilters.bookmakers.length > 0) {
+        params.append('bookmaker_codes', currentFilters.bookmakers.join(','))
+      }
+      if (currentFilters.sports.length > 0) {
+        params.append('competition_codes', currentFilters.sports.join(','))
+      }
+      if (debouncedSearch) {
+        params.append('search', debouncedSearch)
+      }
 
       const response = await fetch(`/api/proxy/odds/matcher?${params.toString()}`)
 
       if (!response.ok) {
-        throw new Error('Failed to fetch odds')
+        let message = `Failed to fetch odds (${response.status})`
+        const responseText = await response.text()
+        if (responseText) {
+          try {
+            const errorData = JSON.parse(responseText) as { detail?: string; error?: string }
+            message = errorData.detail || errorData.error || message
+          } catch {
+            message = responseText.slice(0, 200)
+          }
+        }
+        throw new Error(message)
       }
 
       const data: PaginatedResponse = await response.json()
+
+      if (token !== requestToken.current) {
+        return
+      }
 
       if (reset) {
         setOpportunities(data.items)
@@ -144,12 +178,27 @@ export function OddsMatcherClient() {
       currentOffset.current = offset + data.items.length
       setLastRefresh(new Date())
     } catch (err) {
+      if (token !== requestToken.current) {
+        return
+      }
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
+      if (token !== requestToken.current) {
+        return
+      }
       setLoading(false)
       setLoadingMore(false)
     }
-  }, [debouncedStake, filters.betType])
+  }, [debouncedStake, debouncedSearch])
+
+  // Refetch opportunities when filters change (bookmaker/league/search/stake/bet type)
+  useEffect(() => {
+    if (skipInitialFilterFetch.current) {
+      skipInitialFilterFetch.current = false
+      return
+    }
+    fetchOpportunities(true)
+  }, [debouncedStake, filters.betType, filters.bookmakers, filters.sports, debouncedSearch, fetchOpportunities])
 
   // Load more when scrolling near bottom
   const loadMore = useCallback(() => {
@@ -178,31 +227,17 @@ export function OddsMatcherClient() {
 
   // Client-side filtering for instant results
   const filteredOpportunities = useMemo(() => {
-    const selectedLeagues = new Set(filters.sports.map(normalizeLeagueName))
+    if (!filters.search) {
+      return opportunities
+    }
+
+    const searchLower = filters.search.toLowerCase()
     return opportunities.filter(opp => {
-      // Filter by bookmaker
-      if (filters.bookmakers.length > 0 && !filters.bookmakers.includes(opp.back_bookmaker_code)) {
-        return false
-      }
-
-      // Filter by league/competition
-      if (selectedLeagues.size > 0 && !selectedLeagues.has(normalizeLeagueName(opp.competition_name))) {
-        return false
-      }
-
-      // Filter by search text
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase()
-        const matchesEvent = opp.event_name.toLowerCase().includes(searchLower)
-        const matchesSelection = opp.selection_name.toLowerCase().includes(searchLower)
-        if (!matchesEvent && !matchesSelection) {
-          return false
-        }
-      }
-
-      return true
+      const matchesEvent = opp.event_name.toLowerCase().includes(searchLower)
+      const matchesSelection = opp.selection_name.toLowerCase().includes(searchLower)
+      return matchesEvent || matchesSelection
     })
-  }, [opportunities, filters])
+  }, [opportunities, filters.search])
 
   // Poll job status until complete
   const pollJobStatus = async (jobId: string, maxAttempts = 40): Promise<boolean> => {
@@ -278,7 +313,21 @@ export function OddsMatcherClient() {
           await fetchOpportunities(true)
           return
         }
-        throw new Error('Failed to refresh odds')
+        let message = `Failed to refresh odds (${response.status})`
+        const responseText = await response.text()
+        if (responseText) {
+          try {
+            const errorData = JSON.parse(responseText) as { detail?: string; error?: string }
+            message = errorData.detail || errorData.error || message
+          } catch {
+            message = responseText.slice(0, 200)
+          }
+        }
+        setError(message)
+        setScrapeStatus(null)
+        setShowPerformanceNotice(false)
+        await fetchOpportunities(true)
+        return
       }
 
       const refreshData = await response.json()
@@ -313,7 +362,7 @@ export function OddsMatcherClient() {
       setError(err instanceof Error ? err.message : 'An error occurred')
       setScrapeStatus(null)
       setShowPerformanceNotice(false)
-      setLoading(false)
+      await fetchOpportunities(true)
     }
   }
 

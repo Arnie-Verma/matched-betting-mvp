@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session
 
 from api.core.database import get_db
 from api.core.auth import get_current_user, UserClaims
-from api.models import Bookmaker, Sport, Competition
+from api.models import Bookmaker, Sport, Competition, User
+from api.services.subscription_service import SubscriptionService
 
 
 router = APIRouter(prefix="/metadata", tags=["metadata"])
@@ -106,9 +107,30 @@ async def get_bookmakers(
 ) -> List[BookmakerResponse]:
     """
     Get all bookmakers for filter dropdowns.
-    Returns all bookmakers sorted alphabetically by display_name.
+    Returns bookmakers allowed for the user's plan, sorted alphabetically by display_name.
     """
-    bookmakers = db.query(Bookmaker).order_by(Bookmaker.display_name).all()
+    user = db.query(User).filter(User.clerk_user_id == user_claims.sub).first()
+    if not user:
+        user = User(
+            clerk_user_id=user_claims.sub,
+            email=user_claims.email or f"{user_claims.sub}@temp.com",
+            email_verified=user_claims.email_verified or False,
+            current_plan="free",
+            plan_status="active"
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    subscription_service = SubscriptionService()
+    allowed_bookmakers = subscription_service.get_allowed_bookmakers(db, user)
+
+    bookmakers = (
+        db.query(Bookmaker)
+        .filter(Bookmaker.code.in_(allowed_bookmakers))
+        .order_by(Bookmaker.display_name)
+        .all()
+    )
 
     return [
         BookmakerResponse(

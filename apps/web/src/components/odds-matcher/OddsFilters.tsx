@@ -153,6 +153,18 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
     league.full_name.toLowerCase().includes(leagueSearch.toLowerCase())
   )
 
+  useEffect(() => {
+    if (availableBookmakers.length === 0) {
+      return
+    }
+    const allowed = new Set(availableBookmakers.map(bookmaker => bookmaker.code))
+    const hasInvalid = filters.bookmakers.some(code => !allowed.has(code))
+    if (hasInvalid) {
+      const updated = filters.bookmakers.filter(code => allowed.has(code))
+      onFiltersChange({ ...filters, bookmakers: updated })
+    }
+  }, [availableBookmakers, filters, onFiltersChange])
+
   return (
     <div className="bg-card rounded-lg border shadow-sm p-6 space-y-4">
       {/* Primary Filters */}

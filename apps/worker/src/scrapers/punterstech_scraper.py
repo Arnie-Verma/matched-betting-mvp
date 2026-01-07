@@ -164,6 +164,7 @@ class PunterstechScraper(BaseScraper):
         "ice_hockey": ["nhl", "national hockey league"],
         "boxing": ["boxing", "upcoming fights", "fight night", "ufc", "ultimate-fighting"],
     }
+    COMPETITION_PATTERNS = COMPETITION_FILTERS
 
     # EventType codes used by next-to-go endpoint
     EVENT_TYPE_CODES = {

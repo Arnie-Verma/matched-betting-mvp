@@ -371,11 +371,14 @@ class TestProductionScenarios:
         with patch.object(scraper, 'scrape_sport') as mock_scrape:
             from scrapers.base import ScrapeResult
             mock_scrape.return_value = ScrapeResult(
+                bookmaker_code="tradiebet",
                 status=ScraperStatus.SUCCESS,
+                events_scraped=0,
+                odds_scraped=0,
                 events=[],
-                odds=[],
                 errors=[],
-                duration_seconds=1.0
+                started_at=datetime.now(timezone.utc),
+                completed_at=datetime.now(timezone.utc)
             )
 
             if hasattr(scraper, 'scrape_all_sports_parallel'):

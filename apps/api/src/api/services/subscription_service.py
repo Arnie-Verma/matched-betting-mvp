@@ -145,7 +145,9 @@ class SubscriptionService:
         if not plan:
             # Return free plan features as fallback
             return {
+                "bookmakers": 2,
                 "max_bookmakers": 3,
+                "odds_matcher": True,
                 "max_bets_per_month": 50,
                 "email_notifications": True,
                 "mobile_app": False,

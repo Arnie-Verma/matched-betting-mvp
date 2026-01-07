@@ -104,7 +104,7 @@ export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTablePro
           <tbody className="divide-y divide-border">
             {opportunities.map((opp) => (
               <tr
-                key={`${opp.event_id}-${opp.selection_id}`}
+                key={`${opp.event_id}-${opp.selection_id}-${opp.back_bookmaker_code}`}
                 className="hover:bg-muted transition-colors"
               >
                 <td className="px-4 py-4">
@@ -173,7 +173,7 @@ export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTablePro
       {/* Mobile Cards */}
       <div className="lg:hidden divide-y divide-border">
         {opportunities.map((opp) => (
-          <div key={`${opp.event_id}-${opp.selection_id}`} className="p-4 space-y-3">
+          <div key={`${opp.event_id}-${opp.selection_id}-${opp.back_bookmaker_code}`} className="p-4 space-y-3">
             {/* Event Info */}
             <div>
               <div className="font-medium text-foreground">{opp.event_name}</div>

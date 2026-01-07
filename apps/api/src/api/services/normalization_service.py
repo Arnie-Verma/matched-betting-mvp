@@ -36,6 +36,9 @@ class NormalizationService:
     """
 
     # Competition name mappings
+    # NOTE: Keys must include both:
+    # 1. Database names (after stripping season/round prefixes)
+    # 2. Frontend filter codes (from metadata.py ALLOWED_COMPETITIONS and leagueNormalization.ts)
     COMPETITION_MAP = {
         # EPL variations
         'premier league': 'epl',
@@ -44,26 +47,29 @@ class NormalizationService:
         'epl': 'epl',
         # Bundesliga
         'german bundesliga': 'bundesliga',
+        'germany bundesliga': 'bundesliga',
         'bundesliga': 'bundesliga',
-        # La Liga
+        # La Liga - frontend sends "la liga" with space
         'spanish la liga': 'laliga',
         'la liga': 'laliga',
         'spanish primera division': 'laliga',
         'spain la liga': 'laliga',
-        # Serie A
+        # Serie A - frontend sends "serie a" with space
         'italian serie a': 'seriea',
         'serie a': 'seriea',
         'italy serie a': 'seriea',
-        # Ligue 1
+        # Ligue 1 - frontend sends "ligue 1" with space
         'french ligue 1': 'ligue1',
         'ligue 1': 'ligue1',
         'france ligue 1': 'ligue1',
-        # A-League
+        # A-League - frontend sends "a-league" with hyphen
         'a-league men': 'aleague',
         'a-league': 'aleague',
+        'a league': 'aleague',
         'a-league women': 'aleaguewomen',
         'australia a-league': 'aleague',
         'australia a-league women': 'aleaguewomen',
+        'australian a-league': 'aleague',
         # NBA
         'nba': 'nba',
         # NBL
@@ -73,14 +79,18 @@ class NormalizationService:
         'nhl': 'nhl',
         # AFL
         'afl': 'afl',
+        'australian football league': 'afl',
         # NRL
         'nrl': 'nrl',
+        'national rugby league': 'nrl',
         # Boxing
         'boxing': 'boxing',
         'upcoming fights': 'boxing',
+        'boxing matches': 'boxing',
         # Champions League
         'uefa champions league': 'ucl',
         'champions league': 'ucl',
+        'ucl': 'ucl',
         # MLS
         'major league soccer': 'mls',
         'mls': 'mls',
