@@ -118,8 +118,6 @@ export function OddsMatcherClient() {
     const currentFilters = filtersRef.current
 
     if (reset) {
-      // Hide refresh banner and show table loading in same batch
-      setShowPerformanceNotice(false)
       setLoading(true)
       setLoadingMore(false)
       currentOffset.current = 0
@@ -185,10 +183,10 @@ export function OddsMatcherClient() {
       }
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
-      // Always clear loading state, even for stale responses
+      // Always clear loading state and banner, even for stale responses
       setLoading(false)
       setLoadingMore(false)
-      // But don't update UI if this is a stale response
+      setShowPerformanceNotice(false)  // Hide banner when data loaded/failed
       if (token !== requestToken.current) {
         return
       }
