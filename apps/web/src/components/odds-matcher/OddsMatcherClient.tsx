@@ -295,10 +295,10 @@ export function OddsMatcherClient() {
   }
 
   const refreshOdds = async () => {
-    // Clear previous state - but DON'T set loading yet (let fetchOpportunities handle it)
+    // Show banner immediately to indicate refresh is starting
     setError(null)
-    setScrapeStatus(null)
-    setShowPerformanceNotice(false)  // Hide any previous scrape banner
+    setScrapeStatus('Checking for latest odds...')
+    setShowPerformanceNotice(true)
 
     try {
       const response = await fetch('/api/proxy/odds/refresh', {
@@ -313,6 +313,7 @@ export function OddsMatcherClient() {
         // 429 = rate limited - silently continue to fetch cached odds
         if (response.status === 429) {
           console.log('[OddsMatcherClient] Rate limited, fetching cached odds instead')
+          setShowPerformanceNotice(false)
           await fetchOpportunities(true)
           return
         }
@@ -328,6 +329,7 @@ export function OddsMatcherClient() {
         }
         setError(message)
         setScrapeStatus(null)
+        setShowPerformanceNotice(false)
         await fetchOpportunities(true)
         return
       }
@@ -335,18 +337,18 @@ export function OddsMatcherClient() {
       const refreshData = await response.json()
       console.log('[OddsMatcherClient] Refresh response:', refreshData)
 
-      // If cache was used, data is already fresh - just fetch opportunities silently
+      // If cache was used, data is already fresh - hide banner and fetch opportunities
       if (refreshData.used_cache === true) {
         console.log('[OddsMatcherClient] Cache hit - fetching cached odds')
+        setShowPerformanceNotice(false)
         await fetchOpportunities(true)
         return
       }
 
-      // Fresh refresh was queued - show progress banner and poll for completion
+      // Fresh refresh was queued - update banner and poll for completion
       console.log('[OddsMatcherClient] Cache miss - will poll for job:', refreshData.job_id)
       if (refreshData.job_id) {
-        setShowPerformanceNotice(true)
-        setScrapeStatus('Starting refresh...')
+        setScrapeStatus('Fetching latest odds from bookmakers...')
 
         const success = await pollJobStatus(refreshData.job_id)
 
@@ -356,7 +358,7 @@ export function OddsMatcherClient() {
         }
       }
 
-      // Always hide banner before fetching opportunities
+      // Hide banner before fetching opportunities
       setShowPerformanceNotice(false)
 
       // Fetch opportunities (fresh or cached)
