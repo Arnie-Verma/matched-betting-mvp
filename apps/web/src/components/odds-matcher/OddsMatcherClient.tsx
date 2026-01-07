@@ -183,11 +183,13 @@ export function OddsMatcherClient() {
       }
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
+      // Always clear loading state, even for stale responses
+      setLoading(false)
+      setLoadingMore(false)
+      // But don't update UI if this is a stale response
       if (token !== requestToken.current) {
         return
       }
-      setLoading(false)
-      setLoadingMore(false)
     }
   }, [debouncedStake, debouncedSearch])
 
