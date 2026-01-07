@@ -535,8 +535,8 @@ async def get_matcher_opportunities(
                     ),
                     Market.name.ilike('%match winner%'),
                     Market.name.ilike('%match odds%'),  # Betfair calls it "Match Odds"
-                    Market.name.ilike('%moneyline%'),  # NBA/NHL use "Moneyline"
-                    Market.name.ilike('%head to head%'),  # Ladbrokes uses "Head To Head"
+                    Market.name.ilike('%money%line%'),  # NBA/NHL use "Money Line" or "Moneyline"
+                    Market.name.ilike('%head%to%head%'),  # Ladbrokes uses "Head To Head"
                     Market.name.ilike('%fight betting%'),  # Boxing uses "Fight Betting"
                     and_(Market.name.ilike('%h2h%'), Market.name.notilike('%hth2h%'))
                 )
