@@ -118,6 +118,8 @@ export function OddsMatcherClient() {
     const currentFilters = filtersRef.current
 
     if (reset) {
+      // Hide refresh banner and show table loading in same batch
+      setShowPerformanceNotice(false)
       setLoading(true)
       setLoadingMore(false)
       currentOffset.current = 0
@@ -310,11 +312,10 @@ export function OddsMatcherClient() {
       })
 
       if (!response.ok) {
-        // 429 = rate limited - silently continue to fetch cached odds
+        // 429 = rate limited - continue to fetch cached odds
         if (response.status === 429) {
           console.log('[OddsMatcherClient] Rate limited, fetching cached odds instead')
-          setShowPerformanceNotice(false)
-          await fetchOpportunities(true)
+          await fetchOpportunities(true)  // This hides banner
           return
         }
         let message = `Failed to refresh odds (${response.status})`
@@ -329,19 +330,17 @@ export function OddsMatcherClient() {
         }
         setError(message)
         setScrapeStatus(null)
-        setShowPerformanceNotice(false)
-        await fetchOpportunities(true)
+        await fetchOpportunities(true)  // This hides banner
         return
       }
 
       const refreshData = await response.json()
       console.log('[OddsMatcherClient] Refresh response:', refreshData)
 
-      // If cache was used, data is already fresh - hide banner and fetch opportunities
+      // If cache was used, data is already fresh - fetch opportunities (hides banner)
       if (refreshData.used_cache === true) {
         console.log('[OddsMatcherClient] Cache hit - fetching cached odds')
-        setShowPerformanceNotice(false)
-        await fetchOpportunities(true)
+        await fetchOpportunities(true)  // This hides banner
         return
       }
 
@@ -353,21 +352,16 @@ export function OddsMatcherClient() {
         const success = await pollJobStatus(refreshData.job_id)
 
         if (!success) {
-          // Still fetch cached odds even if refresh failed
           console.warn('[OddsMatcherClient] Refresh may have failed, fetching cached odds')
         }
       }
 
-      // Hide banner before fetching opportunities
-      setShowPerformanceNotice(false)
-
-      // Fetch opportunities (fresh or cached)
+      // Fetch opportunities (hides banner and shows table loading)
       await fetchOpportunities(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
       setScrapeStatus(null)
-      setShowPerformanceNotice(false)
-      await fetchOpportunities(true)
+      await fetchOpportunities(true)  // This hides banner
     }
   }
 
