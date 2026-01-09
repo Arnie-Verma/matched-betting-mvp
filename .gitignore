@@ -29,3 +29,4 @@ Thumbs.db
 # Build artifacts
 coverage/
 *.log
+tsconfig.tsbuildinfo
