@@ -6,32 +6,45 @@ import {
   Radar,
   Calculator,
   GraduationCap,
-  Users,
   Sparkles,
   TrendingUp,
-  Star,
+  CheckCircle2,
+  MessageCircle,
+  ChevronDown,
 } from "lucide-react";
 import { appUrl } from "@/lib/site";
 
+const heroBenefits = [
+  "No subscription required",
+  "No risk (when followed correctly)",
+  "Works regardless of the result",
+];
+
+const bookmakers = ["TAB", "Sportsbet", "Betfair", "Ladbrokes", "Neds", "Unibet", "+ 90 more"];
+
 const highlights = [
   {
-    title: "Odds matcher",
-    description: "Compare bookmaker and exchange prices in real time to lock in profit.",
+    title: "Odds Matcher",
+    description:
+      "Lock in profit automatically. Compare bookmaker odds against exchanges in real time so every outcome is covered.",
     icon: <Radar className="h-6 w-6" />,
   },
   {
-    title: "Calculator suite",
-    description: "Back/lay, dutching, EV, and multi calculators with instant outputs.",
+    title: "Calculator Suite",
+    description:
+      "Never guess your stakes. Back/lay, dutching, EV, and multi calculators handle all the math instantly.",
     icon: <Calculator className="h-6 w-6" />,
   },
   {
-    title: "Academy playbook",
-    description: "Step-by-step lessons that show you exactly how to execute each offer.",
+    title: "Academy Playbook",
+    description:
+      "Know exactly what to do, step by step. Clear lessons show you how to complete each offer safely and correctly.",
     icon: <GraduationCap className="h-6 w-6" />,
   },
   {
-    title: "Profit tracking",
-    description: "See every bet, outcome, and return so you always know your edge.",
+    title: "Profit Tracking",
+    description:
+      "See your real profit clearly. Track every bet, outcome, and return so you always know where you stand.",
     icon: <TrendingUp className="h-6 w-6" />,
   },
 ];
@@ -39,55 +52,119 @@ const highlights = [
 const steps = [
   {
     title: "Claim a bookmaker offer",
-    description: "Start with an intro bonus from one of our supported Australian bookmakers.",
+    description: "Start with a welcome bonus from one of our supported Australian bookmakers.",
   },
   {
     title: "Match the odds",
-    description: "Use the odds matcher to place a back and lay bet that covers all outcomes.",
+    description: "Use the odds matcher to place a back bet and a lay bet that together cover all outcomes.",
   },
   {
-    title: "Bank guaranteed profit",
-    description: "No gambling, just math. Track profit in your dashboard as you scale.",
+    title: "Lock in profit",
+    description: "No matter what happens in the event, your profit is already secured up front.",
   },
+];
+
+const trialHighlights = [
+  "Guaranteed profit when followed correctly",
+  "No subscription or credit card required",
+  "Designed for first-timers",
 ];
 
 const testimonials = [
   {
     name: "Sarah M",
     location: "Melbourne",
-    quote: "The academy and calculators are crystal clear. I finally know exactly what to do.",
+    quote:
+      "I was skeptical at first, but the step-by-step process made everything clear. I made my first $70 without stress.",
   },
   {
     name: "James T",
     location: "Sydney",
-    quote: "I made my first A$420 in two weeks and the workflow felt safe the whole time.",
+    quote: "I'm not great with numbers, but the calculators do everything for you. It finally clicked.",
   },
   {
     name: "Emma D",
     location: "Brisbane",
-    quote: "It feels like a system. I spend less time hunting offers and more time banking profit.",
+    quote: "It feels like a system, not gambling. I spend less time guessing and more time executing.",
+  },
+];
+
+const faqs = [
+  {
+    question: "What if my bet loses?",
+    answer:
+      "In matched betting, you cover both outcomes. This means the result doesn't matter, the profit is built in before the event starts.",
+  },
+  {
+    question: "Is matched betting gambling?",
+    answer:
+      "No. Matched betting removes chance by covering all outcomes. You're not relying on predictions or luck, so it doesn't feel like gambling at all.",
+  },
+  {
+    question: "Is this legal in Australia?",
+    answer:
+      "Yes. Matched betting is a legal strategy in Australia. Bookmakers offer bonuses as marketing incentives, we're simply using those offers strategically.",
+  },
+  {
+    question: "Is the $70 really guaranteed?",
+    answer:
+      "When the system is followed correctly, yes. The profit is mathematically locked in. The only real risk is human error, which is why we guide you step by step to prevent mistakes.",
+  },
+  {
+    question: "How long does it take?",
+    answer:
+      "Most users spend about 20-30 minutes per offer. The entire free trial (two offers) can be completed in under an hour.",
+  },
+  {
+    question: "Do I need math skills?",
+    answer:
+      "No. All calculations are handled automatically by the platform, so you won't need to do any math yourself.",
   },
 ];
 
 const plans = [
   {
     name: "Free",
-    price: "A$0",
-    description: "Get started with the essentials.",
-    features: ["Academy access", "Core calculators", "2 bookmaker offers"],
+    price: "$0",
+    badge: "Best for beginners",
+    description: "Use the free trial to learn the system before upgrading.",
+    features: [
+      "Odds matcher tool for 2 bookmakers",
+      "Make your first ~$70",
+      "Learn the basics",
+      "Core calculators",
+    ],
+    ctaLabel: "Start Free",
+    ctaHref: `${appUrl}/sign-up`,
   },
   {
     name: "Premium",
-    price: "A$25",
-    description: "Everything you need to scale weekly profit.",
-    features: ["Odds matcher", "All calculators", "16 bookmakers", "Priority support"],
+    price: "$25/month",
+    badge: "Most popular",
+    description: "Tools to turn matched betting into a weekly routine.",
+    features: [
+      "Odds matcher tool for 16 bookmakers",
+      "All calculators (incl. advanced)",
+      "Priority support",
+      "Premium academy courses",
+    ],
+    ctaLabel: "Upgrade to Premium",
+    ctaHref: `${appUrl}/sign-up`,
     accent: true,
   },
   {
     name: "Platinum",
-    price: "A$35",
-    description: "Full market coverage and power tools.",
-    features: ["103+ bookmakers", "Advanced tools", "Custom alerts"],
+    price: "$35/month",
+    badge: "Max coverage",
+    description: "Full bookmaker access plus advanced courses to make thousands.",
+    features: [
+      "Odds matcher tool for 100+ bookmakers (full access)",
+      "$1000s of dollars in sign up bonuses",
+      "Includes all Premium features",
+      "Platinum academy courses",
+    ],
+    ctaLabel: "Upgrade to Platinum",
+    ctaHref: `${appUrl}/sign-up`,
   },
 ];
 
@@ -99,73 +176,91 @@ export default function HomePage() {
           <div className="grid gap-12 md:grid-cols-[1.1fr_0.9fr] md:items-center">
             <div className="stack-lg">
               <p className="eyebrow reveal" style={{ "--delay": "0s" } as CSSProperties}>
-                Built for Australia
+                Make your first $70
               </p>
               <h1 className="display reveal" style={{ "--delay": "0.1s" } as CSSProperties}>
-                Make matched betting feel simple, calm, and profitable.
+                Make your first $70 guaranteed with matched betting.
               </h1>
               <p className="lead max-w-xl reveal" style={{ "--delay": "0.2s" } as CSSProperties}>
-                MatchedBetting gives you the odds matcher, calculators, and academy to turn bookmaker promos
-                into predictable profit. No guesswork, no gambling.
+                Turn Australian bookmaker promotions into guaranteed profit by betting on both outcomes, no gambling, no
+                guesswork, no experience required.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row reveal" style={{ "--delay": "0.3s" } as CSSProperties}>
-                <Link href={`${appUrl}/sign-up`} className="btn-primary">
-                  Start free
+                <Link href={`${appUrl}/sign-up`} className="btn-primary btn-hero">
+                  Start free - Make your first $70
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
-                <Link href="/features" className="btn-outline">
-                  Explore features
+                <Link href="#how-it-works" className="btn-outline btn-hero">
+                  See how matched betting works
                 </Link>
               </div>
-              <div className="flex flex-wrap gap-6 text-sm text-[var(--ink-muted)] reveal" style={{ "--delay": "0.4s" } as CSSProperties}>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  Risk managed strategies
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  10,000+ members
-                </div>
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4" />
-                  4.9 average rating
-                </div>
+              <div
+                className="flex flex-wrap gap-4 text-sm text-[var(--ink-muted)] reveal"
+                style={{ "--delay": "0.4s" } as CSSProperties}
+              >
+                {heroBenefits.map((benefit) => (
+                  <div key={benefit} className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-[var(--profit)]" />
+                    {benefit}
+                  </div>
+                ))}
               </div>
+              <p className="text-sm text-[var(--ink-muted)] max-w-xl reveal" style={{ "--delay": "0.5s" } as CSSProperties}>
+                Matched betting removes risk by covering all outcomes using bookmaker bonuses and exchange bets.
+              </p>
             </div>
 
             <div className="relative">
-              <div className="absolute -top-8 -left-6 h-32 w-32 rounded-full bg-[var(--accent)]/15 blur-2xl drift" aria-hidden="true"></div>
-              <div className="absolute bottom-0 right-0 h-40 w-40 rounded-full bg-[var(--profit)]/15 blur-2xl float" aria-hidden="true"></div>
+              <div
+                className="absolute -top-8 -left-6 h-32 w-32 rounded-full bg-[var(--accent)]/15 blur-2xl drift"
+                aria-hidden="true"
+              ></div>
+              <div
+                className="absolute bottom-0 right-0 h-40 w-40 rounded-full bg-[var(--profit)]/15 blur-2xl float"
+                aria-hidden="true"
+              ></div>
 
               <div className="surface p-6 md:p-8 grid-dots reveal" style={{ "--delay": "0.2s" } as CSSProperties}>
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between gap-6">
                   <div>
                     <p className="text-xs text-[var(--ink-muted)]">Bookmaker coverage</p>
-                    <p className="text-2xl font-semibold">100+ brands</p>
+                    <p className="text-2xl font-semibold">Access 100+ Australian bookmakers in one system</p>
                   </div>
                   <div className="h-12 w-12 rounded-2xl bg-[var(--brand)] text-white flex items-center justify-center">
                     <Sparkles className="h-5 w-5" />
                   </div>
                 </div>
 
-                <div className="mt-6 grid grid-cols-3 gap-3 text-center text-xs">
-                  {["TAB", "Sportsbet", "Betfair", "Neds", "Ladbrokes", "Unibet"].map((label, index) => (
+                <p className="mt-4 text-sm text-[var(--ink-muted)]">
+                  Use introductory offers from Australia&apos;s major bookmakers and safely turn them into profit using our
+                  tools.
+                </p>
+
+                <div className="mt-6 grid grid-cols-3 gap-3">
+                  {bookmakers.map((bookmaker, index) => (
                     <div
-                      key={label}
-                      className="rounded-xl border border-[var(--border)] bg-white/80 py-4 font-semibold text-[var(--ink-muted)]"
+                      key={bookmaker}
+                      className="flex items-center justify-center rounded-xl border border-[var(--border)] bg-white/80 px-3 py-3"
                       style={{ animationDelay: `${index * 0.2}s` }}
                     >
-                      {label}
+                      <span className="text-sm font-semibold text-[var(--ink)]">{bookmaker}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-6 flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white/80 px-4 py-3">
-                  <div>
-                    <p className="text-xs text-[var(--ink-muted)]">Average weekly profit</p>
-                    <p className="text-lg font-semibold">A$420 - A$850</p>
+                <p className="mt-4 text-xs text-[var(--ink-muted)]">
+                  Supported bookmakers include: TAB, Sportsbet, Betfair, Ladbrokes, Neds, Unibet, + 90 more.
+                </p>
+
+                <div className="mt-6 rounded-2xl border border-[var(--border)] bg-white/80 px-4 py-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <ShieldCheck className="h-4 w-4 text-[var(--profit)]" />
+                    Free trial starts with 2 bookmakers
                   </div>
-                  <div className="text-xs text-[var(--ink-muted)]">Based on member results</div>
+                  <p className="mt-2 text-xs text-[var(--ink-muted)]">
+                    The free trial starts you off with just 2 bookmakers, letting you learn the system safely before you
+                    scale up.
+                  </p>
                 </div>
               </div>
             </div>
@@ -175,7 +270,38 @@ export default function HomePage() {
 
       <section className="section">
         <div className="container">
-          <div className="grid gap-6 md:grid-cols-4">
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="eyebrow">Proof the system works</p>
+              <h2 className="mt-4 text-3xl md:text-4xl">Proof the system works.</h2>
+            </div>
+          </div>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            {testimonials.map((item, index) => (
+              <div key={item.name} className="surface p-6 reveal" style={{ "--delay": `${0.1 * index}s` } as CSSProperties}>
+                <div className="mb-4 h-10 w-10 rounded-2xl bg-[var(--accent-soft)] text-[var(--brand)] flex items-center justify-center">
+                  <MessageCircle className="h-5 w-5" />
+                </div>
+                <p className="text-sm text-[var(--ink-muted)]">{item.quote}</p>
+                <div className="mt-6 flex items-center justify-between text-sm">
+                  <span className="font-semibold">{item.name}</span>
+                  <span className="text-[var(--ink-muted)]">{item.location}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="eyebrow">Everything you need</p>
+              <h2 className="mt-4 text-3xl md:text-4xl">Everything you need to profit, nothing you don&apos;t.</h2>
+            </div>
+          </div>
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {highlights.map((item, index) => (
               <div
                 key={item.title}
@@ -193,17 +319,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section">
+      <section id="how-it-works" className="section">
         <div className="container">
           <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
             <div>
               <p className="eyebrow">How it works</p>
-              <h2 className="mt-4 text-3xl md:text-4xl">A calm, repeatable workflow that pays out.</h2>
+              <h2 className="mt-4 text-3xl md:text-4xl">A simple, repeatable system you can use every week.</h2>
               <p className="mt-4 text-[var(--ink-muted)]">
-                We guide you through each step so you never feel lost. Learn once, repeat weekly.
+                Learn it once, then repeat it whenever new bookmaker offers appear.
               </p>
               <Link href="/features" className="btn-outline mt-6">
                 See the full system
+                <ArrowUpRight className="h-4 w-4" />
               </Link>
             </div>
             <div className="space-y-4">
@@ -227,51 +354,71 @@ export default function HomePage() {
 
       <section className="section">
         <div className="container">
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="eyebrow">Member stories</p>
-              <h2 className="mt-4 text-3xl md:text-4xl">Proof that the process works.</h2>
-            </div>
-            <Link href={`${appUrl}/sign-up`} className="btn-ghost">
-              Join the community
-            </Link>
-          </div>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
-            {testimonials.map((item, index) => (
-              <div key={item.name} className="surface p-6 reveal" style={{ "--delay": `${0.1 * index}s` } as CSSProperties}>
-                <p className="text-sm text-[var(--ink-muted)]">{item.quote}</p>
-                <div className="mt-6 flex items-center justify-between text-sm">
-                  <span className="font-semibold">{item.name}</span>
-                  <span className="text-[var(--ink-muted)]">{item.location}</span>
-                </div>
+          <div className="surface p-8 md:p-10 relative overflow-hidden">
+            <div
+              className="absolute -top-16 right-0 h-40 w-40 rounded-full bg-[var(--accent)]/20 blur-3xl"
+              aria-hidden="true"
+            ></div>
+            <div
+              className="absolute -bottom-20 left-10 h-40 w-40 rounded-full bg-[var(--profit)]/15 blur-3xl"
+              aria-hidden="true"
+            ></div>
+            <div className="relative grid gap-8 md:grid-cols-[1.1fr_0.9fr] md:items-center">
+              <div>
+                <p className="eyebrow">Free trial</p>
+                <h2 className="mt-4 text-3xl md:text-4xl">Make your first $70. No fee. No risk.</h2>
+                <p className="mt-4 text-[var(--ink-muted)]">
+                  Our free trial walks you through two real bookmaker offers step by step so you can see the proof for
+                  yourself before spending a cent. You&apos;ll know exactly how matched betting works before upgrading.
+                </p>
               </div>
-            ))}
+              <div className="space-y-4">
+                {trialHighlights.map((item) => (
+                  <div key={item} className="flex items-center gap-2 text-sm text-[var(--ink-muted)]">
+                    <CheckCircle2 className="h-4 w-4 text-[var(--profit)]" />
+                    {item}
+                  </div>
+                ))}
+                <Link href={`${appUrl}/sign-up`} className="btn-primary w-full justify-center flex-wrap text-center">
+                  Start free and make your first $70
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="section">
+      <section id="pricing" className="section">
         <div className="container">
           <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="eyebrow">Pricing</p>
-              <h2 className="mt-4 text-3xl md:text-4xl">Plans that match your pace.</h2>
-              <p className="mt-4 text-[var(--ink-muted)]">Start free, then unlock more bookmakers when you are ready.</p>
+              <h2 className="mt-4 text-3xl md:text-4xl">Start free. Upgrade when you&apos;re ready.</h2>
+              <p className="mt-4 text-[var(--ink-muted)]">
+                No lock-ins, no pressure, and no credit card needed, use the free trial to learn the system first.
+              </p>
             </div>
-            <Link href="/pricing" className="btn-outline">
-              View full pricing
-            </Link>
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`surface p-6 ${plan.accent ? "border-[var(--accent)]" : ""}`}
+                className={`surface p-6 flex h-full flex-col ${
+                  plan.accent ? "border-[var(--accent)] shadow-[0_25px_60px_-45px_rgba(41,87,213,0.9)]" : ""
+                }`}
               >
-                <h3 className="text-xl font-semibold">{plan.name}</h3>
-                <p className="text-3xl font-semibold mt-3">{plan.price}</p>
-                <p className="text-sm text-[var(--ink-muted)] mt-2">{plan.description}</p>
-                <ul className="mt-6 space-y-2 text-sm text-[var(--ink-muted)]">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold">{plan.name}</h3>
+                    <p className="text-3xl font-semibold mt-3">{plan.price}</p>
+                  </div>
+                  <span className="badge">{plan.badge}</span>
+                </div>
+                {plan.description ? (
+                  <p className="text-sm text-[var(--ink-muted)] mt-4">{plan.description}</p>
+                ) : null}
+                <ul className="mt-6 space-y-2 text-sm text-[var(--ink-muted)] flex-1">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-[var(--accent)]" />
@@ -279,11 +426,72 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
+                <Link
+                  href={plan.ctaHref}
+                  className={`${plan.accent ? "btn-primary" : "btn-outline"} mt-6 w-full justify-center`}
+                >
+                  {plan.ctaLabel}
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      <section id="faq" className="section">
+        <div className="container">
+          <div className="max-w-2xl">
+            <p className="eyebrow">Frequently asked questions</p>
+            <h2 className="mt-4 text-3xl md:text-4xl">Frequently asked questions</h2>
+          </div>
+          <div className="mt-8 space-y-4">
+            {faqs.map((faq) => (
+              <details key={faq.question} className="surface-flat p-6 group">
+                <summary className="flex cursor-pointer items-center justify-between text-base font-semibold">
+                  {faq.question}
+                  <ChevronDown className="h-4 w-4 text-[var(--ink-muted)] transition-transform duration-200 group-open:rotate-180" />
+                </summary>
+                <p className="mt-3 text-sm text-[var(--ink-muted)]">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="relative overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--brand)] text-white p-8 md:p-12">
+            <div
+              className="absolute -top-16 left-10 h-40 w-40 rounded-full bg-white/10 blur-3xl"
+              aria-hidden="true"
+            ></div>
+            <div
+              className="absolute bottom-0 right-0 h-52 w-52 rounded-full bg-[var(--accent)]/30 blur-3xl"
+              aria-hidden="true"
+            ></div>
+            <div className="relative grid gap-6 md:grid-cols-[1.4fr_0.6fr] md:items-center">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/70">Start with one offer</p>
+                <h2 className="mt-3 text-3xl md:text-4xl font-semibold">
+                  Start with one offer. Learn the system. Repeat weekly.
+                </h2>
+                <p className="mt-4 text-sm text-white/80 max-w-xl">
+                  Create a free account and see exactly how matched betting works in Australia, then rinse and repeat
+                  for steady side income.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Link href={`${appUrl}/sign-up`} className="btn-primary w-full justify-center flex-wrap text-center">
+                  Create free account - Make your first $70
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   );
 }

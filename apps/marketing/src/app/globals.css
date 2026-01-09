@@ -200,6 +200,19 @@ summary::-webkit-details-marker {
   color: #fff;
 }
 
+.btn-hero {
+  padding: 0.7rem 1.4rem;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .btn-hero {
+    white-space: normal;
+  }
+}
+
 .btn-ghost {
   color: var(--brand);
   border-radius: 999px;

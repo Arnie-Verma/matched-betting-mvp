@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { appUrl } from "@/lib/site";
 
 const footerLinks = [
@@ -9,27 +8,16 @@ const footerLinks = [
   { href: "/features/bookmakers", label: "Bookmakers" },
 ];
 
+const legalLinks = [
+  { href: "/terms", label: "Terms of Service" },
+  { href: "/privacy", label: "Privacy Policy" },
+];
+
 export default function SiteFooter() {
   return (
     <footer className="border-t border-[var(--border)] bg-white">
       <div className="container py-12">
-        <div className="surface p-8 md:p-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="badge">Ready to start</p>
-            <h3 className="text-2xl md:text-3xl font-semibold mt-3">
-              Turn bookmaker promos into steady profit.
-            </h3>
-            <p className="text-sm text-[var(--ink-muted)] mt-2 max-w-xl">
-              Use the odds matcher, calculators, and academy to follow a proven matched betting playbook.
-            </p>
-          </div>
-          <Link href={`${appUrl}/sign-up`} className="btn-primary">
-            Create free account
-            <ArrowUpRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="mt-12 grid gap-8 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr_1fr]">
           <div>
             <div className="text-lg font-semibold">MatchedBetting</div>
             <p className="text-sm text-[var(--ink-muted)] mt-2">
@@ -61,10 +49,37 @@ export default function SiteFooter() {
               </Link>
             </div>
           </div>
+          <div>
+            <div className="text-sm font-semibold">Legal</div>
+            <div className="mt-3 space-y-2">
+              {legalLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="block text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="text-sm font-semibold">Contact Us</div>
+            <div className="mt-3 space-y-2">
+              <a href="mailto:placeholder@gmail.com" className="block text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]">
+                placeholder@gmail.com
+              </a>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-12 text-xs text-[var(--ink-muted)]">
-          Matched betting is a strategy, not financial advice. Please check local regulations before betting.
+        <div className="mt-12 space-y-2 text-xs text-[var(--ink-muted)]">
+          <p>
+            Disclaimer: SureStake provides matched betting and educational content. Gambling can be addictive. Please
+            gamble responsibly and only bet what you can afford to lose. If you or someone you know has a gambling
+            problem, help is available. Call 1800 858 858 or visit gamblinghelponline.org.au.
+          </p>
+          <p>&copy; 2026 placeholder. All rights reserved.</p>
         </div>
       </div>
     </footer>
