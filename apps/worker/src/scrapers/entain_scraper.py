@@ -9,15 +9,22 @@ The only difference is the base URL:
 
 This scraper is config-driven - pass different base_url to scrape different bookmakers.
 
-API Endpoint Pattern:
-  {base_url}/sports/{sport} - Triggers API calls intercepted by Playwright
+API Endpoint Patterns (as of Jan 2026):
+  GraphQL: {api_base}/graphql or {api_base}/gql/router
+  REST v2: {api_base}/rest/v2/...
+  Legacy: event-request URLs (may still work)
 
-Response Structure:
+Response Structure (REST/Legacy):
   {events: {}, markets: {}, prices: {}, entrants: {}}
   Odds: Fractional (numerator/denominator) -> converted to decimal
 
+Response Structure (GraphQL):
+  {data: {sports: {edges: [{node: {events: ...}}]}}}
+  Odds: Decimal format directly
+
 PRODUCTION NOTES:
 - Uses Playwright network interception (not direct API calls)
+- Intercepts BOTH GraphQL and REST endpoints for compatibility
 - Closure pattern for parallel execution safety
 - Shared browser instance across scrapes (performance optimization)
 - Dynamic waits to minimize scrape time
@@ -58,7 +65,38 @@ class EntainScraper(BaseScraper):
     _playwright = None
     _browser_lock = None
 
-    # Sport URL paths (appended to base_url)
+    # Competition-specific URL paths (yields events with odds directly)
+    # Format: sport_code -> list of (competition_name, url_path) tuples
+    COMPETITION_URLS = {
+        "soccer": [
+            ("Premier League", "/sports/soccer/england-premier-league"),
+            ("A-League Men", "/sports/soccer/australia-a-league"),
+            ("Spanish La Liga", "/sports/soccer/spain-la-liga"),
+            ("German Bundesliga", "/sports/soccer/germany-bundesliga"),
+            ("Italian Serie A", "/sports/soccer/italy-serie-a"),
+            ("French Ligue 1", "/sports/soccer/france-ligue-1"),
+            ("UEFA Champions League", "/sports/soccer/uefa-champions-league"),
+            ("Major League Soccer", "/sports/soccer/usa-mls"),
+        ],
+        "afl": [
+            ("AFL", "/sports/australian-rules/afl"),
+        ],
+        "nrl": [
+            ("NRL", "/sports/rugby-league/nrl"),
+        ],
+        "basketball": [
+            ("NBA", "/sports/basketball/usa-nba"),
+            ("NBL", "/sports/basketball/australia-nbl"),
+        ],
+        "ice_hockey": [
+            ("NHL", "/sports/ice-hockey/usa-nhl"),
+        ],
+        "boxing": [
+            ("Boxing", "/sports/boxing"),
+        ],
+    }
+
+    # Legacy sport paths (fallback if competition URLs fail)
     SPORT_PATHS = {
         "soccer": "/sports/soccer",
         "afl": "/sports/australian-rules",
@@ -68,7 +106,7 @@ class EntainScraper(BaseScraper):
         "boxing": "/sports/boxing",
     }
 
-    # Competition filters for target sports
+    # Competition filters for target sports (used with legacy approach)
     COMPETITION_FILTERS = {
         "soccer": [
             "Premier League",
@@ -87,7 +125,7 @@ class EntainScraper(BaseScraper):
         "nrl": ["NRL"],
         "basketball": ["NBA", "NBL"],
         "ice_hockey": ["NHL"],
-        "boxing": ["Upcoming Fights"]
+        "boxing": ["Upcoming Fights", "Boxing"]
     }
 
     ALL_SPORTS = ["soccer", "basketball", "ice_hockey", "boxing", "afl", "nrl"]
@@ -159,24 +197,29 @@ class EntainScraper(BaseScraper):
 
         PARALLELIZATION SAFE: Uses closure pattern for captured_data.
         Multiple calls can run concurrently without race conditions.
+
+        Iterates through competition-specific URLs for the sport to get events with odds.
         """
         started_at = datetime.now(timezone.utc)
         scrape_start = time.time()
         all_events = []
         errors = []
 
-        sport_url = self._get_sport_url(sport)
-        if not sport_url:
-            error_msg = f"Unsupported sport: {sport}"
-            self.logger.error(f"[{self.bookmaker_code}] {error_msg}")
-            errors.append(error_msg)
-            return self._create_failed_result(started_at, errors)
-
-        # LOCAL captured_data - isolated per call via closure
-        captured_data: List[Dict] = []
+        # Get competition URLs for this sport
+        competition_urls = self.COMPETITION_URLS.get(sport, [])
+        if not competition_urls:
+            # Fallback to legacy sport path
+            sport_path = self.SPORT_PATHS.get(sport)
+            if sport_path:
+                competition_urls = [(sport.upper(), sport_path)]
+            else:
+                error_msg = f"Unsupported sport: {sport}"
+                self.logger.error(f"[{self.bookmaker_code}] {error_msg}")
+                errors.append(error_msg)
+                return self._create_failed_result(started_at, errors)
 
         try:
-            self.logger.info(f"[{self.bookmaker_code}] Starting scrape: {sport}")
+            self.logger.info(f"[{self.bookmaker_code}] Starting scrape: {sport} ({len(competition_urls)} competitions)")
 
             browser = await self._get_or_create_browser()
 
@@ -190,105 +233,188 @@ class EntainScraper(BaseScraper):
 
             page = await context.new_page()
 
-            # CLOSURE PATTERN: Response handler captures LOCAL captured_data
-            async def handle_response(response: Response):
-                """Handle intercepted network responses"""
-                try:
-                    url = response.url
-                    if response.status == 200 and 'event-request' in url:
-                        try:
-                            content_type = response.headers.get('content-type', '')
-                            if 'application/json' in content_type:
-                                data = await response.json()
-                                events_count = len(data.get('events', {}))
-                                if events_count > 0:
-                                    captured_data.append(data)
-                                    self.logger.info(f"[{self.bookmaker_code}/{sport}] Captured API data: {events_count} events")
-                        except Exception as e:
-                            self.logger.debug(f"Could not parse response: {e}")
-                except Exception as e:
-                    self.logger.debug(f"Error handling response: {e}")
-
-            page.on('response', lambda res: asyncio.create_task(handle_response(res)))
-
             try:
-                # Navigate to sport page
-                nav_start = time.time()
-                self.logger.info(f"[{self.bookmaker_code}/{sport}] Navigating to {sport_url}")
-                await page.goto(sport_url, wait_until='domcontentloaded', timeout=20000)
-                nav_time = time.time() - nav_start
-                self.logger.info(f"[{self.bookmaker_code}/{sport}] Page load took {nav_time:.2f}s")
+                # Iterate through each competition for this sport
+                for comp_name, comp_path in competition_urls:
+                    comp_url = f"{self.base_url}{comp_path}"
 
-                # Dynamic wait - poll for captured data instead of fixed wait
-                wait_start = time.time()
-                max_wait = 8.0
-                poll_interval = 0.3
-                data_captured = False
+                    # LOCAL captured_data - reset per competition
+                    captured_data: List[Dict] = []
+                    api_urls_seen: List[str] = []
 
-                while (time.time() - wait_start) < max_wait:
-                    if captured_data:
-                        await asyncio.sleep(0.5)
-                        data_captured = True
-                        break
-                    await asyncio.sleep(poll_interval)
+                    # CLOSURE PATTERN: Response handler captures LOCAL captured_data
+                    async def make_handler(cd: List[Dict], urls: List[str], comp: str):
+                        async def handle_response(response: Response):
+                            """Handle intercepted network responses - supports multiple API patterns"""
+                            try:
+                                url = response.url
+                                if response.status != 200:
+                                    return
 
-                wait_time = time.time() - wait_start
-                if data_captured:
-                    self.logger.info(f"[{self.bookmaker_code}/{sport}] Data captured after {wait_time:.2f}s")
-                else:
-                    self.logger.info(f"[{self.bookmaker_code}/{sport}] Max wait reached ({wait_time:.2f}s)")
+                                content_type = response.headers.get('content-type', '')
 
-                await asyncio.sleep(0.3)
+                                # Log API URLs for debugging
+                                if 'application/json' in content_type and 'api' in url.lower():
+                                    if len(urls) < 10:
+                                        urls.append(url[:150])
 
-                self.logger.info(f"[{self.bookmaker_code}/{sport}] Captured {len(captured_data)} API responses")
+                                if 'application/json' not in content_type:
+                                    return
 
-                # Parse captured data
-                if captured_data:
-                    for data in captured_data:
-                        events = self._parse_entain_response(data, sport)
-                        all_events.extend(events)
+                                # Pattern 1: Legacy event-request URLs
+                                if 'event-request' in url:
+                                    try:
+                                        data = await response.json()
+                                        events_count = len(data.get('events', {}))
+                                        if events_count > 0:
+                                            cd.append({'type': 'legacy', 'data': data, 'competition': comp})
+                                            self.logger.info(f"[{self.bookmaker_code}/{comp}] Captured LEGACY: {events_count} events")
+                                    except Exception as e:
+                                        self.logger.debug(f"Could not parse legacy: {e}")
 
-                    # Remove duplicates
-                    seen_ids = set()
-                    unique_events = []
-                    for event in all_events:
-                        if event.external_id not in seen_ids:
-                            seen_ids.add(event.external_id)
-                            unique_events.append(event)
-                    all_events = unique_events
+                                # Pattern 2: GraphQL endpoint
+                                elif '/graphql' in url or '/gql/' in url:
+                                    try:
+                                        data = await response.json()
+                                        if data.get('data'):
+                                            cd.append({'type': 'graphql', 'data': data, 'competition': comp})
+                                            self.logger.info(f"[{self.bookmaker_code}/{comp}] Captured GraphQL")
+                                    except Exception as e:
+                                        self.logger.debug(f"Could not parse GraphQL: {e}")
 
-                    # Apply competition filters
+                                # Pattern 3: REST v2 sport events
+                                elif '/rest/v2/' in url and ('sport' in url or 'event' in url or 'competition' in url):
+                                    try:
+                                        data = await response.json()
+                                        cd.append({'type': 'rest_v2', 'data': data, 'competition': comp})
+                                        self.logger.info(f"[{self.bookmaker_code}/{comp}] Captured REST v2")
+                                    except Exception as e:
+                                        self.logger.debug(f"Could not parse REST v2: {e}")
+
+                                # Pattern 4: v2 API with events
+                                elif '/v2/' in url and 'event' in url.lower():
+                                    try:
+                                        data = await response.json()
+                                        if isinstance(data, dict) and (data.get('events') or data.get('data')):
+                                            cd.append({'type': 'v2_events', 'data': data, 'competition': comp})
+                                            self.logger.info(f"[{self.bookmaker_code}/{comp}] Captured v2 events")
+                                    except Exception as e:
+                                        self.logger.debug(f"Could not parse v2 events: {e}")
+
+                            except Exception as e:
+                                self.logger.debug(f"Error handling response: {e}")
+                        return handle_response
+
+                    # Set up handler for this competition
+                    handler = await make_handler(captured_data, api_urls_seen, comp_name)
+                    page.on('response', lambda res, h=handler: asyncio.create_task(h(res)))
+
+                    # Navigate to competition page
+                    nav_start = time.time()
+                    self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Navigating to {comp_url}")
+
+                    try:
+                        await page.goto(comp_url, wait_until='domcontentloaded', timeout=20000)
+                    except Exception as nav_error:
+                        self.logger.warning(f"[{self.bookmaker_code}/{comp_name}] Navigation failed: {nav_error}")
+                        errors.append(f"{comp_name}: navigation failed")
+                        continue
+
+                    nav_time = time.time() - nav_start
+                    self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Page load: {nav_time:.2f}s")
+
+                    # Wait for data - need enough time for legacy API to respond
+                    # Legacy event-request often comes after GraphQL, so wait longer
+                    wait_start = time.time()
+                    max_wait = 8.0
+                    legacy_captured = False
+
+                    while (time.time() - wait_start) < max_wait:
+                        # Check if we have legacy data (preferred)
+                        for item in captured_data:
+                            if item.get('type') == 'legacy':
+                                legacy_captured = True
+                                break
+
+                        if legacy_captured:
+                            # Give a bit more time for additional data
+                            await asyncio.sleep(0.5)
+                            break
+                        elif captured_data and (time.time() - wait_start) > 4.0:
+                            # Have some data but no legacy after 4s, accept what we have
+                            await asyncio.sleep(0.3)
+                            break
+
+                        await asyncio.sleep(0.3)
+
+                    self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Captured {len(captured_data)} responses (legacy={legacy_captured})")
+
+                    # Parse captured data
+                    comp_events = []
+                    for item in captured_data:
+                        item_type = item.get('type', 'legacy')
+                        data = item.get('data', item)
+
+                        if item_type == 'graphql':
+                            events = self._parse_graphql_response(data, sport)
+                        else:
+                            events = self._parse_entain_response(data, sport)
+
+                        # Override competition name with expected name if unknown
+                        for e in events:
+                            if e.competition == "Unknown Competition":
+                                e.competition = comp_name
+                        comp_events.extend(events)
+
+                    # Apply competition filter - legacy API returns all competitions
+                    # We filter to only the competition we're targeting
                     competition_filters = self.COMPETITION_FILTERS.get(sport, [])
-                    if competition_filters:
+                    if competition_filters and comp_events:
                         filter_set = {f.lower() for f in competition_filters}
                         filtered_events = [
-                            e for e in all_events
+                            e for e in comp_events
                             if e.competition.lower() in filter_set
                         ]
-                        self.logger.info(
-                            f"[{self.bookmaker_code}/{sport}] Filtered {len(all_events)} -> {len(filtered_events)} events"
-                        )
-                        all_events = filtered_events
+                        if len(filtered_events) < len(comp_events):
+                            self.logger.info(
+                                f"[{self.bookmaker_code}/{comp_name}] Filtered {len(comp_events)} -> {len(filtered_events)} events"
+                            )
+                        comp_events = filtered_events
 
-                    if limit:
-                        all_events = all_events[:limit]
+                    if comp_events:
+                        self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Parsed {len(comp_events)} events")
+                        all_events.extend(comp_events)
+                    else:
+                        self.logger.warning(f"[{self.bookmaker_code}/{comp_name}] No events parsed (post-filter)")
+                        if api_urls_seen:
+                            self.logger.debug(f"[{self.bookmaker_code}/{comp_name}] URLs: {api_urls_seen[:5]}")
 
-                    # Log per-competition stats
-                    competitions = {}
-                    for event in all_events:
-                        comp = event.competition
-                        if comp not in competitions:
-                            competitions[comp] = {"events": 0, "odds": 0}
-                        competitions[comp]["events"] += 1
-                        competitions[comp]["odds"] += len(event.odds)
+                    # Small delay between competitions to avoid rate limiting
+                    await asyncio.sleep(0.5)
 
-                    for comp, stats in competitions.items():
-                        self.logger.info(
-                            f"[{self.bookmaker_code}/{sport}] {comp}: {stats['events']} events, {stats['odds']} odds"
-                        )
-                else:
-                    self.logger.warning(f"[{self.bookmaker_code}/{sport}] No API data captured")
-                    errors.append(f"No API data captured for {sport}")
+                # Remove duplicates
+                seen_ids = set()
+                unique_events = []
+                for event in all_events:
+                    if event.external_id not in seen_ids:
+                        seen_ids.add(event.external_id)
+                        unique_events.append(event)
+                all_events = unique_events
+
+                if limit:
+                    all_events = all_events[:limit]
+
+                # Log final stats
+                comp_stats = {}
+                for event in all_events:
+                    comp = event.competition
+                    if comp not in comp_stats:
+                        comp_stats[comp] = {"events": 0, "odds": 0}
+                    comp_stats[comp]["events"] += 1
+                    comp_stats[comp]["odds"] += len(event.odds)
+
+                for comp, stats in comp_stats.items():
+                    self.logger.info(f"[{self.bookmaker_code}/{sport}] {comp}: {stats['events']} events, {stats['odds']} odds")
 
             finally:
                 await context.close()
@@ -580,6 +706,185 @@ class EntainScraper(BaseScraper):
         )
 
         return events
+
+    def _parse_graphql_response(self, data: Dict, sport: str) -> List[ScrapedEvent]:
+        """
+        Parse GraphQL API response into ScrapedEvent objects.
+
+        GraphQL response structure varies but generally:
+        {
+            "data": {
+                "sports" or "competitions" or "events": {
+                    "edges": [
+                        {"node": {event_data}}
+                    ]
+                }
+            }
+        }
+
+        Odds are typically in decimal format directly.
+        """
+        events = []
+        gql_data = data.get("data", {})
+
+        if not gql_data:
+            self.logger.warning(f"[{self.bookmaker_code}] Empty GraphQL data")
+            return events
+
+        # Log the structure to help debug
+        self.logger.info(f"[{self.bookmaker_code}] GraphQL keys: {list(gql_data.keys())}")
+
+        # Try to find events in various possible locations
+        event_nodes = []
+
+        # Pattern 1: data.sports.edges[].node.events.edges[].node
+        if "sports" in gql_data:
+            sports_data = gql_data["sports"]
+            for sport_edge in sports_data.get("edges", []):
+                sport_node = sport_edge.get("node", {})
+                for event_edge in sport_node.get("events", {}).get("edges", []):
+                    event_nodes.append(event_edge.get("node", {}))
+
+        # Pattern 2: data.competitions.edges[].node.events.edges[].node
+        if "competitions" in gql_data:
+            comp_data = gql_data["competitions"]
+            for comp_edge in comp_data.get("edges", []):
+                comp_node = comp_edge.get("node", {})
+                for event_edge in comp_node.get("events", {}).get("edges", []):
+                    event_nodes.append(event_edge.get("node", {}))
+
+        # Pattern 3: data.events.edges[].node
+        if "events" in gql_data:
+            events_data = gql_data["events"]
+            for event_edge in events_data.get("edges", []):
+                event_nodes.append(event_edge.get("node", {}))
+
+        # Pattern 4: data.eventCards (used on sports landing page)
+        if "eventCards" in gql_data:
+            for card in gql_data.get("eventCards", []):
+                if "event" in card:
+                    event_nodes.append(card["event"])
+                elif "id" in card and "name" in card:
+                    event_nodes.append(card)
+
+        self.logger.info(f"[{self.bookmaker_code}] Found {len(event_nodes)} event nodes in GraphQL")
+
+        for event_data in event_nodes:
+            try:
+                event_id = str(event_data.get("id", ""))
+                event_name = event_data.get("name", "Unknown Event")
+
+                # Get competition info
+                competition_data = event_data.get("competition", {}) or {}
+                competition = competition_data.get("name", "Unknown Competition")
+
+                # Parse start time
+                start_str = event_data.get("startTime") or event_data.get("advertisedStart") or ""
+                try:
+                    if start_str:
+                        start_time = datetime.fromisoformat(start_str.replace("Z", "+00:00"))
+                    else:
+                        start_time = datetime.now(timezone.utc) + timedelta(days=1)
+                except:
+                    start_time = datetime.now(timezone.utc) + timedelta(days=1)
+
+                # Extract teams from event name
+                home_team, away_team = self._extract_teams_from_name(event_name)
+
+                event = ScrapedEvent(
+                    external_id=event_id,
+                    name=event_name,
+                    sport=sport,
+                    competition=competition,
+                    start_time=start_time,
+                    home_team=home_team,
+                    away_team=away_team,
+                    odds=[]
+                )
+
+                # Parse markets/prices from GraphQL
+                markets_data = event_data.get("markets", []) or event_data.get("markets", {}).get("edges", [])
+
+                for market_item in markets_data:
+                    # Handle both direct list and edges pattern
+                    market = market_item.get("node", market_item) if isinstance(market_item, dict) else {}
+                    market_name = market.get("name", "")
+                    market_type = self.normalize_market_type(market_name)
+
+                    if market_type != "match_winner":
+                        continue
+
+                    # Get selections/outcomes
+                    selections = market.get("selections", []) or market.get("outcomes", [])
+                    for sel_item in selections:
+                        sel = sel_item.get("node", sel_item) if isinstance(sel_item, dict) else {}
+                        sel_name = sel.get("name", "")
+
+                        # Get odds - GraphQL often has decimal odds directly
+                        odds_value = sel.get("odds") or sel.get("price") or sel.get("decimalOdds")
+                        if isinstance(odds_value, dict):
+                            odds_value = odds_value.get("decimal") or odds_value.get("value")
+
+                        if not odds_value:
+                            continue
+
+                        try:
+                            decimal_odds = Decimal(str(odds_value))
+                            if decimal_odds < Decimal("1.01"):
+                                continue
+                        except:
+                            continue
+
+                        selection_key = self._get_selection_key(sel_name, event)
+
+                        odds = ScrapedOdds(
+                            event_external_id=event_id,
+                            event_name=event_name,
+                            sport=sport,
+                            competition=competition,
+                            start_time=start_time,
+                            market_type=market_type,
+                            market_name=market_name,
+                            selection_name=sel_name,
+                            selection_key=selection_key,
+                            decimal_odds=decimal_odds.quantize(Decimal("0.01")),
+                            bookmaker_code=self.bookmaker_code,
+                            source_url=f"{self.base_url}/sports/event/{event_id}",
+                            scraped_at=datetime.now(timezone.utc)
+                        )
+                        event.odds.append(odds)
+
+                if event.odds:
+                    events.append(event)
+
+            except Exception as e:
+                self.logger.error(f"[{self.bookmaker_code}] Failed to parse GraphQL event: {e}")
+                continue
+
+        self.logger.info(f"[{self.bookmaker_code}] Parsed {len(events)} events from GraphQL")
+        return events
+
+    def _extract_teams_from_name(self, event_name: str) -> tuple:
+        """Extract home and away teams from event name."""
+        home_team = None
+        away_team = None
+
+        if " v " in event_name:
+            parts = event_name.split(" v ", 1)
+            if len(parts) == 2:
+                home_team = parts[0].strip()
+                away_team = parts[1].strip()
+        elif " vs " in event_name.lower():
+            idx = event_name.lower().find(" vs ")
+            home_team = event_name[:idx].strip()
+            away_team = event_name[idx + 4:].strip()
+        elif " @ " in event_name:
+            parts = event_name.split(" @ ", 1)
+            if len(parts) == 2:
+                away_team = parts[0].strip()
+                home_team = parts[1].strip()
+
+        return home_team, away_team
 
     def _get_selection_key(self, selection_name: str, event: ScrapedEvent) -> str:
         """Determine selection key (home/away/draw) from selection name."""

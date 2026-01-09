@@ -484,8 +484,9 @@ class ScrapeService:
             # Use the new parallel sports method WITH TIMEOUT
             try:
                 # For sequential sports (batch_size=1), need longer timeout:
-                # 6 sports × ~10s each = ~60s per bookmaker
-                all_sports_timeout = max(self.bookmaker_timeout * 6, 120)
+                # 6 sports × ~15s each = ~90s per bookmaker, plus buffer for slow connections
+                # Increased from 120s to 180s to reduce timeout errors in parallel scrapes
+                all_sports_timeout = max(self.bookmaker_timeout * 6, 180)
                 result = await asyncio.wait_for(
                     scraper.scrape_all_sports_parallel(sports=sports, limit=limit),
                     timeout=all_sports_timeout
