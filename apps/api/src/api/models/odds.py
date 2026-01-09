@@ -226,6 +226,7 @@ class Event(Base):
 
     # Event details
     name = Column(String(200), nullable=False)  # "Richmond vs Collingwood"
+    normalized_name = Column(String(200), nullable=True)  # Canonical form for cross-bookmaker matching: "collingwoodvrichmond"
     short_name = Column(String(100), nullable=True)  # "RICH v COLL"
     external_ids = Column(JSON, nullable=True)  # Bookmaker event IDs for matching
 
@@ -266,6 +267,7 @@ class Event(Base):
         Index("idx_event_competition_start", "competition_id", "start_time"),
         Index("idx_event_status_start", "status", "start_time"),
         Index("idx_event_teams", "home_team_id", "away_team_id"),
+        Index("idx_event_normalized", "competition_id", "normalized_name", "start_time"),  # Cross-bookmaker matching
     )
 
 

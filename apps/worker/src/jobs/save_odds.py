@@ -19,7 +19,7 @@ from api.models.odds import (
     Sport, Competition, Event, Market, Selection, OddsSnapshot,
     Bookmaker, Team, SourceType, MarketType
 )
-from api.services.normalization_service import fuzzy_match_score
+from api.services.normalization_service import fuzzy_match_score, normalize_event_name
 from scrapers.base import ScrapedEvent, ScrapedOdds, ScrapeResult
 
 logger = logging.getLogger(__name__)
@@ -260,16 +260,25 @@ class OddsPersistence:
 
         Matches events from different bookmakers (e.g., "Nottm Forest" vs "Nottingham Forest")
         using fuzzy string matching on event names and time proximity.
+
+        CRITICAL: Normalizes event names to canonical form to handle:
+        - Separator variations: "Team A v Team B" vs "Team A @ Team B"
+        - Team order: "Arsenal v Chelsea" vs "Chelsea vs Arsenal"
+        - Team abbreviations: "Nottm Forest" vs "Nottingham Forest"
         """
         # Get sport and competition
         sport = self._get_or_create_sport(scraped_event.sport)
         competition = self._get_or_create_competition(sport, scraped_event.competition)
 
-        # First, try exact match by name and start time
+        # Normalize incoming event name for consistent matching
+        normalized_name = normalize_event_name(scraped_event.name)
+
+        # First, try exact match by NORMALIZED name and start time
+        # This handles events like "Team A v Team B" vs "Team A @ Team B"
         event = self.db.scalar(
             select(Event).where(
                 Event.competition_id == competition.id,
-                Event.name == scraped_event.name,
+                Event.normalized_name == normalized_name,
                 Event.start_time == scraped_event.start_time
             )
         )
@@ -323,10 +332,11 @@ class OddsPersistence:
             return best_match
 
         # No match found - create new event
-        logger.info(f"Creating new event: {scraped_event.name}")
+        logger.info(f"Creating new event: {scraped_event.name} (normalized: {normalized_name})")
         event = Event(
             competition_id=competition.id,
             name=scraped_event.name,
+            normalized_name=normalized_name,
             start_time=scraped_event.start_time,
             external_ids={scraped_event.external_id: True},
             status="scheduled"
