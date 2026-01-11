@@ -572,3 +572,40 @@ def normalize_selection_name(name: str) -> str:
 def fuzzy_match_score(str1: str, str2: str) -> float:
     """Convenience function for fuzzy_match_score."""
     return normalizer.fuzzy_match_score(str1, str2)
+
+
+# Display name mappings: normalized code -> friendly display name
+COMPETITION_DISPLAY_NAMES = {
+    'epl': 'EPL',
+    'bundesliga': 'Bundesliga',
+    'laliga': 'La Liga',
+    'seriea': 'Serie A',
+    'ligue1': 'Ligue 1',
+    'aleague': 'A-League',
+    'aleaguewomen': 'A-League Women',
+    'nba': 'NBA',
+    'nbl': 'NBL',
+    'nhl': 'NHL',
+    'afl': 'AFL',
+    'nrl': 'NRL',
+    'boxing': 'Boxing',
+    'ucl': 'Champions League',
+    'mls': 'MLS',
+}
+
+
+def get_competition_display_name(competition_name: str) -> str:
+    """
+    Get a friendly display name for a competition.
+
+    Takes a raw competition name like "2025/2026 Germany Bundesliga - Round 17"
+    and returns "Bundesliga".
+
+    Args:
+        competition_name: Raw competition name from database
+
+    Returns:
+        Friendly display name (e.g., "EPL", "NBA", "Bundesliga")
+    """
+    normalized = normalize_competition_name(competition_name)
+    return COMPETITION_DISPLAY_NAMES.get(normalized, normalized.upper() if len(normalized) <= 4 else normalized.title())

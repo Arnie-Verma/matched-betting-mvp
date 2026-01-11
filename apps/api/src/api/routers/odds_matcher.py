@@ -21,6 +21,7 @@ from api.services.normalization_service import (
     normalize_event_name,
     normalize_competition_name,
     normalize_selection_name,
+    get_competition_display_name,
 )
 
 
@@ -671,7 +672,7 @@ async def get_matcher_opportunities(
                     event_name=representative_event.name,
                     event_start_time=representative_event.start_time,
                     sport_name=representative_event.competition.sport.display_name,
-                    competition_name=representative_event.competition.short_name,
+                    competition_name=get_competition_display_name(representative_event.competition.name if representative_event.competition else ""),
                     market_id=market.id,
                     market_name=market.name,
                     market_type=market.market_type,
