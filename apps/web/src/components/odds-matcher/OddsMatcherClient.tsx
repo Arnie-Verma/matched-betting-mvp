@@ -87,6 +87,8 @@ export function OddsMatcherClient() {
   const requestToken = useRef(0)
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const currentOffset = useRef(0)
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const isRefreshing = useRef(false)
 
   // Auto-refresh odds on component mount (triggers scraping if cache expired)
   useEffect(() => {
@@ -94,6 +96,21 @@ export function OddsMatcherClient() {
     hasInitialized.current = true
     refreshOdds()
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Cleanup: abort any in-progress requests when component unmounts
+  useEffect(() => {
+    return () => {
+      // Only abort if there's actually an active controller
+      const controller = abortControllerRef.current
+      if (controller && !controller.signal.aborted) {
+        try {
+          controller.abort()
+        } catch {
+          // Ignore abort errors during cleanup
+        }
+      }
+    }
   }, [])
 
   // Debounce stake changes to avoid multiple rapid recalculations
@@ -242,11 +259,17 @@ export function OddsMatcherClient() {
   }, [opportunities, filters.search])
 
   // Poll job status until complete
-  const pollJobStatus = async (jobId: string, maxAttempts = 40): Promise<boolean> => {
+  const pollJobStatus = async (jobId: string, signal: AbortSignal, maxAttempts = 40): Promise<boolean> => {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      // Check if aborted before making request
+      if (signal.aborted) {
+        console.log('[OddsMatcherClient] Polling aborted')
+        return false
+      }
+
       try {
         console.log(`[OddsMatcherClient] Poll attempt ${attempt + 1}/${maxAttempts} for job ${jobId}`)
-        const response = await fetch(`/api/proxy/odds/refresh/status?job_id=${encodeURIComponent(jobId)}`)
+        const response = await fetch(`/api/proxy/odds/refresh/status?job_id=${encodeURIComponent(jobId)}`, { signal })
 
         if (!response.ok) {
           // 404 means job expired or doesn't exist - could mean it completed
@@ -281,9 +304,20 @@ export function OddsMatcherClient() {
           return false
         }
 
-        // Wait 3 seconds before next poll
-        await new Promise(resolve => setTimeout(resolve, 3000))
+        // Wait 3 seconds before next poll (with abort check)
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(resolve, 3000)
+          signal.addEventListener('abort', () => {
+            clearTimeout(timeout)
+            reject(new DOMException('Aborted', 'AbortError'))
+          }, { once: true })
+        })
       } catch (err) {
+        // Don't log abort errors as they're expected when user navigates away
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          console.log('[OddsMatcherClient] Polling aborted by user')
+          return false
+        }
         console.error('[OddsMatcherClient] Error polling job status:', err)
         return false
       }
@@ -295,6 +329,26 @@ export function OddsMatcherClient() {
   }
 
   const refreshOdds = async () => {
+    // Prevent concurrent refresh operations
+    if (isRefreshing.current) {
+      console.log('[OddsMatcherClient] Refresh already in progress, skipping')
+      return
+    }
+
+    // Cancel any existing polling
+    if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+      try {
+        abortControllerRef.current.abort()
+      } catch {
+        // Ignore abort errors
+      }
+    }
+
+    // Create new AbortController for this refresh
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
+    isRefreshing.current = true
+
     // Show banner immediately to indicate refresh is starting
     setError(null)
     setScrapeStatus('Checking for latest odds...')
@@ -306,7 +360,8 @@ export function OddsMatcherClient() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ force: false })
+        body: JSON.stringify({ force: false }),
+        signal: abortController.signal
       })
 
       if (!response.ok) {
@@ -347,19 +402,28 @@ export function OddsMatcherClient() {
       if (refreshData.job_id) {
         setScrapeStatus('Fetching latest odds from bookmakers...')
 
-        const success = await pollJobStatus(refreshData.job_id)
+        const success = await pollJobStatus(refreshData.job_id, abortController.signal)
 
-        if (!success) {
+        if (!success && !abortController.signal.aborted) {
           console.warn('[OddsMatcherClient] Refresh may have failed, fetching cached odds')
         }
       }
 
-      // Fetch opportunities (hides banner and shows table loading)
-      await fetchOpportunities(true)
+      // Fetch opportunities (hides banner and shows table loading) - only if not aborted
+      if (!abortController.signal.aborted) {
+        await fetchOpportunities(true)
+      }
     } catch (err) {
+      // Don't show error for abort (user action)
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        console.log('[OddsMatcherClient] Refresh aborted by user')
+        return
+      }
       setError(err instanceof Error ? err.message : 'An error occurred')
       setScrapeStatus(null)
       await fetchOpportunities(true)  // This hides banner
+    } finally {
+      isRefreshing.current = false
     }
   }
 
