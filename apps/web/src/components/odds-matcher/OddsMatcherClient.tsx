@@ -98,20 +98,10 @@ export function OddsMatcherClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Cleanup: abort any in-progress requests when component unmounts
-  useEffect(() => {
-    return () => {
-      // Only abort if there's actually an active controller
-      const controller = abortControllerRef.current
-      if (controller && !controller.signal.aborted) {
-        try {
-          controller.abort()
-        } catch {
-          // Ignore abort errors during cleanup
-        }
-      }
-    }
-  }, [])
+  // Note: We intentionally don't abort on unmount because React StrictMode
+  // double-invokes effects in development, causing AbortError to be reported
+  // to the error boundary. The fetch requests will simply fail silently
+  // when the component unmounts, which is acceptable behavior.
 
   // Debounce stake changes to avoid multiple rapid recalculations
   useEffect(() => {
@@ -305,13 +295,20 @@ export function OddsMatcherClient() {
         }
 
         // Wait 3 seconds before next poll (with abort check)
-        await new Promise((resolve, reject) => {
+        await new Promise<void>((resolve) => {
           const timeout = setTimeout(resolve, 3000)
-          signal.addEventListener('abort', () => {
+          const abortHandler = () => {
             clearTimeout(timeout)
-            reject(new DOMException('Aborted', 'AbortError'))
-          }, { once: true })
+            resolve() // Resolve instead of reject to avoid unhandled errors
+          }
+          signal.addEventListener('abort', abortHandler, { once: true })
         })
+
+        // Check if aborted after wait
+        if (signal.aborted) {
+          console.log('[OddsMatcherClient] Polling aborted during wait')
+          return false
+        }
       } catch (err) {
         // Don't log abort errors as they're expected when user navigates away
         if (err instanceof DOMException && err.name === 'AbortError') {
@@ -335,13 +332,10 @@ export function OddsMatcherClient() {
       return
     }
 
-    // Cancel any existing polling
-    if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
-      try {
-        abortControllerRef.current.abort()
-      } catch {
-        // Ignore abort errors
-      }
+    // Cancel any existing polling - abort() doesn't throw, it just signals
+    const existingController = abortControllerRef.current
+    if (existingController && !existingController.signal.aborted) {
+      existingController.abort()
     }
 
     // Create new AbortController for this refresh
