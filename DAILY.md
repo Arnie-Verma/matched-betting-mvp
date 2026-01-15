@@ -6,6 +6,92 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ## 2026-01-15 (Wednesday)
 
+### Session 3: Validation Framework Implementation
+
+**Goal**: Implement the 4-phase validation pipeline designed in Session 2
+
+**Completed**:
+1. Created validation module structure:
+   - [config.py](apps/worker/src/validation/config.py) - Thresholds, expected counts, golden fixtures
+   - [structural_validator.py](apps/worker/src/validation/structural_validator.py) - Phase 1
+   - [probability_validator.py](apps/worker/src/validation/probability_validator.py) - Phase 2
+   - [golden_fixtures.py](apps/worker/src/validation/golden_fixtures.py) - Phase 3
+   - [score_calculator.py](apps/worker/src/validation/score_calculator.py) - Phase 4
+   - [report_generator.py](apps/worker/src/validation/report_generator.py) - Terminal + JSON output
+   - [pipeline.py](apps/worker/src/validation/pipeline.py) - Orchestrates all phases
+
+2. Created CLI entry point:
+   - [validate_scrapers.py](apps/worker/src/scripts/validate_scrapers.py)
+   - Usage: `python -m scripts.validate_scrapers --competition laliga`
+
+3. Integrated with scrape service (non-blocking):
+   - Added `VALIDATION_ENABLED` env var
+   - Validation runs after successful scrape
+   - Alerts on failures via Sentry
+
+4. Comprehensive test suite:
+   - [test_validation.py](apps/worker/tests/test_validation.py) - 30 tests, all passing
+
+**Key Features**:
+- Implied probability comparison (mathematically correct)
+- Market-type aware thresholds (favorites vs longshots)
+- Exchange structure-only validation (Betfair)
+- Golden fixtures for regression safety
+- Non-blocking (never blocks user requests)
+
+**Commands**:
+```bash
+# Validate from database
+docker exec mb_api python -m worker.src.scripts.validate_scrapers --competition laliga
+
+# Enable during scraping
+VALIDATION_ENABLED=true docker exec mb_api python ../worker/src/manual_scrape.py
+```
+
+---
+
+### Session 2: Scraper Validation Framework Design
+
+**Goal**: Design automated QA layer to validate 100+ bookmakers × 14 leagues without manual checking
+
+**Problem**: Manual comparison with Outmatched doesn't scale. Need systematic, fool-proof validation.
+
+**Solution Designed**: 4-Phase Validation Pipeline
+
+1. **Phase 1 - Structural Validation** (catches 70-80% of issues)
+   - Event count sanity (vs expected per league)
+   - Event matching rate (normalized teams + start time)
+   - Market presence (moneyline has 2-3 outcomes)
+   - Odds bounds (1.01 ≤ odds ≤ 1001)
+   - Timestamp freshness
+
+2. **Phase 2 - Odds Sanity via Implied Probability**
+   - Convert odds → implied probability: `p = 1/odds`
+   - Compare to Ladbrokes (bootstrap reference)
+   - Compare to consensus median (long-term)
+   - Market-type aware thresholds (3-6pp moneyline, 5-10pp longshots)
+   - Betfair = structure only (exchange odds ≠ bookmaker odds)
+
+3. **Phase 3 - Golden Fixtures**
+   - 5-10 curated fixtures per league
+   - Always scrape, always validate
+   - Fast regression detection
+
+4. **Phase 4 - Scoring & Anomaly Output**
+   - Per bookmaker × league: PASS / WARN / FAIL
+   - Coverage %, anomaly count, top N outliers
+   - Human review = "check top anomalies" only
+
+**Key Design Decisions**:
+- Non-blocking: Never block user requests on validation
+- Implied probability: More meaningful than raw odds %
+- Ladbrokes as bootstrap reference, consensus as long-term truth
+- Quarantine feed (not crash) on failures
+
+**Output**: Created [VALIDATION_FRAMEWORK.md](VALIDATION_FRAMEWORK.md) with full design
+
+---
+
 ### Session 1: Outmatched Parity Verification
 
 **Goal**: Verify we have parity with Outmatched for MintBet La Liga opportunities
@@ -29,7 +115,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Betis v Villarreal ✓
 - Elche v Sevilla ✓
 
-**Conclusion**: Full parity achieved. Our approach (current best odds only) is superior to Outmatched (showing duplicate historical prices).
+**Conclusion**: Full parity achieved. Our approach (current best odds only) is superior to Outmatched (showing duplicate historical prices)
 
 ---
 

@@ -39,6 +39,16 @@ from scrapers.base import BaseScraper, ScrapeResult, ScraperStatus
 from jobs.save_odds import save_scrape_result_to_db
 from jobs.cleanup_service import CleanupService
 
+# Optional validation integration
+try:
+    from validation.pipeline import ValidationPipeline
+    from validation.config import ValidationConfig
+    VALIDATION_AVAILABLE = True
+except ImportError:
+    VALIDATION_AVAILABLE = False
+    ValidationPipeline = None
+    ValidationConfig = None
+
 # Optional Sentry integration for error tracking
 try:
     from api.core.monitoring import capture_exception, capture_message, add_breadcrumb, init_sentry
@@ -106,6 +116,10 @@ class ScrapeService:
         self.breaker_threshold = int(os.getenv("BOOKMAKER_BREAKER_THRESHOLD", "5"))
         self.breaker_cooldown = int(os.getenv("BOOKMAKER_BREAKER_COOLDOWN_SECONDS", "60"))
         self.bookmaker_timeout = int(os.getenv("BOOKMAKER_TIMEOUT_SECONDS", "25"))
+
+        # Validation settings
+        self.validation_enabled = os.getenv("VALIDATION_ENABLED", "false").lower() == "true"
+        self._validation_pipeline = None
 
     @property
     def scrapers(self) -> Dict[str, BaseScraper]:
@@ -276,6 +290,81 @@ class ScrapeService:
             }
         finally:
             db.close()
+
+    def _run_post_scrape_validation(self, competition: str = "laliga") -> Optional[Dict[str, Any]]:
+        """
+        Run validation after scrape (non-blocking).
+
+        Validates scraped data against reference bookmaker.
+        Returns validation summary, never blocks or raises.
+
+        Args:
+            competition: Competition to validate
+
+        Returns:
+            Validation summary dict, or None if validation unavailable/failed
+        """
+        if not VALIDATION_AVAILABLE:
+            logger.debug("[VALIDATION] Validation module not available")
+            return None
+
+        if not self.validation_enabled:
+            logger.debug("[VALIDATION] Validation disabled")
+            return None
+
+        try:
+            # Lazy init validation pipeline
+            if self._validation_pipeline is None:
+                self._validation_pipeline = ValidationPipeline(ValidationConfig())
+
+            # Run validation from database (non-blocking)
+            result = self._validation_pipeline.validate_from_database(
+                competition=competition,
+            )
+
+            # Log summary
+            if result.report:
+                from validation.report_generator import ReportGenerator
+                generator = ReportGenerator(use_colors=False)
+                logger.info(generator.generate_summary_line(result.report))
+
+            # Alert on failures (non-blocking)
+            if result.has_failures:
+                self._send_validation_alert(result)
+
+            return {
+                "competition": competition,
+                "has_failures": result.has_failures,
+                "has_warnings": result.has_warnings,
+                "failed_bookmakers": result.failed_bookmakers,
+                "warned_bookmakers": result.warned_bookmakers,
+                "duration_seconds": result.duration_seconds,
+            }
+
+        except Exception as e:
+            logger.error(f"[VALIDATION] Validation failed (non-blocking): {e}")
+            capture_exception(e, {"operation": "post_scrape_validation"})
+            return {"error": str(e)}
+
+    def _send_validation_alert(self, result) -> None:
+        """
+        Send alert for validation failures (non-blocking).
+
+        Integrates with Sentry for error tracking.
+
+        Args:
+            result: PipelineResult from validation
+        """
+        if SENTRY_AVAILABLE:
+            capture_message(
+                f"Scraper validation failed: {result.failed_bookmakers}",
+                level="warning",
+                extras={
+                    "competition": result.competition,
+                    "failed_bookmakers": result.failed_bookmakers,
+                    "warned_bookmakers": result.warned_bookmakers,
+                }
+            )
 
     def _check_breaker(self, bookmaker_code: str) -> bool:
         """
@@ -670,6 +759,29 @@ class ScrapeService:
                 logger.error(f"[CLEANUP] Post-scrape cleanup failed: {e}")
                 cleanup_result = {"error": str(e)}
 
+        # Run validation after successful scrape (non-blocking)
+        validation_result = None
+        if success_count > 0 and self.validation_enabled:
+            try:
+                validation_start = time.time()
+                # Map sport to competition for validation
+                competition_map = {
+                    "soccer": "laliga",  # Default to La Liga for soccer
+                    "afl": "afl",
+                    "nrl": "nrl",
+                    "basketball": "nba",
+                    "ice_hockey": "nhl",
+                    "boxing": "boxing",
+                }
+                # Validate primary sport/competition
+                validation_comp = competition_map.get(sports_to_scrape[0], "laliga")
+                validation_result = self._run_post_scrape_validation(validation_comp)
+                validation_duration = time.time() - validation_start
+                logger.info(f"⏱️  [VALIDATION] Post-scrape validation took {validation_duration:.2f}s")
+            except Exception as e:
+                logger.error(f"[VALIDATION] Post-scrape validation failed: {e}")
+                validation_result = {"error": str(e)}
+
         return {
             "success": success_count > 0,
             "bookmakers_scraped": success_count,
@@ -682,7 +794,8 @@ class ScrapeService:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "results": bookmaker_results,
             "parallel": True,  # Flag indicating parallel execution
-            "cleanup": cleanup_result  # Phase 3: cleanup stats
+            "cleanup": cleanup_result,  # Phase 3: cleanup stats
+            "validation": validation_result,  # Validation results
         }
 
 
