@@ -165,6 +165,9 @@ class NormalizationService:
 
         # ============ Spanish La Liga ============
         'atletico madrid': 'atletico',
+        'atletico de madrid': 'atletico',
+        'atlético de madrid': 'atletico',  # with accent
+        'atlético madrid': 'atletico',  # with accent
         'real sociedad': 'sociedad',
         'athletic bilbao': 'bilbao',
         'athletic club': 'bilbao',
@@ -174,11 +177,19 @@ class NormalizationService:
         'celta de vigo': 'celtavigo',
         'valencia cf': 'valencia',
         'rcd mallorca': 'mallorca',
+        'real mallorca': 'mallorca',
         'villarreal cf': 'villarreal',
         'real valladolid': 'valladolid',
         'deportivo alaves': 'alaves',
         'ca osasuna': 'osasuna',
         'levante ud': 'levante',
+        'real betis': 'betis',
+        'rayo vallecano': 'rayovallecano',
+        'girona fc': 'girona',
+        'getafe cf': 'getafe',
+        'sevilla fc': 'sevilla',
+        'espanyol barcelona': 'espanyol',
+        'elche cf': 'elche',
 
         # ============ Italian Serie A ============
         'inter milan': 'inter',
@@ -478,33 +489,48 @@ class NormalizationService:
         for pattern, replacement in self._separator_patterns:
             norm = pattern.sub(replacement, norm)
 
-        # Remove common team suffixes/prefixes
-        for suffix in self.TEAM_SUFFIXES:
-            norm = norm.replace(suffix, '')
-        for prefix in self.TEAM_PREFIXES:
-            norm = norm.replace(prefix, '')
-
-        # Apply team mappings
-        for old, new in sorted(self.TEAM_MAP.items(), key=lambda x: -len(x[0])):
-            norm = norm.replace(old, new)
-
-        # CRITICAL: Mark the separator BEFORE removing spaces
-        # This prevents issues with team names containing 'v' (e.g., "wolves", "liverpool")
+        # CRITICAL: Mark the separator BEFORE suffix/prefix removal
+        # This prevents issues like "mallorca v" matching "ca " prefix
         norm = norm.replace(' v ', '|VS|')
 
-        # Now remove spaces
-        norm = norm.replace(' ', '')
-
-        # Sort teams alphabetically to handle reversed order
-        # Betfair: "Boston Celtics @ Toronto Raptors" → "celtics|VS|raptors" → sorted → "celticsvraptors"
-        # Ladbrokes: "Toronto Raptors vs Boston Celtics" → "raptors|VS|celtics" → sorted → "celticsvraptors"
+        # Split into teams and process each separately
         if '|VS|' in norm:
             parts = norm.split('|VS|')
-            if len(parts) == 2:
-                norm = 'v'.join(sorted(parts))
+            normalized_parts = []
+            for part in parts:
+                team = part.strip()
+                # Remove common team suffixes (at end of team name)
+                for suffix in self.TEAM_SUFFIXES:
+                    if team.endswith(suffix):
+                        team = team[:-len(suffix)]
+                # Remove common team prefixes (at start of team name)
+                for prefix in self.TEAM_PREFIXES:
+                    if team.startswith(prefix):
+                        team = team[len(prefix):]
+                # Apply team mappings
+                for old, new in sorted(self.TEAM_MAP.items(), key=lambda x: -len(x[0])):
+                    team = team.replace(old, new)
+                # Remove spaces
+                team = team.replace(' ', '')
+                normalized_parts.append(team)
+            # Sort teams alphabetically to handle reversed order
+            # Betfair: "Boston Celtics @ Toronto Raptors" → sorted → "celticsvraptors"
+            # Ladbrokes: "Toronto Raptors vs Boston Celtics" → sorted → "celticsvraptors"
+            if len(normalized_parts) == 2:
+                norm = 'v'.join(sorted(normalized_parts))
+            else:
+                norm = 'v'.join(normalized_parts)
         else:
-            # No separator found, just return normalized name
-            pass
+            # No separator found - process as single entity
+            for suffix in self.TEAM_SUFFIXES:
+                if norm.endswith(suffix):
+                    norm = norm[:-len(suffix)]
+            for prefix in self.TEAM_PREFIXES:
+                if norm.startswith(prefix):
+                    norm = norm[len(prefix):]
+            for old, new in sorted(self.TEAM_MAP.items(), key=lambda x: -len(x[0])):
+                norm = norm.replace(old, new)
+            norm = norm.replace(' ', '')
 
         return norm
 

@@ -4,6 +4,128 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-01-15 (Wednesday)
+
+### Session 1: Outmatched Parity Verification
+
+**Goal**: Verify we have parity with Outmatched for MintBet La Liga opportunities
+
+**Analysis**:
+- Outmatched shows 48 rows, we show 30 rows
+- Root cause: Outmatched displays duplicate price points for same selection (e.g., Real Madrid 1.12 AND 1.03)
+- Their duplicates are historical prices, not unique opportunities
+
+**Verification**:
+- Unique matches covered: 10 (both systems identical)
+- Unique opportunities: 30 (home/draw/away for each match)
+- Real Madrid v Levante ✓
+- Atletico Madrid v Alaves ✓
+- Real Sociedad v Barcelona ✓
+- Espanyol v Girona ✓
+- Osasuna v Oviedo ✓
+- Mallorca v Athletic Bilbao ✓
+- Getafe v Valencia ✓
+- Celta Vigo v Rayo Vallecano ✓
+- Betis v Villarreal ✓
+- Elche v Sevilla ✓
+
+**Conclusion**: Full parity achieved. Our approach (current best odds only) is superior to Outmatched (showing duplicate historical prices).
+
+---
+
+## 2026-01-14 (Tuesday)
+
+### Session 3: Team Normalization Fix for Atletico Madrid
+
+**Issue**: Atletico Madrid v Alaves not matching across bookmakers
+
+**Root Cause**: Accented character "Atlético de Madrid" wasn't matching "Atletico Madrid"
+- Betfair: `alavesvatletico`
+- MintBet: `alavesvatléticodemadrid` (with accent + "de madrid")
+
+**Fix Applied**:
+- **[normalization_service.py:169-170](apps/api/src/api/services/normalization_service.py#L169-L170)**: Added accented variants `atlético de madrid` → `atletico`
+- **[normalization_service.py:192](apps/api/src/api/services/normalization_service.py#L192)**: Added `elche cf` → `elche`
+- Updated 1,966 event normalized_names in database
+
+**Result**: All La Liga matches now match across Betfair + MintBet + 15 Punterstech bookmakers
+
+### Session 2: Punterstech API Endpoint Fix
+
+**Goal**: Fix MintBet La Liga missing odds for matches 3+ days in future
+
+**Root Cause**: Punterstech `/quick-markets/{EventKey}` only returns odds for events close to start time (~1-2 days). Discovered `/markets/{EventKey}` endpoint returns full odds for ALL scheduled events.
+
+**Fix Applied**:
+- **[punterstech_scraper.py:281-292](apps/worker/src/scrapers/punterstech_scraper.py#L281-L292)**: Changed from `/quick-markets` → `/markets` endpoint
+- **[punterstech_scraper.py:647-698](apps/worker/src/scrapers/punterstech_scraper.py#L647-L698)**: Updated parsing to handle both response formats
+- **[punterstech_scraper.py:870](apps/worker/src/scrapers/punterstech_scraper.py#L870)**: Fixed selection key parsing for "Real Madrid Win" → "home"
+
+**Verification**:
+- MintBet now captures 10 La Liga events with full odds:
+  - Espanyol v Girona (Jan 16)
+  - Real Madrid v Levante (Jan 17): 1.13 / 12.00 / 6.25
+  - Atletico Madrid v Alaves (Jan 18)
+  - Real Sociedad v Barcelona (Jan 19)
+  - And 6 more...
+- Full scrape: 19,914 odds saved across 14 bookmakers
+- Cross-bookmaker matching confirmed: Real Madrid v Levante has odds from MintBet, Betfair, Ladbrokes, and 15+ Punterstech bookmakers
+
+### Session 1: Punterstech La Liga Matching Investigation
+
+**Goal**: Fix MintBet La Liga not showing opportunities in frontend
+
+**Investigation Results**:
+
+1. **Root Cause Identified**: Punterstech scraper's `result_limit` was 200, but La Liga events start at index 203 in MintBet's `next-to-go` API response
+2. **Secondary Issue**: MintBet only publishes odds for imminent events (1-2 days out). Matches on Jan 17-19 have no odds yet in API
+
+**Fix Applied**:
+- **[punterstech_scraper.py:349](apps/worker/src/scrapers/punterstech_scraper.py#L349)**: Increased `result_limit` from 200 → 500
+
+**Verification**:
+- Espanyol v Girona (Jan 16) now shows 3 matching opportunities:
+  - Espanyol: Back 1.80 (MintBet) vs Lay 2.02 (Betfair)
+  - Draw: Back 3.10 vs Lay 3.70
+  - Girona: Back 3.80 vs Lay 4.60
+- Cross-bookmaker event grouping confirmed working (`espanyolvgirona_laliga` matches events from "Spanish La Liga" and "2025/2026 Spain La Liga - Round 20")
+
+**Architecture Notes**:
+- Punterstech's `next-to-go` API returns events sorted by proximity, with popular leagues appearing later (index 200+)
+- `/quick-markets/{EventKey}` returns empty for events >2 days in future → use `/markets/{EventKey}` instead
+- Event matching logic correctly groups by `{normalized_event_name}_{normalized_competition}` across different competition naming schemes
+
+---
+
+## 2026-01-13 (Monday)
+
+### Session: Scraper Validation & Data Quality Fixes
+
+**Goal**: Systematic validation framework + fix La Liga matching issues
+
+**Issues Discovered**:
+1. **Betfair scraper bug**: A-League events mislabeled as "Spanish La Liga", La Liga events as "German Bundesliga"
+2. **Team name normalization gaps**: Missing Spanish La Liga team mappings
+3. **Stale corrupted data**: 23 mislabeled events in database
+
+**Root Causes**:
+- Betfair scraper overwrote competition name on duplicate events (kept LAST page instead of FIRST)
+- Missing team mappings: "Real Mallorca" → "mallorca", "Real Betis" → "betis", etc.
+
+**Fixes Applied**:
+1. **[betfair_scraper.py](apps/worker/src/scrapers/betfair_scraper.py:517-528, 580-592)**: Preserve original competition assignment
+2. **[normalization_service.py](apps/api/src/api/services/normalization_service.py:166-189)**: Added 8 La Liga team mappings
+3. **Database cleanup**: Deleted 23 corrupted events (17 A-League as La Liga, 6 La Liga as Bundesliga)
+
+**Verification**:
+- Team normalization now matches: "Rayo Vallecano v Real Mallorca" ↔ "Rayo Vallecano v Mallorca" ✅
+- Re-scrape completed: 1944 events, 5590 odds
+- No more mislabeled events in DB
+
+**Next Steps**: Verify La Liga matching produces expected ~40-50 opportunities
+
+---
+
 ## 2026-01-09 (Friday)
 
 ### Session 3: System Verification & Full Scrape Test

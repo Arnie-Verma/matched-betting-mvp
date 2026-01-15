@@ -514,13 +514,17 @@ class BetfairScraper(BaseScraper):
                                             'competition': competition
                                         }
                                     else:
-                                        # Replace if new one has better data
+                                        # Update event data if new one has better info,
+                                        # but PRESERVE the original competition assignment
+                                        # (first assignment is correct - from the page we navigated to)
                                         existing_has_event = 'event' in bymarket_events[event_id]['node']
                                         new_has_event = 'event' in event_node
                                         if new_has_event and not existing_has_event:
+                                            # Keep original competition, only update node data
+                                            original_competition = bymarket_events[event_id]['competition']
                                             bymarket_events[event_id] = {
                                                 'node': event_node,
-                                                'competition': competition
+                                                'competition': original_competition
                                             }
 
             except Exception as e:
@@ -577,15 +581,19 @@ class BetfairScraper(BaseScraper):
                                         }
                                         self.logger.debug(f"Stored new event {event_id} from {competition}")
                                     else:
-                                        # If existing entry has no 'event' key but new one does, replace it
+                                        # Update event data if new one has better info,
+                                        # but PRESERVE the original competition assignment
+                                        # (first assignment is correct - from the page we navigated to)
                                         existing_has_event = 'event' in bymarket_events[event_id]['node']
                                         new_has_event = 'event' in event_node
                                         if new_has_event and not existing_has_event:
+                                            # Keep original competition, only update node data
+                                            original_competition = bymarket_events[event_id]['competition']
                                             bymarket_events[event_id] = {
                                                 'node': event_node,
-                                                'competition': competition
+                                                'competition': original_competition
                                             }
-                                            self.logger.debug(f"Updated event {event_id} with better data from {competition}")
+                                            self.logger.debug(f"Updated event {event_id} node data (kept competition: {original_competition})")
 
             except Exception as e:
                 self.logger.debug(f"Could not parse captured data: {e}")

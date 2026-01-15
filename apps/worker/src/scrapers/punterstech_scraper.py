@@ -279,7 +279,15 @@ class PunterstechScraper(BaseScraper):
         return data.get("Events", [])
 
     async def _fetch_quick_markets(self, event_key: str) -> List[Dict[str, Any]]:
-        url = f"{self.api_base_url}/api-events/public/quick-markets/{event_key}"
+        """
+        Fetch markets for an event.
+
+        Uses /markets endpoint (has all odds) instead of /quick-markets
+        (only has odds for events close to start time).
+        """
+        # Use /markets endpoint - has full odds for all scheduled events
+        # /quick-markets only returns data for events within ~1-2 days
+        url = f"{self.api_base_url}/api-events/public/markets/{event_key}"
         data = await self._request_json("GET", url)
         return data.get("Markets", [])
 
@@ -346,7 +354,7 @@ class PunterstechScraper(BaseScraper):
             errors.append(error_msg)
             return self._create_failed_result(started_at, errors)
 
-        api_limit = int(self.config.get("result_limit", 200))
+        api_limit = int(self.config.get("result_limit", 500))
         if limit:
             api_limit = min(api_limit, limit)
 
@@ -637,43 +645,65 @@ class PunterstechScraper(BaseScraper):
                     event_url = self.base_url
 
                 # Parse markets for this event
+                # Supports both /markets and /quick-markets response formats
                 markets = markets_by_key.get(event_key, [])
-                for market_wrapper in markets:
-                    market = market_wrapper.get("Market", {})
-                    market_type = market_wrapper.get("Type", "")
-                    market_desc = market.get("Description", "")
-
-                    # Only process Head to Head / Match Result markets
-                    if market_type == "HeadToHead" or "result" in market_desc.lower():
+                for market_data in markets:
+                    # /markets endpoint returns flat structure
+                    # /quick-markets wraps in {"Type": ..., "Market": {...}}
+                    if "Market" in market_data:
+                        # quick-markets format
+                        market = market_data.get("Market", {})
+                        market_type = market_data.get("Type", "")
+                        market_desc = market.get("Description", "")
                         outcomes = market.get("Outcomes", [])
-                        for outcome in outcomes:
-                            if outcome.get("Scratched"):
-                                continue
+                    else:
+                        # /markets format (flat structure)
+                        market_desc = market_data.get("Description", "")
+                        market_ref = market_data.get("ExternalRef", "")
+                        outcomes = market_data.get("Outcomes", [])
+                        # MW = Match Winner, H2H = Head to Head
+                        market_type = "HeadToHead" if market_ref in ["MW", "H2H"] else ""
 
-                            sel_name = outcome.get("Name", "")
-                            prices = outcome.get("Prices", [])
+                    # Only process Head to Head / Match Result / Match Winner markets
+                    market_desc_lower = market_desc.lower()
+                    is_match_winner = (
+                        market_type == "HeadToHead"
+                        or "match winner" in market_desc_lower
+                        or "match result" in market_desc_lower
+                        or market_data.get("ExternalRef") == "MW"
+                    )
 
-                            for price_data in prices:
-                                win_price = price_data.get("WinPrice", 0)
-                                if win_price and win_price > 1:
-                                    selection_key = self._get_selection_key(sel_name, event)
+                    if not is_match_winner:
+                        continue
 
-                                    odds = ScrapedOdds(
-                                        event_external_id=event.external_id,
-                                        event_name=event.name,
-                                        sport=event.sport,
-                                        competition=event.competition,
-                                        start_time=event.start_time,
-                                        market_type="match_winner",
-                                        market_name=market_desc or "Match Result",
-                                        selection_name=sel_name,
-                                        selection_key=selection_key,
-                                        decimal_odds=Decimal(str(win_price)).quantize(Decimal("0.01")),
-                                        bookmaker_code=self.bookmaker_code,
-                                        source_url=event_url,
-                                        scraped_at=datetime.now(timezone.utc)
-                                    )
-                                    event.odds.append(odds)
+                    for outcome in outcomes:
+                        if outcome.get("Scratched"):
+                            continue
+
+                        sel_name = outcome.get("Name", "")
+                        prices = outcome.get("Prices", [])
+
+                        for price_data in prices:
+                            win_price = price_data.get("WinPrice", 0)
+                            if win_price and win_price > 1:
+                                selection_key = self._get_selection_key(sel_name, event)
+
+                                odds = ScrapedOdds(
+                                    event_external_id=event.external_id,
+                                    event_name=event.name,
+                                    sport=event.sport,
+                                    competition=event.competition,
+                                    start_time=event.start_time,
+                                    market_type="match_winner",
+                                    market_name=market_desc or "Match Result",
+                                    selection_name=sel_name,
+                                    selection_key=selection_key,
+                                    decimal_odds=Decimal(str(win_price)).quantize(Decimal("0.01")),
+                                    bookmaker_code=self.bookmaker_code,
+                                    source_url=event_url,
+                                    scraped_at=datetime.now(timezone.utc)
+                                )
+                                event.odds.append(odds)
 
                 if event.odds:
                     parsed_events.append(event)
@@ -866,15 +896,16 @@ class PunterstechScraper(BaseScraper):
         """Determine selection key (home/away/draw) from selection name."""
         name_lower = selection_name.lower().strip()
 
-        # Check for draw
-        if name_lower in ["draw", "the draw", "tie", "x"]:
+        # Check for draw (handles "Draw", "The Draw", "Tie", "X")
+        if name_lower in ["draw", "the draw", "tie", "x"] or name_lower.startswith("draw"):
             return "draw"
 
         def normalize_team(name: str) -> str:
             if not name:
                 return ""
             n = name.lower().strip()
-            for suffix in [" fc", " afc", " cf", " sc", " united", " city"]:
+            # Strip common suffixes
+            for suffix in [" fc", " afc", " cf", " sc", " united", " city", " win"]:
                 if n.endswith(suffix):
                     n = n[:-len(suffix)].strip()
             return n
