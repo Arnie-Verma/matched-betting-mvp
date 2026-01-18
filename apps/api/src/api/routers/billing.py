@@ -88,6 +88,7 @@ async def create_checkout_session(
         db.refresh(user)
 
     stripe_service = StripeService()
+    previous_customer_id = user.stripe_customer_id
     plan = (
         db.query(Plan)
         .filter(
@@ -109,10 +110,14 @@ async def create_checkout_session(
             plan_name=plan_name
         )
 
-        # Update user's stripe_customer_id if not set
-        if not user.stripe_customer_id and session.customer:
+        # Persist newly-created Stripe customer ID so webhooks/sync can link the user
+        if not previous_customer_id and user.stripe_customer_id:
+            db.commit()
+            db.refresh(user)
+        elif not user.stripe_customer_id and session.customer:
             user.stripe_customer_id = session.customer
             db.commit()
+            db.refresh(user)
 
         return {
             "checkout_url": session.url,

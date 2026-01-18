@@ -4,6 +4,86 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-01-18 (Sunday)
+
+### Session 1: Ladbrokes/Betfair Parity Analysis vs Outmatched
+
+**Goal**: Evaluate scrapers against Outmatched to determine if ready for production
+
+**Initial Analysis**:
+1. Compared Ladbrokes output vs Outmatched.com side-by-side
+2. Identified apparent coverage gaps in Ligue 1
+3. Created [LADBROKES_PARITY_ANALYSIS.md](LADBROKES_PARITY_ANALYSIS.md)
+
+### Session 2: Ligue 1 Gap Resolution
+
+**Root Cause Identified**: Missing team name normalizations in `normalization_service.py`
+
+**Diagnosis Process**:
+1. Ran diagnostic script on Ladbrokes scraper - captured all 15 Ligue 1 events including Strasbourg/Metz and Lyon/Brest
+2. Ran diagnostic on Betfair scraper - captured all 13 Ligue 1 events
+3. Checked database - events existed but with different normalized names
+4. Found normalization issue: `RC Strasbourg Alsace` vs `Strasbourg` not mapping correctly
+
+**Fix Applied**:
+Added ~25 French Ligue 1 team normalizations to `normalization_service.py`:
+- `rc strasbourg alsace` → `strasbourg`
+- `rc strasbourg` → `strasbourg`
+- `stade brestois 29` → `brest`
+- `olympique lyonnais` → `lyon`
+- `stade rennais` → `rennes`
+- `le havre ac` → `lehavre`
+- Plus: `ogc nice`, `as monaco`, `angers sco`, `aj auxerre`, `toulouse fc`, `rc lens`, `lille osc`, `fc lorient`, `paris fc`
+
+Also added A-League team variations:
+- `melbourne city fc`, `newcastle jets fc`, `auckland fc`, `western sydney wanderers fc`
+
+**Verification**:
+- Re-normalized all 643 events in database
+- All 4 Ligue 1 current events now matching with 21 bookmakers each
+- All 9 A-League events matching correctly
+
+**Status**: RESOLVED - ~95% parity with Outmatched achieved
+
+### What's Working ✅
+| League | Status |
+|--------|--------|
+| EPL | Full coverage |
+| La Liga | Full coverage |
+| Serie A | Full coverage |
+| Bundesliga | Full coverage |
+| **French Ligue 1** | **FIXED** - All 4 events matching |
+| Champions League | Full coverage |
+| A-League | Full coverage (6 men's + women's) |
+| NBA | Full coverage |
+| NHL | 6 events |
+| Boxing | Full coverage |
+
+### Blockers
+- NRL/AFL off-season
+- Generation Web odds endpoint still hidden
+
+### Next Steps
+- Consider moving to other bookmakers (MintBet, Sportsbet, etc.)
+- Add fuzzy matching for edge case team name variations
+
+---
+
+## 2026-01-17 (Saturday)
+
+### Completed
+- Session start: reviewed prior blockers/next steps
+- Restarted mb_api and mb_web containers to pick up billing change
+- Backfilled Stripe customer ID for user and synced active subscription to platinum
+- Verified backend subscription status returns platinum for user
+
+### Blockers
+- NRL/AFL off-season
+- Generation Web odds endpoint still hidden
+
+### Next Steps
+- Verify Stripe billing upgrade flow after restart
+
 ## 2026-01-15 (Wednesday)
 
 ### Session 3: Validation Framework Implementation
