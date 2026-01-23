@@ -183,6 +183,36 @@ class PunterstechScraper(BaseScraper):
         "match betting", "full time result", "1x2",
     ]
 
+    # Selection phrases that indicate non-match-winner markets
+    DISALLOWED_SELECTION_PHRASES = [
+        "score first",
+        "to score",
+        "both teams",
+        "double chance",
+        "draw no bet",
+        "handicap",
+        "spread",
+        "margin",
+        "first half",
+        "second half",
+        "half time",
+        "halftime",
+        "win and",
+        "to win and",
+        "win &",
+        "to win &",
+        "win +",
+        "to win +",
+        "win /",
+        "to win /",
+        " and over",
+        " and under",
+        " and yes",
+        " and no",
+        " and btts",
+        "clean sheet",
+    ]
+
     ALL_SPORTS = ["soccer", "basketball", "ice_hockey", "boxing"]
 
     def __init__(
@@ -687,6 +717,8 @@ class PunterstechScraper(BaseScraper):
                             win_price = price_data.get("WinPrice", 0)
                             if win_price and win_price > 1:
                                 selection_key = self._get_selection_key(sel_name, event)
+                                if selection_key == "other":
+                                    continue
 
                                 odds = ScrapedOdds(
                                     event_external_id=event.external_id,
@@ -870,6 +902,8 @@ class PunterstechScraper(BaseScraper):
 
             # Determine selection key
             selection_key = self._get_selection_key(sel_name, event)
+            if selection_key == "other":
+                return
 
             odds = ScrapedOdds(
                 event_external_id=event.external_id,
@@ -896,9 +930,17 @@ class PunterstechScraper(BaseScraper):
         """Determine selection key (home/away/draw) from selection name."""
         name_lower = selection_name.lower().strip()
 
+        if self._is_disallowed_match_winner_selection(name_lower):
+            return "other"
+
         # Check for draw (handles "Draw", "The Draw", "Tie", "X")
-        if name_lower in ["draw", "the draw", "tie", "x"] or name_lower.startswith("draw"):
+        if name_lower in ["draw", "the draw", "tie", "x"]:
             return "draw"
+
+        if self._is_simple_team_selection(selection_name, event.home_team):
+            return "home"
+        if self._is_simple_team_selection(selection_name, event.away_team):
+            return "away"
 
         def normalize_team(name: str) -> str:
             if not name:
@@ -933,6 +975,38 @@ class PunterstechScraper(BaseScraper):
             return "away"
 
         return "other"
+
+    def _is_simple_team_selection(self, selection_name: str, team_name: str) -> bool:
+        """Return True if selection is just the team (optionally with a win suffix)."""
+        if not selection_name or not team_name:
+            return False
+
+        sel_norm = self._normalize_selection_text(selection_name)
+        team_norm = self._normalize_selection_text(team_name)
+        if not sel_norm or not team_norm or team_norm not in sel_norm:
+            return False
+
+        remainder = sel_norm.replace(team_norm, " ").strip()
+        remainder = " ".join(remainder.split())
+
+        allowed_suffixes = {"", "win", "to win", "winner", "win only"}
+        return remainder in allowed_suffixes
+
+    def _normalize_selection_text(self, text: str) -> str:
+        """Normalize text for team/selection comparison."""
+        if not text:
+            return ""
+        cleaned = text.lower().replace("&", "and")
+        for ch in [".", ",", "-", "(", ")", "'", "\""]:
+            cleaned = cleaned.replace(ch, " ")
+        return " ".join(cleaned.split())
+
+    def _is_disallowed_match_winner_selection(self, name_lower: str) -> bool:
+        """Filter out non-match-winner selections that include extra conditions."""
+        for phrase in self.DISALLOWED_SELECTION_PHRASES:
+            if phrase in name_lower:
+                return True
+        return False
 
     def _create_failed_result(self, started_at: datetime, errors: List[str]) -> ScrapeResult:
         """Create a failed ScrapeResult."""
