@@ -203,6 +203,8 @@ class NormalizationService:
         'sassuolo calcio': 'sassuolo',
         'torino fc': 'torino',
         'cagliari calcio': 'cagliari',
+        'hellas verona': 'verona',
+        'udinese calcio': 'udinese',
 
         # ============ French Ligue 1 ============
         'paris saint-germain': 'psg',
@@ -239,6 +241,7 @@ class NormalizationService:
 
         # ============ UEFA Champions League ============
         'union saint-gilloise': 'unionsg',
+        'psv eindhoven': 'psv',
         'sporting lisbon': 'sporting',
         'sporting cp': 'sporting',
         'sl benfica': 'benfica',
@@ -638,10 +641,10 @@ def fuzzy_match_score(str1: str, str2: str) -> float:
 # Display name mappings: normalized code -> friendly display name
 COMPETITION_DISPLAY_NAMES = {
     'epl': 'EPL',
-    'bundesliga': 'Bundesliga',
-    'laliga': 'La Liga',
-    'seriea': 'Serie A',
-    'ligue1': 'Ligue 1',
+    'bundesliga': 'German Bundesliga',
+    'laliga': 'Spanish La Liga',
+    'seriea': 'Italian Serie A',
+    'ligue1': 'French Ligue 1',
     'aleague': 'A-League',
     'aleaguewomen': 'A-League Women',
     'nba': 'NBA',
@@ -650,7 +653,7 @@ COMPETITION_DISPLAY_NAMES = {
     'afl': 'AFL',
     'nrl': 'NRL',
     'boxing': 'Boxing',
-    'ucl': 'Champions League',
+    'ucl': 'UEFA Champions League',
     'mls': 'MLS',
 }
 

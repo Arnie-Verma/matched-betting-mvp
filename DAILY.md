@@ -4,6 +4,156 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-01-23 (Friday)
+
+### Session 1: Betfair + Entain Robustness Review
+
+**Completed**:
+- Read CLAUDE.md, SCRAPER_STRATEGY.md, DISCOVERY_SUMMARY.md, DAILY.md, VALIDATION_FRAMEWORK.md
+- Inspected Betfair + Entain scrapers, scrape service, odds matcher, normalization, save_odds
+- Compared Outmatched Ladbrokes filter output vs our matcher output (liquidity/placeholder filtering)
+
+### Blockers
+- None
+
+### Next Steps
+- Review Betfair competition mapping across multiple navigation-aggregator responses
+- Add guardrails for selection_key="other" collisions and min liquidity thresholds
+- Decide whether to retire legacy LadbrokesScraper or keep as fallback
+
+### Session 2: Outmatched Parity Check + Data Validation
+
+**Completed**:
+- Re-read key docs and inspected Betfair + Entain scrapers, matcher, normalization, save_odds
+- Queried DB to confirm NBA odds exist for Ladbrokes + Betfair (64/83 current) and 32 shared NBA events
+- Verified Betfair has no Arsenal v Kairat market captured; UCL qualifier likely missing from Betfair competition IDs
+- Identified missing normalization for Hellas Verona/Udinese Calcio causing Verona v Udinese mismatch
+- Flagged NBL anomaly: Betfair odds for Tasmania v Illawarra (21/4.4) far from all bookies (1.4/2.75)
+
+### Blockers
+- None
+
+### Next Steps
+- Add normalization for `hellas verona` -> `verona` and `udinese calcio` -> `udinese`
+- Review Betfair competition IDs for UCL qualifiers (Arsenal v Kairat missing)
+- Investigate Betfair NBL market anomalies vs Ladbrokes/Punterstech
+
+### Session 3: Fixture Coverage + League Label Mismatch
+
+**Completed**:
+- Compared EPL/Ligue 1 match-market coverage between Ladbrokes and Betfair (DB query); identified event groups missing on each side
+- Updated competition display names to align with UI dropdown labels
+- Added normalization for Hellas Verona and Udinese Calcio
+
+### Blockers
+- None
+
+### Next Steps
+- Re-normalize existing events in DB after team mapping update
+- Expand Betfair competition IDs for qualifiers (UCL, etc.)
+
+### Session 4: Event Re-normalization
+
+**Completed**:
+- Ran DB event re-normalization after Verona/Udinese mapping update (10 events updated)
+
+### Blockers
+- None
+
+### Next Steps
+- Expand Betfair competition IDs for qualifiers (UCL, etc.)
+
+### Session 5: Tests + Commit Prep
+
+**Completed**:
+- Ran validation tests with `PYTHONPATH=/workspace/apps/worker/src` (30 passed)
+
+### Blockers
+- None
+
+### Next Steps
+- Commit normalization + display name alignment
+
+## 2026-01-22 (Thursday)
+
+### Session 1: Betfair/Punterstech Parity Investigation
+
+**Goal**: Diagnose Outmatched vs our odds discrepancies for Punterstech bookies
+
+**Completed**:
+- Read SCRAPER_STRATEGY.md, DISCOVERY_SUMMARY.md, VALIDATION_FRAMEWORK.md
+- Inspected Betfair + Punterstech scrapers, odds matcher logic, normalization, and save_odds flow
+- Queried DB for Manchester City v Galatasaray; verified current match result odds
+- Reproduced matcher grouping for event and confirmed back 1.2/1.22, lay 1.26, not 26/22
+- Identified likely discrepancy source: combined "Match Result and ..." markets + loose market filter/search behavior
+
+### Session 2: Betfair Cleanup + Validation
+
+**Completed**:
+- Cleaned stale Betfair duplicates across competitions (removed misassigned events + orphans)
+- Added Betfair scraper filtering for no-liquidity odds (>=100) and incomplete H2H markets
+- Fixed Betfair competition mapping to prefer fixtures data (prevents cross-competition leakage)
+- Re-scraped Betfair + Ladbrokes soccer after cleanup
+- Fixed validation pipeline DB path (normalized competition lookup, correct joins/odds field, always include reference bookmaker)
+- Re-ran validation for EPL/La Liga/UCL (Betfair vs Ladbrokes)
+ - Added PSV Eindhoven normalization and verified away selection now matches Betfair
+ - Re-ran multi-sport scrapes (Betfair + Ladbrokes) to refresh NBA/NHL/Boxing
+ - Confirmed Betfair boxing lay prices present (including draws)
+
+### Blockers
+- None yet
+
+### Next Steps
+- Tighten odds matcher market filter to exclude "Match Result and ..." + non-H2H markets
+- Optionally restrict Punterstech scraper to pure Match Result (ExternalRef=2) for matcher feed
+- Add validation guardrails (2-3 selections only) and UI search toggle for selection-only filtering
+
+## 2026-01-19 (Monday)
+
+### Session 2: Bookmaker Discovery Documentation
+
+**Goal**: Create comprehensive documentation to make adding new bookmakers easy
+
+**Completed**:
+1. Full codebase architecture review:
+   - Base scraper interface (`BaseScraper`, `ScrapeResult`, `ScrapedEvent`, `ScrapedOdds`)
+   - All 5 implemented scrapers (Betfair, TAB, Entain, Punterstech, Ladbrokes)
+   - SCRAPER_CLASSES registry pattern in `scrape_service.py`
+   - Normalization service (600+ team mappings)
+   - Discovery tool (`discovery.py`)
+
+2. Reviewed all discovery outputs (17 JSON files):
+   - **Kindred/Unibet**: Full API ready (1.9MB single endpoint)
+   - **BetCloud**: Sports odds endpoints confirmed (`/punter/sports/*`)
+   - **Generation Web**: Config endpoints found, odds endpoint still hidden
+   - **BetMakers**: SSR approach needed (no JSON APIs)
+
+3. Created [BOOKMAKER_IMPLEMENTATION_GUIDE.md](BOOKMAKER_IMPLEMENTATION_GUIDE.md):
+   - Quick start for adding new bookmakers
+   - Platform-by-platform implementation details
+   - API endpoints with request/response examples
+   - Code patterns (HTTP API, browser intercept, DOM parsing)
+   - Testing procedures
+   - Troubleshooting guide
+
+### Session 1: Betfair Parity Investigation
+
+**Completed**:
+- Read CLAUDE.md, SCRAPER_STRATEGY.md, DISCOVERY_SUMMARY.md, DAILY.md, VALIDATION_FRAMEWORK.md
+- Reviewed Entain + Betfair scrapers and odds matcher logic for parity risks
+- Ran DB parity checks for Ladbrokes vs Betfair (counts, overlap, selection completeness)
+- Identified Betfair duplicate events across competitions (Italian Serie A duplicated under La Liga)
+- Flagged Betfair markets with missing selections (Lyon v Lille, Atletico Madrid v Bodo Glimt, Barcelona v FC Copenhagen)
+
+### Blockers
+- Generation Web odds endpoint still hidden (config endpoints only)
+
+### Next Steps
+1. **High Priority**: Implement KindredScraper (1 day, 1 Premium bookmaker)
+2. **High Priority**: Implement BetCloudScraper (3 days, 26 bookmakers)
+3. Continue Generation Web odds endpoint discovery
+4. Clean stale Betfair duplicates across competitions
+
 ## 2026-01-18 (Sunday)
 
 ### Session 1: Ladbrokes/Betfair Parity Analysis vs Outmatched
