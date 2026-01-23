@@ -67,12 +67,14 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 **Completed**:
 - Ran validation tests with `PYTHONPATH=/workspace/apps/worker/src` (30 passed)
+- Committed normalization + league label alignment
 
 ### Blockers
 - None
 
 ### Next Steps
-- Commit normalization + display name alignment
+- Expand Betfair competition IDs for qualifiers (UCL, etc.)
+- Investigate Betfair NBL market anomalies vs Ladbrokes/Punterstech
 
 ## 2026-01-22 (Thursday)
 
