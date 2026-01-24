@@ -143,7 +143,7 @@ async def refresh_odds(
     redis_client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
     job_queue_key = os.getenv("ODDS_REFRESH_QUEUE_KEY", "odds_refresh_jobs")
     job_prefix = os.getenv("ODDS_REFRESH_JOB_PREFIX", "odds_refresh_job:")
-    fast_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_FAST_SECONDS", "60"))
+    fast_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_FAST_SECONDS", "300"))
     slow_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_SLOW_SECONDS", "300"))
     max_queue_length = int(os.getenv("ODDS_REFRESH_MAX_QUEUE_LENGTH", "50"))
     merge_if_pending = os.getenv("ODDS_REFRESH_MERGE_IF_PENDING", "1") == "1"

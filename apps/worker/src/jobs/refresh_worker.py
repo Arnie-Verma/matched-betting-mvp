@@ -156,7 +156,7 @@ async def run_worker_once(
     queue_key: str = DEFAULT_QUEUE_KEY,
     job_prefix: str = DEFAULT_JOB_PREFIX,
     global_cache_key: str = "odds_last_refresh_global",
-    fast_ttl_seconds: int = 60,
+    fast_ttl_seconds: int = 300,
     slow_ttl_seconds: int = 300,
     max_retries: int = 3,
     backoff_base: float = 1.5,
@@ -204,7 +204,7 @@ def run_worker_forever() -> None:
     queue_key = os.getenv("ODDS_REFRESH_QUEUE_KEY", DEFAULT_QUEUE_KEY)
     job_prefix = os.getenv("ODDS_REFRESH_JOB_PREFIX", DEFAULT_JOB_PREFIX)
     global_cache_key = os.getenv("ODDS_REFRESH_GLOBAL_KEY", "odds_last_refresh_global")
-    fast_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_FAST_SECONDS", "60"))
+    fast_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_FAST_SECONDS", "300"))
     slow_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_SLOW_SECONDS", "300"))
     max_retries = int(os.getenv("ODDS_REFRESH_MAX_RETRIES", "3"))
     backoff_base = float(os.getenv("ODDS_REFRESH_BACKOFF_BASE", "1.5"))
