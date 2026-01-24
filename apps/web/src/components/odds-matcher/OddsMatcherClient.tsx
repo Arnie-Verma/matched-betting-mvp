@@ -56,21 +56,24 @@ export interface OddsFilters {
 
 const PAGE_SIZE = 30
 
+const createDefaultFilters = (): OddsFilters => ({
+  stake: 100,
+  betType: 'normal',
+  bookmakers: [],
+  sports: [],
+  competitions: [],
+  search: ''
+})
+
 export function OddsMatcherClient() {
-  const [filters, setFilters] = useState<OddsFilters>({
-    stake: 100,
-    betType: 'normal',
-    bookmakers: [],
-    sports: [],
-    competitions: [],
-    search: ''
-  })
+  const [filters, setFilters] = useState<OddsFilters>(createDefaultFilters)
 
   const [opportunities, setOpportunities] = useState<OddsMatch[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [showPerformanceNotice, setShowPerformanceNotice] = useState(false)
@@ -89,6 +92,20 @@ export function OddsMatcherClient() {
   const currentOffset = useRef(0)
   const abortControllerRef = useRef<AbortController | null>(null)
   const isRefreshing = useRef(false)
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (filters.bookmakers.length > 0) count += 1
+    if (filters.sports.length > 0) count += 1
+    if (filters.search.trim()) count += 1
+    if (filters.betType !== 'normal') count += 1
+    if (filters.stake !== 100) count += 1
+    return count
+  }, [filters])
+
+  const resetFilters = useCallback(() => {
+    setFilters(createDefaultFilters())
+  }, [])
 
   // Auto-refresh odds on component mount (triggers scraping if cache expired)
   useEffect(() => {
@@ -111,7 +128,12 @@ export function OddsMatcherClient() {
 
   // Debounce search input to avoid rapid refetches
   useEffect(() => {
-    const handle = setTimeout(() => setDebouncedSearch(filters.search.trim()), 300)
+    const nextSearch = filters.search.trim()
+    if (!nextSearch) {
+      setDebouncedSearch('')
+      return
+    }
+    const handle = setTimeout(() => setDebouncedSearch(nextSearch), 300)
     return () => clearTimeout(handle)
   }, [filters.search])
 
@@ -342,6 +364,7 @@ export function OddsMatcherClient() {
     const abortController = new AbortController()
     abortControllerRef.current = abortController
     isRefreshing.current = true
+    setRefreshing(true)
 
     // Show banner immediately to indicate refresh is starting
     setError(null)
@@ -418,6 +441,7 @@ export function OddsMatcherClient() {
       await fetchOpportunities(true)  // This hides banner
     } finally {
       isRefreshing.current = false
+      setRefreshing(false)
     }
   }
 
@@ -443,14 +467,23 @@ export function OddsMatcherClient() {
           )}
         </div>
 
-        <button
-          onClick={refreshOdds}
-          disabled={loading}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed transition-colors"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          REFRESH ODDS
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={resetFilters}
+            disabled={activeFilterCount === 0}
+            className="flex items-center gap-2 border border-input bg-card px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+          >
+            Reset{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+          </button>
+          <button
+            onClick={refreshOdds}
+            disabled={loading || refreshing}
+            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${(loading || refreshing) ? 'animate-spin' : ''}`} />
+            REFRESH ODDS
+          </button>
+        </div>
       </div>
 
       {/* Scrape Progress Notice */}

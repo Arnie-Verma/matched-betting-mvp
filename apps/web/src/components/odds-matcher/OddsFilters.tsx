@@ -41,6 +41,8 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
   const [stakeInput, setStakeInput] = useState(filters.stake.toString())
   const bookmakersRef = useRef<HTMLDivElement>(null)
   const leaguesRef = useRef<HTMLDivElement>(null)
+  const hasBookmakerFilters = filters.bookmakers.length > 0
+  const hasLeagueFilters = filters.sports.length > 0
 
   // Fetch available bookmakers and sports on mount
   useEffect(() => {
@@ -93,6 +95,18 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
     setStakeInput(filters.stake.toString())
   }, [filters.stake])
 
+  useEffect(() => {
+    if (!hasBookmakerFilters && bookmakerSearch) {
+      setBookmakerSearch('')
+    }
+  }, [hasBookmakerFilters, bookmakerSearch])
+
+  useEffect(() => {
+    if (!hasLeagueFilters && leagueSearch) {
+      setLeagueSearch('')
+    }
+  }, [hasLeagueFilters, leagueSearch])
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -140,6 +154,30 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
       ? current.filter(b => b !== bookmaker)
       : [...current, bookmaker]
     onFiltersChange({ ...filters, bookmakers: updated })
+  }
+
+  const handleLeagueToggle = (leagueCode: string) => {
+    const current = filters.sports
+    const updated = current.includes(leagueCode)
+      ? current.filter(s => s !== leagueCode)
+      : [...current, leagueCode]
+    onFiltersChange({ ...filters, sports: updated })
+  }
+
+  const handleClearBookmakers = () => {
+    if (!hasBookmakerFilters) {
+      return
+    }
+    setBookmakerSearch('')
+    onFiltersChange({ ...filters, bookmakers: [] })
+  }
+
+  const handleClearLeagues = () => {
+    if (!hasLeagueFilters) {
+      return
+    }
+    setLeagueSearch('')
+    onFiltersChange({ ...filters, sports: [] })
   }
 
   // Filter bookmakers by search term
@@ -236,143 +274,189 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
         onClick={() => setShowAdvanced(!showAdvanced)}
         className="text-sm text-primary hover:text-primary/90 font-medium"
       >
-        {showAdvanced ? '− Hide' : '+ Show'} Advanced Filters
+        {showAdvanced ? '- Hide' : '+ Show'} Advanced Filters
       </button>
 
       {/* Advanced Filters */}
       {showAdvanced && (
-        <div className="space-y-4 pt-4 border-t">
-          {/* Bookmaker Filter */}
-          <div>
-            <Label className="text-sm font-medium text-foreground/80 mb-2 block">
-              Bookmakers
-            </Label>
-            <div ref={bookmakersRef} className="relative">
-              <button
-                onClick={() => setShowBookmakers(!showBookmakers)}
-                className="w-full md:w-64 flex items-center justify-between gap-2 px-4 py-2 border border-input rounded-lg hover:bg-muted transition-colors"
-              >
-                <span className="text-sm text-foreground/80">
-                  {filters.bookmakers.length === 0
-                    ? 'All Bookmakers'
-                    : `${filters.bookmakers.length} selected`}
-                </span>
-                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showBookmakers ? 'rotate-180' : ''}`} />
-              </button>
+        <div className="pt-4 border-t">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Bookmaker Filter */}
+            <div>
+              <Label className="text-sm font-medium text-foreground/80 mb-2 block">
+                Bookmakers
+              </Label>
+              <div ref={bookmakersRef} className="relative">
+                <button
+                  onClick={() => setShowBookmakers(!showBookmakers)}
+                  className="w-full flex items-center justify-between gap-2 px-4 py-2 border border-input rounded-lg hover:bg-muted transition-colors"
+                >
+                  <span className="text-sm text-foreground/80">
+                    {hasBookmakerFilters ? 'Bookmakers' : 'All Bookmakers'}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {hasBookmakerFilters && (
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-primary text-white text-xs">
+                        {filters.bookmakers.length}
+                      </span>
+                    )}
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showBookmakers ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
 
-              {showBookmakers && (
-                <div className="absolute z-10 mt-1 w-full md:w-64 bg-card border border-input rounded-lg shadow-lg">
-                  {/* Search input */}
-                  <div className="p-2 border-b border-border sticky top-0 bg-card">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                      <input
-                        type="text"
-                        placeholder="Search bookmakers..."
-                        value={bookmakerSearch}
-                        onChange={(e) => setBookmakerSearch(e.target.value)}
-                        className="w-full pl-9 pr-3 py-1.5 text-sm border border-input rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                        onClick={(e) => e.stopPropagation()}
-                      />
+                {showBookmakers && (
+                  <div className="absolute z-10 mt-1 w-full bg-card border border-input rounded-lg shadow-lg">
+                    {/* Search input */}
+                    <div className="p-2 border-b border-border sticky top-0 bg-card">
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                          <input
+                            type="text"
+                            placeholder="Search bookmakers..."
+                            value={bookmakerSearch}
+                            onChange={(e) => setBookmakerSearch(e.target.value)}
+                            className="w-full pl-9 pr-3 py-1.5 text-sm border border-input rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleClearBookmakers}
+                          disabled={!hasBookmakerFilters}
+                          className="text-xs text-primary hover:text-primary/90 disabled:text-muted-foreground"
+                        >
+                          Clear filters
+                        </button>
+                        {hasBookmakerFilters && (
+                          <span className="text-xs text-muted-foreground">
+                            {filters.bookmakers.length}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {/* Bookmaker list */}
+                    <div className="max-h-72 overflow-y-auto p-3">
+                      {filteredBookmakers.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {filteredBookmakers.map(bookmaker => {
+                            const isSelected = filters.bookmakers.includes(bookmaker.code)
+                            return (
+                              <button
+                                key={bookmaker.code}
+                                type="button"
+                                aria-pressed={isSelected}
+                                onClick={() => handleBookmakerToggle(bookmaker.code)}
+                                className={`px-2.5 py-1 rounded-full border text-xs transition-colors ${
+                                  isSelected
+                                    ? 'bg-primary text-white border-primary'
+                                    : 'bg-muted text-foreground/80 border-border hover:bg-muted/70'
+                                }`}
+                              >
+                                {bookmaker.name}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <div className="py-3 text-sm text-muted-foreground text-center">
+                          No bookmakers found
+                        </div>
+                      )}
                     </div>
                   </div>
-                  {/* Bookmaker list */}
-                  <div className="max-h-60 overflow-y-auto">
-                    {filteredBookmakers.length > 0 ? (
-                      filteredBookmakers.map(bookmaker => (
-                        <label
-                          key={bookmaker.code}
-                          className="flex items-center gap-3 px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={filters.bookmakers.includes(bookmaker.code)}
-                            onChange={() => handleBookmakerToggle(bookmaker.code)}
-                            className="w-4 h-4 text-primary border-input rounded focus:ring-primary/30"
-                          />
-                          <span className="text-sm text-foreground/80">{bookmaker.name}</span>
-                        </label>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-sm text-muted-foreground text-center">
-                        No bookmakers found
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Leagues Filter */}
-          <div>
-            <Label className="text-sm font-medium text-foreground/80 mb-2 block">
-              Leagues
-            </Label>
-            <div ref={leaguesRef} className="relative">
-              <button
-                onClick={() => setShowLeagues(!showLeagues)}
-                className="w-full md:w-64 flex items-center justify-between gap-2 px-4 py-2 border border-input rounded-lg hover:bg-muted transition-colors"
-              >
-                <span className="text-sm text-foreground/80">
-                  {filters.sports.length === 0
-                    ? 'All Leagues'
-                    : `${filters.sports.length} selected`}
-                </span>
-                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showLeagues ? 'rotate-180' : ''}`} />
-              </button>
+            {/* Leagues Filter */}
+            <div>
+              <Label className="text-sm font-medium text-foreground/80 mb-2 block">
+                Leagues
+              </Label>
+              <div ref={leaguesRef} className="relative">
+                <button
+                  onClick={() => setShowLeagues(!showLeagues)}
+                  className="w-full flex items-center justify-between gap-2 px-4 py-2 border border-input rounded-lg hover:bg-muted transition-colors"
+                >
+                  <span className="text-sm text-foreground/80">
+                    {hasLeagueFilters ? 'Leagues' : 'All Leagues'}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {hasLeagueFilters && (
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-primary text-white text-xs">
+                        {filters.sports.length}
+                      </span>
+                    )}
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showLeagues ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
 
-              {showLeagues && (
-                <div className="absolute z-10 mt-1 w-full md:w-64 bg-card border border-input rounded-lg shadow-lg">
-                  {/* Search input */}
-                  <div className="p-2 border-b border-border sticky top-0 bg-card">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                      <input
-                        type="text"
-                        placeholder="Search leagues..."
-                        value={leagueSearch}
-                        onChange={(e) => setLeagueSearch(e.target.value)}
-                        className="w-full pl-9 pr-3 py-1.5 text-sm border border-input rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                        onClick={(e) => e.stopPropagation()}
-                      />
+                {showLeagues && (
+                  <div className="absolute z-10 mt-1 w-full bg-card border border-input rounded-lg shadow-lg">
+                    {/* Search input */}
+                    <div className="p-2 border-b border-border sticky top-0 bg-card">
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                          <input
+                            type="text"
+                            placeholder="Search leagues..."
+                            value={leagueSearch}
+                            onChange={(e) => setLeagueSearch(e.target.value)}
+                            className="w-full pl-9 pr-3 py-1.5 text-sm border border-input rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleClearLeagues}
+                          disabled={!hasLeagueFilters}
+                          className="text-xs text-primary hover:text-primary/90 disabled:text-muted-foreground"
+                        >
+                          Clear filters
+                        </button>
+                        {hasLeagueFilters && (
+                          <span className="text-xs text-muted-foreground">
+                            {filters.sports.length}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {/* League list */}
+                    <div className="max-h-72 overflow-y-auto p-3">
+                      {filteredLeagues.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {filteredLeagues.map(league => {
+                            const isSelected = filters.sports.includes(league.code)
+                            return (
+                              <button
+                                key={league.id}
+                                type="button"
+                                aria-pressed={isSelected}
+                                onClick={() => handleLeagueToggle(league.code)}
+                                className={`px-2.5 py-1 rounded-full border text-xs transition-colors ${
+                                  isSelected
+                                    ? 'bg-primary text-white border-primary'
+                                    : 'bg-muted text-foreground/80 border-border hover:bg-muted/70'
+                                }`}
+                              >
+                                {league.short_name}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <div className="py-3 text-sm text-muted-foreground text-center">
+                          No leagues found
+                        </div>
+                      )}
                     </div>
                   </div>
-                  {/* League list */}
-                  <div className="max-h-60 overflow-y-auto">
-                    {filteredLeagues.length > 0 ? (
-                      filteredLeagues.map(league => (
-                        <label
-                          key={league.id}
-                          className="flex items-center gap-3 px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={filters.sports.includes(league.code)}
-                            onChange={() => {
-                              const current = filters.sports
-                              const leagueCode = league.code
-                              const updated = current.includes(leagueCode)
-                                ? current.filter(s => s !== leagueCode)
-                                : [...current, leagueCode]
-                              onFiltersChange({ ...filters, sports: updated })
-                            }}
-                            className="w-4 h-4 text-primary border-input rounded focus:ring-primary/30"
-                          />
-                          <span className="text-sm text-foreground/80">{league.short_name}</span>
-                        </label>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-sm text-muted-foreground text-center">
-                        No leagues found
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
-
         </div>
       )}
     </div>

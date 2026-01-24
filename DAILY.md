@@ -4,6 +4,21 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-01-24 (Saturday)
+
+### Completed
+- Session start: read CLAUDE.md, SCRAPER_STRATEGY.md, DISCOVERY_SUMMARY.md, DAILY.md, VALIDATION_FRAMEWORK.md
+- Reviewed odds matcher refresh/filter flow and queue behavior
+- Updated odds matcher filters UI (pill dropdowns, clear buttons, reset count) and refresh button state handling
+- Responded to UI not loading report with expected changes and verification guidance
+- Adjusted advanced filters layout to two columns and widened dropdown chips to reduce scrolling
+
+### Blockers
+- None
+
+### Next Steps
+- Verify odds matcher refresh + filter clearing behavior in UI
+
 ## 2026-01-23 (Friday)
 
 ### Session 1: Betfair + Entain Robustness Review
@@ -115,6 +130,22 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ### Next Steps
 - Verify NBA/NBL opportunities show in frontend odds matcher
+
+### Session 9: Punterstech Validation Run
+
+**Completed**:
+- Session start: kick off full scrape + Punterstech validation (MintBet)
+- Manual scrape completed in container (CLI timed out; confirmed process finished)
+- Validation runs for MintBet: EPL/LALIGA/NBA/NBL all FAIL due to validation thresholds; NBL reference PASS
+  - Ladbrokes reference failed for EPL/LALIGA/NBA because event counts exceed expected max
+  - MintBet anomalies were warning-level (no critical), coverage 100%
+
+### Blockers
+- Validation config expected event max too low for current EPL/LALIGA/NBA schedules, causing reference FAIL
+
+### Next Steps
+- Update validation expected ranges (config) or make season-aware, then re-run validation
+- Optionally validate 1-2 more Punterstech books after threshold fix
 
 ## 2026-01-22 (Thursday)
 
