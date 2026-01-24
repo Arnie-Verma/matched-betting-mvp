@@ -108,10 +108,14 @@ export function OddsMatcherClient() {
   }, [])
 
   // Auto-refresh odds on component mount (triggers scraping if cache expired)
+  // Note: This only triggers the backend refresh/scrape job.
+  // Data loading is handled by the filter effect via fetchOpportunities.
   useEffect(() => {
     if (hasInitialized.current) return
     hasInitialized.current = true
-    refreshOdds()
+    // Trigger background refresh but don't wait for it to complete
+    // The filter effect will load data independently
+    triggerBackgroundRefresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -223,9 +227,14 @@ export function OddsMatcherClient() {
   }, [debouncedStake, debouncedSearch])
 
   // Refetch opportunities when filters change (bookmaker/league/search/stake/bet type)
+  // Also handles initial data load on mount
   useEffect(() => {
+    // Skip the very first effect call (React StrictMode double-invoke)
+    // but allow the second call to fetch initial data
     if (skipInitialFilterFetch.current) {
       skipInitialFilterFetch.current = false
+      // Still fetch on initial mount - this loads cached data while background refresh runs
+      fetchOpportunities(true)
       return
     }
     fetchOpportunities(true)
@@ -347,6 +356,58 @@ export function OddsMatcherClient() {
     return false
   }
 
+  // Background refresh: triggers scrape job silently, then reloads data when complete
+  // Used on mount - doesn't show spinning button or banner
+  const triggerBackgroundRefresh = async () => {
+    // Don't set refreshing state - this is a silent background operation
+    // The filter effect will show "Loading..." for initial data fetch
+
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
+
+    try {
+      const response = await fetch('/api/proxy/odds/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force: false }),
+        signal: abortController.signal
+      })
+
+      if (!response.ok) {
+        console.log(`[OddsMatcherClient] Background refresh returned ${response.status}`)
+        return
+      }
+
+      const refreshData = await response.json()
+      console.log('[OddsMatcherClient] Background refresh response:', refreshData)
+
+      // If cache was used, data is already fresh - filter effect will load it
+      if (refreshData.used_cache === true) {
+        console.log('[OddsMatcherClient] Cache hit - no scrape needed')
+        return
+      }
+
+      // Fresh scrape was queued - poll for completion silently
+      if (refreshData.job_id) {
+        console.log('[OddsMatcherClient] Background scrape started, job:', refreshData.job_id)
+        const success = await pollJobStatus(refreshData.job_id, abortController.signal)
+
+        // After job completes successfully, reload data to show fresh odds
+        if (success && !abortController.signal.aborted) {
+          console.log('[OddsMatcherClient] Background scrape complete, reloading data')
+          await fetchOpportunities(true)
+        }
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        console.log('[OddsMatcherClient] Background refresh aborted')
+        return
+      }
+      console.error('[OddsMatcherClient] Background refresh error:', err)
+    }
+  }
+
+  // User-triggered refresh: shows UI feedback and reloads data after completion
   const refreshOdds = async () => {
     // Prevent concurrent refresh operations
     if (isRefreshing.current) {
