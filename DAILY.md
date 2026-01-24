@@ -12,12 +12,20 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Updated odds matcher filters UI (pill dropdowns, clear buttons, reset count) and refresh button state handling
 - Responded to UI not loading report with expected changes and verification guidance
 - Adjusted advanced filters layout to two columns and widened dropdown chips to reduce scrolling
+- Fixed bookmaker/league search inputs clearing immediately when no filters selected
+- Explained refresh/cache flow, audit, and scalability recommendations
+- Clarified refresh odds behavior with on-demand cache semantics
+- Increased cache TTL from 60s → 300s (5 min) to reduce redundant scrapes; committed
+- Ran full unit test suite: 62 tests PASS (Punterstech scraper + validation framework all passing)
+- Assessed scraper readiness: Punterstech, Entain, Betfair architecturally ready for bookmaker expansion
 
 ### Blockers
 - None
 
 ### Next Steps
-- Verify odds matcher refresh + filter clearing behavior in UI
+- Run live QA validation against scrapers (requires DB with odds data)
+- Deploy updated cache TTL to staging and verify load time improvement
+- Plan bookmaker expansion rollout (target: 40+ bookmakers by end of month)
 
 ## 2026-01-23 (Friday)
 
