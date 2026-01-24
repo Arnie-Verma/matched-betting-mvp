@@ -441,6 +441,9 @@ class BetfairScraper(BaseScraper):
                     else:
                         self.logger.info(f"⏱️  [Betfair/{sport}] Max wait reached ({wait_time:.2f}s), continuing anyway")
 
+                    if sport == "basketball" and comp_name in ("NBA", "NBL"):
+                        await self._capture_future_tabs(page, sport, comp_name, captured_data)
+
                     comp_time = time.time() - comp_start
                     self.logger.info(f"⏱️  [Betfair/{sport}] {comp_name} took {comp_time:.2f}s - captured {len(captured_data)} responses")
 
@@ -467,6 +470,64 @@ class BetfairScraper(BaseScraper):
 
     # NOTE: _handle_response() method REMOVED - replaced by inline closure in _scrape_with_playwright()
     # This enables parallel execution safety (each call has its own captured_data list)
+
+    async def _capture_future_tabs(
+        self,
+        page: Page,
+        sport: str,
+        comp_name: str,
+        captured_data: List[Dict]
+    ) -> None:
+        """Trigger Tomorrow/Future tabs so upcoming NBA/NBL markets are captured."""
+        for label in ("Tomorrow", "Future"):
+            await self._click_filter_tab(page, label, captured_data, sport, comp_name)
+
+    async def _click_filter_tab(
+        self,
+        page: Page,
+        label: str,
+        captured_data: List[Dict],
+        sport: str,
+        comp_name: str
+    ) -> None:
+        try:
+            locator = page.get_by_role("button", name=label)
+            if await locator.count() == 0:
+                locator = page.get_by_role("link", name=label)
+            if await locator.count() == 0:
+                locator = page.locator(f"text={label}")
+            if await locator.count() == 0:
+                self.logger.debug(f"[Betfair/{sport}] {comp_name}: {label} tab not found")
+                return
+
+            initial_count = len(captured_data)
+            await locator.first.click()
+            await asyncio.sleep(0.2)
+
+            if await self._wait_for_new_bymarket(captured_data, initial_count, timeout=6.0):
+                self.logger.info(f"[Betfair/{sport}] {comp_name}: captured {label} markets")
+            else:
+                self.logger.info(f"[Betfair/{sport}] {comp_name}: no new data for {label}")
+        except Exception as e:
+            self.logger.debug(f"[Betfair/{sport}] {comp_name}: {label} click failed: {e}")
+
+    async def _wait_for_new_bymarket(
+        self,
+        captured_data: List[Dict],
+        initial_count: int,
+        timeout: float = 6.0
+    ) -> bool:
+        wait_start = time.time()
+        while (time.time() - wait_start) < timeout:
+            new_bymarket = any(
+                'bymarket' in c.get('url', '')
+                for c in captured_data[initial_count:]
+            )
+            if new_bymarket:
+                await asyncio.sleep(0.5)
+                return True
+            await asyncio.sleep(0.3)
+        return False
 
     def _parse_captured_data_local(
         self,
@@ -662,10 +723,11 @@ class BetfairScraper(BaseScraper):
                 # Extract teams from event name
                 home_team, away_team = self._extract_teams_from_name(event_name)
 
-                # Use the competition we tracked during navigation (much more reliable!)
-                # Only fall back to fixtures_data lookup if competition is still Unknown
-                if competition == 'Unknown':
-                    competition = self._get_competition_for_event(event_id, fixtures_data)
+                # Prefer fixtures_data competition mapping when available
+                # (bymarket responses can include events from other competitions)
+                competition_from_fixtures = self._get_competition_for_event(event_id, fixtures_data)
+                if competition_from_fixtures != "Unknown":
+                    competition = competition_from_fixtures
 
                 # Create event
                 event = ScrapedEvent(
@@ -695,6 +757,13 @@ class BetfairScraper(BaseScraper):
                     if market_type in ('MATCH_ODDS', 'MONEY_LINE', 'WIN'):
                         # Parse odds from this market
                         market_odds = self._parse_market_prices(market_node, event, market_name)
+                        expected = self._expected_selection_count(sport, market_type)
+                        if len(market_odds) < expected:
+                            self.logger.info(
+                                f"[Betfair/{sport}] Skipping {market_name} for {event_name}: "
+                                f"{len(market_odds)}<{expected} selections with liquidity"
+                            )
+                            continue
                         self.logger.debug(f"Parsed {len(market_odds)} odds from {market_name}")
                         event.odds.extend(market_odds)
 
@@ -711,6 +780,12 @@ class BetfairScraper(BaseScraper):
 
         self.logger.info(f"Successfully parsed {len(events)} events with odds")
         return events
+
+    def _expected_selection_count(self, sport: str, market_type: str) -> int:
+        """Expected selection count for H2H markets (soccer has draw)."""
+        if sport == "soccer" and market_type == "MATCH_ODDS":
+            return 3
+        return 2
 
     def _get_competition_for_event(self, event_id: str, fixtures_data: Optional[Dict]) -> str:
         """Try to get competition name from fixtures data"""
@@ -902,6 +977,17 @@ class BetfairScraper(BaseScraper):
 
                 if not lay_odds:
                     continue
+                if lay_size is None or lay_size <= 0:
+                    continue
+
+                try:
+                    lay_odds_decimal = Decimal(str(lay_odds))
+                except Exception:
+                    continue
+
+                # Drop no-liquidity placeholders (Betfair often uses >=100)
+                if lay_odds_decimal >= Decimal("100"):
+                    continue
 
                 # Determine selection key
                 selection_key = self._determine_selection_key(
@@ -919,7 +1005,7 @@ class BetfairScraper(BaseScraper):
                     market_name=market_name,
                     selection_name=runner_name,
                     selection_key=selection_key,
-                    decimal_odds=Decimal(str(lay_odds)),
+                    decimal_odds=lay_odds_decimal,
                     bookmaker_code=self.bookmaker_code,
                     source_url=f"https://www.betfair.com.au/exchange/plus/market/{market_id}",
                     scraped_at=datetime.now(timezone.utc),

@@ -76,6 +76,46 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Expand Betfair competition IDs for qualifiers (UCL, etc.)
 - Investigate Betfair NBL market anomalies vs Ladbrokes/Punterstech
 
+### Session 6: NBA Opportunities Investigation
+
+**Completed**:
+- Reviewed Entain + Betfair scrapers and odds matcher filtering
+- DB checks: NBA events exist overall, but Betfair has 0 NBA events within next 14 days; no overlap with Ladbrokes
+- Coverage check: MLS missing across Entain/Betfair; Betfair NRL empty; Entain AFL empty (off-season likely)
+
+### Blockers
+- Betfair NBA fixtures only up to current day, no upcoming lay markets, so NBA filter returns 0 opportunities
+
+### Next Steps
+- Update Betfair scraper to load future NBA fixtures (scroll/paginate or fetch additional nav-aggregator payload)
+- Re-run NBA scrape and verify overlaps vs Ladbrokes/Neds
+
+### Session 7: Betfair NBA UI Discrepancy
+
+**Completed**:
+- Compared Betfair NBA UI vs DB; confirmed Betfair NBA events only through today; none in next 14 days
+- Identified scraper only captures initial page load (no Tomorrow/Future tab interactions)
+
+### Blockers
+- Betfair NBA future markets not captured until scraper triggers Tomorrow/Future data
+
+### Next Steps
+- Update Betfair scraper to click Tomorrow/Future (or call nav-aggregator with date range)
+- Re-scrape Betfair NBA and validate overlap with Ladbrokes/Neds
+
+### Session 8: Betfair NBA/NBL Future Odds
+
+**Completed**:
+- Added Tomorrow/Future tab clicks in Betfair scraper for NBA/NBL
+- Ran Betfair basketball scrape and saved results to DB (NBA 6 upcoming, NBL 2 upcoming within 14 days)
+- Committed and pushed NBA/NBL future capture updates
+
+### Blockers
+- None
+
+### Next Steps
+- Verify NBA/NBL opportunities show in frontend odds matcher
+
 ## 2026-01-22 (Thursday)
 
 ### Session 1: Betfair/Punterstech Parity Investigation
