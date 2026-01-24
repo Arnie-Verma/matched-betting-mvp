@@ -111,7 +111,32 @@ class ValidationPipeline:
         logger.info(f"Starting validation pipeline for {competition}")
 
         # Import here to avoid circular dependency
-        from api.services.normalization_service import normalize_event_name
+        from api.services.normalization_service import (
+            normalize_competition_name,
+            normalize_event_name,
+        )
+        from scrapers.base import ScrapeResult
+
+        filtered_results: Dict[str, Any] = {}
+        for bookmaker_code, scrape_result in scrape_results.items():
+            filtered_events = [
+                event for event in scrape_result.events
+                if normalize_competition_name(event.competition or "") == competition
+            ]
+            odds_scraped = sum(len(event.odds) for event in filtered_events)
+
+            filtered_results[bookmaker_code] = ScrapeResult(
+                bookmaker_code=scrape_result.bookmaker_code,
+                status=scrape_result.status,
+                events_scraped=len(filtered_events),
+                odds_scraped=odds_scraped,
+                events=filtered_events,
+                errors=scrape_result.errors,
+                started_at=scrape_result.started_at,
+                completed_at=scrape_result.completed_at,
+            )
+
+        scrape_results = filtered_results
 
         # Phase 1: Structural validation
         structural_results: Dict[str, StructuralValidation] = {}
@@ -131,29 +156,60 @@ class ValidationPipeline:
         reference_bookmaker = self.config.reference_bookmaker
         reference_odds = all_odds_data.get(reference_bookmaker, {})
         reference_events = len(reference_odds)
+        reference_event_keys = set(reference_odds.keys())
+        golden_fixtures = self.config.get_golden_fixtures(competition)
+        active_golden_fixtures: List[tuple] = []
+
+        if reference_events > 0:
+            for home, away, expected_selections in golden_fixtures:
+                fixture_key = normalize_event_name(f"{home} v {away}")
+                if fixture_key in reference_event_keys:
+                    active_golden_fixtures.append((home, away, expected_selections))
+
+        for bookmaker_code, structural in structural_results.items():
+            bookmaker_event_keys = set(all_odds_data.get(bookmaker_code, {}).keys())
+
+            if reference_events == 0:
+                structural.matching_rate = Decimal("100")
+                continue
+
+            if bookmaker_code == reference_bookmaker:
+                structural.matching_rate = Decimal("100")
+                continue
+
+            matched_events = len(bookmaker_event_keys & reference_event_keys)
+            structural.matching_rate = (
+                Decimal(matched_events) / Decimal(reference_events) * 100
+            ).quantize(Decimal("0.01"))
 
         # Phase 2: Probability validation
         probability_results: Dict[str, ProbabilityValidation] = {}
-        for bookmaker_code in scrape_results.keys():
-            if bookmaker_code == reference_bookmaker:
-                continue  # Skip reference bookmaker
+        if reference_events == 0:
+            logger.warning(
+                f"Reference bookmaker has no events for {competition}; "
+                "skipping probability validation"
+            )
+        else:
+            for bookmaker_code in scrape_results.keys():
+                if bookmaker_code == reference_bookmaker:
+                    continue  # Skip reference bookmaker
 
-            try:
-                bookmaker_odds = all_odds_data.get(bookmaker_code, {})
+                try:
+                    bookmaker_odds = all_odds_data.get(bookmaker_code, {})
 
-                if self.config.use_consensus:
-                    probability_results[bookmaker_code] = \
-                        self.probability_validator.validate_with_consensus(
-                            all_odds_data, bookmaker_code, competition
-                        )
-                else:
-                    probability_results[bookmaker_code] = \
-                        self.probability_validator.validate(
-                            bookmaker_odds, reference_odds,
-                            bookmaker_code, competition
-                        )
-            except Exception as e:
-                logger.error(f"[{bookmaker_code}] Probability validation failed: {e}")
+                    if self.config.use_consensus:
+                        probability_results[bookmaker_code] = \
+                            self.probability_validator.validate_with_consensus(
+                                all_odds_data, bookmaker_code, competition
+                            )
+                    else:
+                        probability_results[bookmaker_code] = \
+                            self.probability_validator.validate(
+                                bookmaker_odds, reference_odds,
+                                bookmaker_code, competition
+                            )
+                except Exception as e:
+                    logger.error(f"[{bookmaker_code}] Probability validation failed: {e}")
 
         # Phase 3: Golden fixtures validation
         golden_results: Dict[str, GoldenFixturesValidation] = {}
@@ -161,7 +217,9 @@ class ValidationPipeline:
             try:
                 golden_results[bookmaker_code] = \
                     self.golden_validator.validate_from_scrape_result(
-                        scrape_result, competition
+                        scrape_result,
+                        competition,
+                        fixtures_override=active_golden_fixtures,
                     )
             except Exception as e:
                 logger.error(f"[{bookmaker_code}] Golden fixtures validation failed: {e}")
@@ -183,7 +241,9 @@ class ValidationPipeline:
 
         # Generate golden fixtures summary
         golden_summary = self.golden_validator.get_golden_fixture_summary(
-            golden_results, competition
+            golden_results,
+            competition,
+            fixtures_override=active_golden_fixtures,
         )
 
         duration = time.time() - start_time
@@ -276,26 +336,30 @@ class ValidationPipeline:
             PipelineResult with all validation results
         """
         from api.core.database import SessionLocal
-        from api.models import Bookmaker, Event, Selection, OddsSnapshot, Competition as CompetitionModel
+        from api.models import Bookmaker, Event, Selection, OddsSnapshot, Competition as CompetitionModel, Market
+        from api.services.normalization_service import normalize_competition_name
 
         start_time = time.time()
         logger.info(f"Starting database validation for {competition}")
 
         db = SessionLocal()
         try:
-            # Get competition from database
-            comp = db.query(CompetitionModel).filter(
-                CompetitionModel.code == competition
-            ).first()
+            # Get competition IDs from database using normalized competition code
+            competition_ids = [
+                c.id for c in db.query(CompetitionModel).all()
+                if normalize_competition_name(c.name or "") == competition
+            ]
 
-            if not comp:
+            if not competition_ids:
                 logger.error(f"Competition not found: {competition}")
                 return PipelineResult(competition=competition)
 
-            # Get active bookmakers
+            # Get active bookmakers (always include reference bookmaker)
             if bookmaker_codes:
+                codes = set(bookmaker_codes)
+                codes.add(self.config.reference_bookmaker)
                 bookmakers = db.query(Bookmaker).filter(
-                    Bookmaker.code.in_(bookmaker_codes)
+                    Bookmaker.code.in_(list(codes))
                 ).all()
             else:
                 bookmakers = db.query(Bookmaker).filter(
@@ -312,9 +376,12 @@ class ValidationPipeline:
                 ).join(
                     Selection, OddsSnapshot.selection_id == Selection.id
                 ).join(
-                    Event, Selection.event_id == Event.id
+                    Market, Market.id == Selection.market_id
+                ).join(
+                    Event, Event.id == Market.event_id
                 ).filter(
-                    Event.competition_id == comp.id,
+                    Event.competition_id.in_(competition_ids),
+                    Market.market_type == "match_winner",
                     OddsSnapshot.bookmaker_id == bookmaker.id,
                     OddsSnapshot.is_current == True,
                 )
@@ -328,9 +395,12 @@ class ValidationPipeline:
                     if event_key not in bookmaker_odds:
                         bookmaker_odds[event_key] = {}
 
-                    selection_key = selection.selection_key.lower() if selection.selection_key else selection.name.lower()
+                    selection_key = (
+                        selection.selection_key.lower()
+                        if selection.selection_key else selection.name.lower()
+                    )
                     bookmaker_odds[event_key][selection_key] = {
-                        "decimal_odds": odds.odds,
+                        "decimal_odds": odds.decimal_odds,
                         "selection_name": selection.name,
                         "market_type": "match_winner",  # Default
                         "event_name": event.name,
@@ -341,20 +411,54 @@ class ValidationPipeline:
             # Now run probability validation
             reference_bookmaker = self.config.reference_bookmaker
             reference_odds = all_odds.get(reference_bookmaker, {})
+            reference_events = len(reference_odds)
+            reference_event_keys = set(reference_odds.keys())
 
             probability_results: Dict[str, ProbabilityValidation] = {}
-            for bookmaker_code, bookmaker_odds in all_odds.items():
-                if bookmaker_code == reference_bookmaker:
-                    continue
+            if reference_events == 0:
+                logger.warning(
+                    f"Reference bookmaker has no events for {competition}; "
+                    "skipping probability validation"
+                )
+            else:
+                for bookmaker_code, bookmaker_odds in all_odds.items():
+                    if bookmaker_code == reference_bookmaker:
+                        continue
 
-                probability_results[bookmaker_code] = self.probability_validator.validate(
-                    bookmaker_odds, reference_odds,
-                    bookmaker_code, competition
+                    probability_results[bookmaker_code] = self.probability_validator.validate(
+                        bookmaker_odds, reference_odds,
+                        bookmaker_code, competition
+                    )
+
+            expected = self.config.get_expected_events(competition)
+            structural_results: Dict[str, StructuralValidation] = {}
+            for bookmaker_code, bookmaker_odds in all_odds.items():
+                event_count = len(bookmaker_odds)
+                event_count_valid = expected["min"] <= event_count <= expected["max"]
+
+                if reference_events == 0:
+                    matching_rate = Decimal("100")
+                elif bookmaker_code == reference_bookmaker:
+                    matching_rate = Decimal("100")
+                else:
+                    matched_events = len(set(bookmaker_odds.keys()) & reference_event_keys)
+                    matching_rate = (
+                        Decimal(matched_events) / Decimal(reference_events) * 100
+                    ).quantize(Decimal("0.01"))
+
+                structural_results[bookmaker_code] = StructuralValidation(
+                    bookmaker_code=bookmaker_code,
+                    competition=competition,
+                    event_count=event_count,
+                    expected_min=expected["min"],
+                    expected_max=expected["max"],
+                    event_count_valid=event_count_valid,
+                    matching_rate=matching_rate,
                 )
 
             # Calculate scores
             scores = self.score_calculator.calculate_batch(
-                structural_results={},  # No structural validation for DB data
+                structural_results=structural_results,
                 probability_results=probability_results,
                 golden_results={},  # No golden fixtures for DB data
                 competition=competition,
@@ -367,7 +471,7 @@ class ValidationPipeline:
                 scores=scores,
                 competition=competition,
                 reference_bookmaker=reference_bookmaker,
-                reference_events=len(reference_odds),
+                reference_events=reference_events,
                 validation_duration_seconds=duration,
             )
 

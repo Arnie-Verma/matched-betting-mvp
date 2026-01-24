@@ -157,6 +157,10 @@ FRESHNESS_THRESHOLD_SECONDS = 900  # 15 minutes
 COVERAGE_WARN_THRESHOLD = Decimal("85")  # Below 85% = WARN
 COVERAGE_FAIL_THRESHOLD = Decimal("70")  # Below 70% = FAIL
 
+# Event coverage thresholds vs reference bookmaker
+EVENT_COVERAGE_WARN_THRESHOLD = Decimal("85")  # Below 85% = WARN
+EVENT_COVERAGE_FAIL_THRESHOLD = Decimal("70")  # Below 70% = FAIL
+
 # Anomaly thresholds for final scoring
 MAX_ANOMALIES_WARN = 5   # More than 5 anomalies = WARN
 MAX_CRITICAL_ANOMALIES = 2  # More than 2 critical = FAIL

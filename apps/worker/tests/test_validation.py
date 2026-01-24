@@ -23,6 +23,8 @@ from validation.config import (
     GOLDEN_FIXTURES,
     ODDS_MIN,
     ODDS_MAX,
+    EVENT_COVERAGE_FAIL_THRESHOLD,
+    EVENT_COVERAGE_WARN_THRESHOLD,
 )
 from validation.structural_validator import StructuralValidator, StructuralValidation
 from validation.probability_validator import ProbabilityValidator, ProbabilityValidation
@@ -428,6 +430,7 @@ class TestScoreCalculator:
             competition="epl",
             scraped_at=datetime.now(timezone.utc),
         )
+        structural.matching_rate = Decimal("100")
 
         # Mock probability validation result
         probability = ProbabilityValidation(
@@ -539,6 +542,50 @@ class TestScoreCalculator:
         score = score_calculator.calculate(
             structural=None,
             probability=probability,
+            golden=None,
+            bookmaker_code="testbook",
+            competition="epl",
+        )
+
+        assert score.status == "WARN"
+
+    def test_fail_score_low_event_coverage(self, score_calculator):
+        """Test FAIL score when event coverage is below threshold."""
+        structural = StructuralValidation(
+            bookmaker_code="testbook",
+            competition="epl",
+            event_count=5,
+            expected_min=3,
+            expected_max=20,
+            event_count_valid=True,
+            matching_rate=EVENT_COVERAGE_FAIL_THRESHOLD - Decimal("1"),
+        )
+
+        score = score_calculator.calculate(
+            structural=structural,
+            probability=None,
+            golden=None,
+            bookmaker_code="testbook",
+            competition="epl",
+        )
+
+        assert score.status == "FAIL"
+
+    def test_warn_score_low_event_coverage(self, score_calculator):
+        """Test WARN score when event coverage is below warn threshold."""
+        structural = StructuralValidation(
+            bookmaker_code="testbook",
+            competition="epl",
+            event_count=5,
+            expected_min=3,
+            expected_max=20,
+            event_count_valid=True,
+            matching_rate=EVENT_COVERAGE_WARN_THRESHOLD - Decimal("1"),
+        )
+
+        score = score_calculator.calculate(
+            structural=structural,
+            probability=None,
             golden=None,
             bookmaker_code="testbook",
             competition="epl",

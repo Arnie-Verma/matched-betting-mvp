@@ -65,7 +65,7 @@ class StructuralValidation:
     event_count_valid: bool
 
     # Matching rate (calculated after comparison with reference)
-    matching_rate: Decimal = Decimal("0")
+    matching_rate: Optional[Decimal] = None
 
     # Market validation
     markets_checked: int = 0
@@ -121,7 +121,7 @@ class StructuralValidation:
             "expected_min": self.expected_min,
             "expected_max": self.expected_max,
             "event_count_valid": self.event_count_valid,
-            "matching_rate": str(self.matching_rate),
+            "matching_rate": str(self.matching_rate) if self.matching_rate is not None else None,
             "markets_checked": self.markets_checked,
             "markets_valid": self.markets_valid,
             "odds_checked": self.odds_checked,

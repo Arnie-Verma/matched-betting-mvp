@@ -24,6 +24,7 @@ Usage:
 import argparse
 import asyncio
 import logging
+import os
 import sys
 import time
 
@@ -70,7 +71,13 @@ async def scrape_and_validate(
     Returns:
         Validation result dict
     """
+    from datetime import datetime, timezone
+
     from jobs.scrape_service import get_scrape_service
+    from jobs.save_odds import save_scrape_result_to_db
+    from scrapers.base import ScraperStatus
+
+    config = config or ValidationConfig()
 
     print(f"\n[SCRAPE] Starting live scrape for {competition}...")
     scrape_start = time.time()
@@ -97,26 +104,69 @@ async def scrape_and_validate(
 
     sport = competition_to_sport.get(competition, "soccer")
 
-    # Scrape
+    active_configs = service.get_active_bookmakers_from_db()
+    active_by_code = {cfg["code"]: cfg for cfg in active_configs}
+
     if bookmaker:
-        result = await service.scrape_bookmaker_all_sports(bookmaker, sports=[sport])
-        scrape_results = {bookmaker: result} if result.get("success") else {}
+        target_codes = {bookmaker}
+        if config.reference_bookmaker not in target_codes:
+            target_codes.add(config.reference_bookmaker)
     else:
-        result = await service.scrape_all_active_bookmakers(sport=sport)
-        # We need the actual ScrapeResult objects, not the dict summary
-        # This requires accessing the internal results
-        scrape_results = {}
+        target_codes = set(active_by_code.keys())
+
+    target_configs = [active_by_code[code] for code in target_codes if code in active_by_code]
+    if bookmaker and bookmaker not in active_by_code:
+        raise ValueError(f"Bookmaker not active or missing scraper: {bookmaker}")
+    if config.reference_bookmaker not in active_by_code:
+        logging.warning(f"Reference bookmaker not active: {config.reference_bookmaker}")
+
+    scrapers = {}
+    for cfg in target_configs:
+        scraping_config = cfg.get("scraping_config", {})
+        scraping_config["base_url"] = cfg.get("base_url")
+        scraping_config["website_url"] = cfg.get("website_url")
+        scraper = service.get_scraper_for_bookmaker(cfg["code"], scraping_config)
+        if scraper:
+            scrapers[cfg["code"]] = scraper
+        else:
+            logging.warning(f"[{cfg['code']}] Scraper not available; skipping")
+
+    if not scrapers:
+        raise ValueError("No scrapers available for requested bookmakers")
+
+    concurrency = int(os.getenv("VALIDATION_SCRAPE_CONCURRENCY", "4"))
+    semaphore = asyncio.Semaphore(concurrency)
+    scrape_results = {}
+
+    async def scrape_one(code, scraper):
+        async with semaphore:
+            logging.info(f"[SCRAPE] {code} starting")
+            try:
+                result = await scraper.scrape_all_sports_parallel(sports=[sport])
+            except Exception as exc:
+                logging.exception(f"[SCRAPE] {code} failed: {exc}")
+                return None
+
+            if result.status in (ScraperStatus.SUCCESS, ScraperStatus.PARTIAL):
+                scrape_session_id = f"validation_{code}_{datetime.now(timezone.utc).isoformat()}"
+                save_scrape_result_to_db(result, scrape_session_id)
+                scrape_results[code] = result
+            else:
+                logging.warning(f"[SCRAPE] {code} returned status {result.status}")
+            return result
+
+    tasks = [scrape_one(code, scraper) for code, scraper in scrapers.items()]
+    await asyncio.gather(*tasks)
 
     scrape_duration = time.time() - scrape_start
     print(f"[SCRAPE] Completed in {scrape_duration:.2f}s")
 
-    # For now, we'll validate from database after scraping
-    print("[VALIDATE] Validating scraped data from database...")
+    print("[VALIDATE] Validating scraped data (full pipeline)...")
 
     pipeline = ValidationPipeline(config)
-    return pipeline.validate_from_database(
+    return pipeline.validate_scrape_results(
+        scrape_results=scrape_results,
         competition=competition,
-        bookmaker_codes=[bookmaker] if bookmaker else None,
     )
 
 

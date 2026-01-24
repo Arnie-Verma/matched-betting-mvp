@@ -16,6 +16,8 @@ from validation.config import (
     ValidationConfig,
     COVERAGE_WARN_THRESHOLD,
     COVERAGE_FAIL_THRESHOLD,
+    EVENT_COVERAGE_WARN_THRESHOLD,
+    EVENT_COVERAGE_FAIL_THRESHOLD,
     MAX_ANOMALIES_WARN,
     MAX_CRITICAL_ANOMALIES,
 )
@@ -44,6 +46,7 @@ class ValidationScore:
     event_count: int = 0
     structural_passed: bool = True
     structural_issues: List[str] = field(default_factory=list)
+    event_coverage_percent: Optional[Decimal] = None
 
     # Phase 2 metrics
     coverage_percent: Decimal = Decimal("100")
@@ -75,6 +78,10 @@ class ValidationScore:
             "event_count": self.event_count,
             "structural_passed": self.structural_passed,
             "structural_issues": self.structural_issues,
+            "event_coverage_percent": (
+                str(self.event_coverage_percent)
+                if self.event_coverage_percent is not None else None
+            ),
             "coverage_percent": str(self.coverage_percent),
             "match_rate": str(self.match_rate),
             "anomaly_count": self.anomaly_count,
@@ -184,6 +191,7 @@ class ScoreCalculator:
         """Apply Phase 1 structural validation results to score."""
         score.event_count = structural.event_count
         score.structural_passed = structural.passed
+        score.event_coverage_percent = structural.matching_rate
 
         if not structural.event_count_valid:
             score.structural_issues.append(
@@ -261,6 +269,13 @@ class ScoreCalculator:
                 )
                 return "FAIL"
 
+        if not score.is_exchange and score.event_coverage_percent is not None:
+            if score.event_coverage_percent < EVENT_COVERAGE_FAIL_THRESHOLD:
+                score.failure_reasons.append(
+                    f"Event coverage {score.event_coverage_percent}% < {EVENT_COVERAGE_FAIL_THRESHOLD}%"
+                )
+                return "FAIL"
+
         # Too many critical anomalies
         if score.critical_anomaly_count > MAX_CRITICAL_ANOMALIES:
             score.failure_reasons.append(
@@ -286,6 +301,12 @@ class ScoreCalculator:
             if score.coverage_percent < COVERAGE_WARN_THRESHOLD:
                 score.warning_reasons.append(
                     f"Coverage {score.coverage_percent}% < {COVERAGE_WARN_THRESHOLD}%"
+                )
+
+        if not score.is_exchange and score.event_coverage_percent is not None:
+            if score.event_coverage_percent < EVENT_COVERAGE_WARN_THRESHOLD:
+                score.warning_reasons.append(
+                    f"Event coverage {score.event_coverage_percent}% < {EVENT_COVERAGE_WARN_THRESHOLD}%"
                 )
 
         # Too many anomalies

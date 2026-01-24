@@ -137,6 +137,7 @@ class GoldenFixturesValidator:
         events: Dict[str, Dict],
         bookmaker_code: str,
         competition: str,
+        fixtures_override: Optional[List[Tuple[str, str, List[str]]]] = None,
     ) -> GoldenFixturesValidation:
         """
         Validate golden fixtures for a bookmaker.
@@ -149,7 +150,11 @@ class GoldenFixturesValidator:
         Returns:
             GoldenFixturesValidation with all check results
         """
-        golden_fixtures = self.config.get_golden_fixtures(competition)
+        golden_fixtures = (
+            fixtures_override
+            if fixtures_override is not None
+            else self.config.get_golden_fixtures(competition)
+        )
 
         result = GoldenFixturesValidation(
             bookmaker_code=bookmaker_code,
@@ -276,6 +281,7 @@ class GoldenFixturesValidator:
         self,
         result,  # ScrapeResult
         competition: str,
+        fixtures_override: Optional[List[Tuple[str, str, List[str]]]] = None,
     ) -> GoldenFixturesValidation:
         """
         Validate golden fixtures from a ScrapeResult object.
@@ -316,12 +322,14 @@ class GoldenFixturesValidator:
             events=events,
             bookmaker_code=result.bookmaker_code,
             competition=competition,
+            fixtures_override=fixtures_override,
         )
 
     def get_golden_fixture_summary(
         self,
         all_results: Dict[str, GoldenFixturesValidation],
         competition: str,
+        fixtures_override: Optional[List[Tuple[str, str, List[str]]]] = None,
     ) -> Dict[str, Dict]:
         """
         Get summary of golden fixture coverage across all bookmakers.
@@ -333,7 +341,11 @@ class GoldenFixturesValidator:
         Returns:
             Dict with per-fixture summary across bookmakers
         """
-        golden_fixtures = self.config.get_golden_fixtures(competition)
+        golden_fixtures = (
+            fixtures_override
+            if fixtures_override is not None
+            else self.config.get_golden_fixtures(competition)
+        )
         summary: Dict[str, Dict] = {}
 
         for home, away, _ in golden_fixtures:
