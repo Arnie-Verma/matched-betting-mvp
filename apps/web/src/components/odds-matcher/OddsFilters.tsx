@@ -43,6 +43,8 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
   const leaguesRef = useRef<HTMLDivElement>(null)
   const hasBookmakerFilters = filters.bookmakers.length > 0
   const hasLeagueFilters = filters.sports.length > 0
+  const prevHasBookmakerFilters = useRef(hasBookmakerFilters)
+  const prevHasLeagueFilters = useRef(hasLeagueFilters)
 
   // Fetch available bookmakers and sports on mount
   useEffect(() => {
@@ -96,16 +98,18 @@ export function OddsFilters({ filters, onFiltersChange }: OddsFiltersProps) {
   }, [filters.stake])
 
   useEffect(() => {
-    if (!hasBookmakerFilters && bookmakerSearch) {
+    if (prevHasBookmakerFilters.current && !hasBookmakerFilters) {
       setBookmakerSearch('')
     }
-  }, [hasBookmakerFilters, bookmakerSearch])
+    prevHasBookmakerFilters.current = hasBookmakerFilters
+  }, [hasBookmakerFilters])
 
   useEffect(() => {
-    if (!hasLeagueFilters && leagueSearch) {
+    if (prevHasLeagueFilters.current && !hasLeagueFilters) {
       setLeagueSearch('')
     }
-  }, [hasLeagueFilters, leagueSearch])
+    prevHasLeagueFilters.current = hasLeagueFilters
+  }, [hasLeagueFilters])
 
   // Close dropdowns when clicking outside
   useEffect(() => {

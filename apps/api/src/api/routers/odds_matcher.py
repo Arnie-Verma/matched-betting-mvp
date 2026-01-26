@@ -143,8 +143,10 @@ async def refresh_odds(
     redis_client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
     job_queue_key = os.getenv("ODDS_REFRESH_QUEUE_KEY", "odds_refresh_jobs")
     job_prefix = os.getenv("ODDS_REFRESH_JOB_PREFIX", "odds_refresh_job:")
+    in_progress_key = os.getenv("ODDS_REFRESH_IN_PROGRESS_KEY", "odds_refresh_in_progress_job_id")
     fast_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_FAST_SECONDS", "300"))
     slow_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_SLOW_SECONDS", "300"))
+    job_ttl_seconds = int(os.getenv("ODDS_REFRESH_JOB_TTL_SECONDS", "900"))
     max_queue_length = int(os.getenv("ODDS_REFRESH_MAX_QUEUE_LENGTH", "50"))
     merge_if_pending = os.getenv("ODDS_REFRESH_MERGE_IF_PENDING", "1") == "1"
     per_user_refresh_seconds = int(os.getenv("ODDS_REFRESH_PER_USER_SECONDS", "30"))
@@ -169,12 +171,6 @@ async def refresh_odds(
     else:
         logger.info(f"User found: {user.id}")
 
-    # Per-user rate limit independent of cache (now that user is defined)
-    user_rate_key = f"odds_refresh_rl:{user.id}"
-    if redis_client.exists(user_rate_key):
-        raise HTTPException(status_code=429, detail="Too many refreshes, try again soon")
-    redis_client.setex(user_rate_key, per_user_refresh_seconds, "1")
-
     # Check plan entitlements
     subscription_service = SubscriptionService()
     can_access, message = subscription_service.can_user_access_feature(
@@ -183,6 +179,26 @@ async def refresh_odds(
 
     if not can_access:
         raise HTTPException(status_code=403, detail=message)
+
+    # If a refresh is already queued/running, return the existing job_id so the
+    # frontend can show "Fetching latest odds..." instead of "No opportunities found".
+    existing_job_id = redis_client.get(in_progress_key)
+    if existing_job_id:
+        job_id = existing_job_id.decode()
+        # If the job pointer is stale, clear it and continue.
+        if redis_client.get(f"{job_prefix}{job_id}"):
+            opportunities_count = db.query(OddsSnapshot).filter(
+                OddsSnapshot.is_current == True
+            ).count()
+            return RefreshOddsResponse(
+                success=True,
+                message="Refresh already in progress; returning current cached odds",
+                opportunities_count=opportunities_count,
+                last_refresh=datetime.now(timezone.utc),
+                used_cache=False,
+                job_id=job_id,
+            )
+        redis_client.delete(in_progress_key)
 
     # Global cache key (shared by all users)
     global_cache_key = "odds_last_refresh_global"
@@ -200,13 +216,24 @@ async def refresh_odds(
                 OddsSnapshot.is_current == True
             ).count()
 
-            return RefreshOddsResponse(
-                success=True,
-                message=f"Using cached odds (updated {int(age_seconds)}s ago)",
-                opportunities_count=opportunities_count,
-                last_refresh=last_refresh,
-                used_cache=True
-            )
+            # If the cache key exists but we have no current odds snapshots, treat
+            # this as a cache miss (e.g. first run or after cleanup).
+            if opportunities_count == 0:
+                logger.info("Cache timestamp present but no current odds; treating as cache miss")
+            else:
+                return RefreshOddsResponse(
+                    success=True,
+                    message=f"Using cached odds (updated {int(age_seconds)}s ago)",
+                    opportunities_count=opportunities_count,
+                    last_refresh=last_refresh,
+                    used_cache=True
+                )
+
+    # Per-user rate limit only when we're about to enqueue a new refresh job.
+    user_rate_key = f"odds_refresh_rl:{user.id}"
+    if redis_client.exists(user_rate_key):
+        raise HTTPException(status_code=429, detail="Too many refreshes, try again soon")
+    redis_client.setex(user_rate_key, per_user_refresh_seconds, "1")
 
     # Enqueue refresh job instead of blocking the request
     from api.services.refresh_queue import enqueue_refresh_job
@@ -224,19 +251,17 @@ async def refresh_odds(
         payload,
         queue_key=job_queue_key,
         job_prefix=job_prefix,
-        ttl_seconds=900,
+        ttl_seconds=job_ttl_seconds,
         max_queue_length=max_queue_length,
         merge_if_pending=merge_if_pending,
     )
     job_id = enqueue_result["job_id"]
 
-    # Mark cache intent to prevent stampede; worker will set actual refresh time
-    # CRITICAL FIX: TTL must cover the entire scrape duration (~79s)
-    # If we only set fast_ttl_seconds (60s), the cache expires while worker is still running,
-    # causing stale data window: cache expires at T=60s but worker finishes at T=79s
+    # Store the "refresh in progress" job_id so other users can poll the same job
+    # instead of triggering additional scrapes.
+    redis_client.setex(in_progress_key, job_ttl_seconds, job_id)
+
     now = datetime.now(timezone.utc)
-    # Use slow_ttl (300s) to ensure cache doesn't expire while worker is scraping
-    redis_client.setex(global_cache_key, slow_ttl_seconds, now.isoformat())
 
     opportunities_count = db.query(OddsSnapshot).filter(
         OddsSnapshot.is_current == True

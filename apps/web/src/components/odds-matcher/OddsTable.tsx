@@ -6,10 +6,18 @@ import { TrendingUp, TrendingDown } from 'lucide-react'
 interface OddsTableProps {
   opportunities: OddsMatch[]
   loading: boolean
+  backgroundRefreshing?: boolean
+  backgroundMessage?: string | null
   onSelectOdds: (odds: OddsMatch) => void
 }
 
-export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTableProps) {
+export function OddsTable({
+  opportunities,
+  loading,
+  backgroundRefreshing = false,
+  backgroundMessage,
+  onSelectOdds
+}: OddsTableProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-AU', {
       style: 'currency',
@@ -58,6 +66,21 @@ export function OddsTable({ opportunities, loading, onSelectOdds }: OddsTablePro
   }
 
   if (!loading && opportunities.length === 0) {
+    if (backgroundRefreshing) {
+      return (
+        <div className="bg-card rounded-lg border shadow-sm p-12">
+          <div className="flex flex-col items-center justify-center text-muted-foreground text-center">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-lg font-medium mb-2 text-foreground/80">
+              {backgroundMessage || 'Fetching latest odds...'}
+            </p>
+            <p className="text-sm">
+              No cached opportunities yet. This typically takes 60-90 seconds.
+            </p>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="bg-card rounded-lg border shadow-sm p-12">
         <div className="text-center text-muted-foreground">

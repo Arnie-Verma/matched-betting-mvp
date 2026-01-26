@@ -30,34 +30,27 @@ def enqueue_refresh_job(
 
     Returns dict with {job_id, status, merged: bool}.
     """
-    job_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
-    job_key = f"{job_prefix}{job_id}"
 
     # Queue guard + merge behavior
     qlen = redis_client.llen(queue_key)
     if max_queue_length is not None and qlen >= max_queue_length:
-        body = {
-            "status": "skipped_merged",
-            "enqueued_at": now,
-            "updated_at": now,
-            "payload": payload,
-            "message": f"Queue length {qlen} exceeds cap {max_queue_length}; merge/skip",
-        }
-        redis_client.set(job_key, json.dumps(body), ex=ttl_seconds)
-        return {"job_id": job_id, "status": "skipped_merged", "merged": True}
+        # If the queue is already full, merge into the most-recent queued job instead
+        # of generating a new job_id that will never run.
+        existing = redis_client.lindex(queue_key, -1)
+        if existing:
+            return {"job_id": existing.decode(), "status": "pending", "merged": True}
+        # Fallback: allow a new job (should be rare/impossible if qlen >= max_queue_length)
 
     if merge_if_pending and qlen > 0:
-        body = {
-            "status": "skipped_merged",
-            "enqueued_at": now,
-            "updated_at": now,
-            "payload": payload,
-            "message": "Refresh already queued; merged request",
-        }
-        redis_client.set(job_key, json.dumps(body), ex=ttl_seconds)
-        return {"job_id": job_id, "status": "skipped_merged", "merged": True}
+        # A refresh is already queued - return the existing queued job_id so callers
+        # can poll the *real* job that will run.
+        existing = redis_client.lindex(queue_key, -1)
+        if existing:
+            return {"job_id": existing.decode(), "status": "pending", "merged": True}
 
+    job_id = str(uuid.uuid4())
+    job_key = f"{job_prefix}{job_id}"
     job_body = {
         "status": "pending",
         "enqueued_at": now,

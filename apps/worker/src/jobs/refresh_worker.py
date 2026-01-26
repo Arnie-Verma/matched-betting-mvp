@@ -55,10 +55,12 @@ async def _process_job(
     job_id: str,
     *,
     global_cache_key: str,
+    in_progress_key: str,
     job_prefix: str,
     queue_key: str,
     fast_ttl_seconds: int,
     slow_ttl_seconds: int,
+    job_ttl_seconds: int,
     max_retries: int,
     backoff_base: float,
     backoff_jitter: float,
@@ -71,6 +73,11 @@ async def _process_job(
     job = _load_job(redis_client, job_id, job_prefix=job_prefix)
     if not job:
         logger.warning(f"[refresh-worker] Job {job_id} not found or expired")
+        try:
+            if redis_client.get(in_progress_key) == job_id.encode():
+                redis_client.delete(in_progress_key)
+        except Exception:
+            pass
         return
 
     job.setdefault("payload", {})
@@ -78,7 +85,7 @@ async def _process_job(
     attempts = int(job.get("attempts", 0))
     job["started_at"] = datetime.now(timezone.utc).isoformat()
     job = _set_status(job, "running", "Fetching latest odds...")
-    _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=slow_ttl_seconds)
+    _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
 
     try:
         # Concurrency guard (global per bookmaker)
@@ -126,14 +133,19 @@ async def _process_job(
         job["attempts"] = attempts
         if attempts > max_retries:
             job = _set_status(job, "failed", "Refresh failed; moved to DLQ")
-            _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=slow_ttl_seconds)
+            _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
             redis_client.lpush(dlq_key, json.dumps(job))
+            try:
+                if redis_client.get(in_progress_key) == job_id.encode():
+                    redis_client.delete(in_progress_key)
+            except Exception:
+                pass
             return
 
         # Requeue with backoff + jitter
         delay = backoff_base * (2 ** (attempts - 1)) + random.random() * backoff_jitter
         job = _set_status(job, "pending", f"Retrying in {delay:.1f}s")
-        _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=slow_ttl_seconds)
+        _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
         await asyncio.sleep(delay)
         redis_client.rpush(queue_key, job_id)
         return
@@ -147,7 +159,12 @@ async def _process_job(
             except Exception:
                 pass
 
-    _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=slow_ttl_seconds)
+    _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
+    try:
+        if redis_client.get(in_progress_key) == job_id.encode():
+            redis_client.delete(in_progress_key)
+    except Exception:
+        pass
 
 
 async def run_worker_once(
@@ -156,8 +173,10 @@ async def run_worker_once(
     queue_key: str = DEFAULT_QUEUE_KEY,
     job_prefix: str = DEFAULT_JOB_PREFIX,
     global_cache_key: str = "odds_last_refresh_global",
+    in_progress_key: str = "odds_refresh_in_progress_job_id",
     fast_ttl_seconds: int = 300,
     slow_ttl_seconds: int = 300,
+    job_ttl_seconds: int = 900,
     max_retries: int = 3,
     backoff_base: float = 1.5,
     backoff_jitter: float = 1.0,
@@ -180,10 +199,12 @@ async def run_worker_once(
         redis_client,
         job_id,
         global_cache_key=global_cache_key,
+        in_progress_key=in_progress_key,
         job_prefix=job_prefix,
         queue_key=queue_key,
         fast_ttl_seconds=fast_ttl_seconds,
         slow_ttl_seconds=slow_ttl_seconds,
+        job_ttl_seconds=job_ttl_seconds,
         max_retries=max_retries,
         backoff_base=backoff_base,
         backoff_jitter=backoff_jitter,
@@ -204,8 +225,10 @@ def run_worker_forever() -> None:
     queue_key = os.getenv("ODDS_REFRESH_QUEUE_KEY", DEFAULT_QUEUE_KEY)
     job_prefix = os.getenv("ODDS_REFRESH_JOB_PREFIX", DEFAULT_JOB_PREFIX)
     global_cache_key = os.getenv("ODDS_REFRESH_GLOBAL_KEY", "odds_last_refresh_global")
+    in_progress_key = os.getenv("ODDS_REFRESH_IN_PROGRESS_KEY", "odds_refresh_in_progress_job_id")
     fast_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_FAST_SECONDS", "300"))
     slow_ttl_seconds = int(os.getenv("ODDS_CACHE_TTL_SLOW_SECONDS", "300"))
+    job_ttl_seconds = int(os.getenv("ODDS_REFRESH_JOB_TTL_SECONDS", "900"))
     max_retries = int(os.getenv("ODDS_REFRESH_MAX_RETRIES", "3"))
     backoff_base = float(os.getenv("ODDS_REFRESH_BACKOFF_BASE", "1.5"))
     backoff_jitter = float(os.getenv("ODDS_REFRESH_BACKOFF_JITTER", "1.0"))
@@ -228,8 +251,10 @@ def run_worker_forever() -> None:
                     queue_key=queue_key,
                     job_prefix=job_prefix,
                     global_cache_key=global_cache_key,
+                    in_progress_key=in_progress_key,
                     fast_ttl_seconds=fast_ttl_seconds,
                     slow_ttl_seconds=slow_ttl_seconds,
+                    job_ttl_seconds=job_ttl_seconds,
                     max_retries=max_retries,
                     backoff_base=backoff_base,
                     backoff_jitter=backoff_jitter,
