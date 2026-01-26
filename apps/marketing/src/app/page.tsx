@@ -7,7 +7,6 @@ import {
   Calculator,
   GraduationCap,
   Sparkles,
-  TrendingUp,
   CheckCircle2,
   MessageCircle,
   ChevronDown,
@@ -42,10 +41,10 @@ const highlights = [
     icon: <GraduationCap className="h-6 w-6" />,
   },
   {
-    title: "Profit Tracking",
+    title: "Community access",
     description:
-      "See your real profit clearly. Track every bet, outcome, and return so you always know where you stand.",
-    icon: <TrendingUp className="h-6 w-6" />,
+      "Join matched bettors sharing real strategies and current offers across Australian bookmakers.",
+    icon: <MessageCircle className="h-6 w-6" />,
   },
 ];
 
