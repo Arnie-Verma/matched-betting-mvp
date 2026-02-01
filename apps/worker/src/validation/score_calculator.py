@@ -251,14 +251,16 @@ class ScoreCalculator:
 
         # Structural failure
         if not score.structural_passed:
-            score.failure_reasons.append("Structural validation failed")
             if self.config.strict_mode:
+                score.failure_reasons.append("Structural validation failed")
                 return "FAIL"
 
             # In non-strict mode, structural issues are warnings
             # unless there are no events at all
             if score.event_count == 0:
+                score.failure_reasons.append("Structural validation failed (0 events)")
                 return "FAIL"
+            score.warning_reasons.append("Structural validation failed")
             score.warning_reasons.extend(score.structural_issues)
 
         # Coverage too low (for non-exchanges)

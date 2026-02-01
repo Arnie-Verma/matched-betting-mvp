@@ -758,12 +758,16 @@ class BetfairScraper(BaseScraper):
                         # Parse odds from this market
                         market_odds = self._parse_market_prices(market_node, event, market_name)
                         expected = self._expected_selection_count(sport, market_type)
+                        if not market_odds:
+                            continue
                         if len(market_odds) < expected:
+                            # Keep partial markets: exchanges often have liquidity on only 1 side.
+                            # Outmatched shows these (e.g., NBL) and we can still compute opportunities
+                            # for selections that have a valid lay price + liquidity.
                             self.logger.info(
-                                f"[Betfair/{sport}] Skipping {market_name} for {event_name}: "
+                                f"[Betfair/{sport}] Partial {market_name} for {event_name}: "
                                 f"{len(market_odds)}<{expected} selections with liquidity"
                             )
-                            continue
                         self.logger.debug(f"Parsed {len(market_odds)} odds from {market_name}")
                         event.odds.extend(market_odds)
 
@@ -1149,6 +1153,12 @@ class BetfairScraper(BaseScraper):
             if separator in event_name:
                 parts = event_name.split(separator)
                 if len(parts) == 2:
+                    if separator == ' @ ':
+                        # Betfair uses Away @ Home for US sports (NBA/NHL)
+                        away = parts[0].strip()
+                        home = parts[1].strip()
+                        return (home, away)
+
                     home = parts[0].strip()
                     away = parts[1].strip()
                     return (home, away)

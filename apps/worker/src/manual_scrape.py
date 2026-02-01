@@ -11,11 +11,13 @@ sys.path.insert(0, "/workspace/apps/worker/src")
 from jobs.scrape_service import trigger_scrape
 
 async def main():
+    sport = sys.argv[1] if len(sys.argv) > 1 else "all"
+
     print("=== Starting manual scrape ===")
-    print("Scraping all bookmakers for all sports...")
+    print(f"Scraping all bookmakers for sport='{sport}'...")
 
     start_time = time.time()
-    result = await trigger_scrape(sport="all", limit=None)  # Scrape all sports
+    result = await trigger_scrape(sport=sport, limit=None)
     total_time = time.time() - start_time
 
     print("\n=== Scrape Complete ===")

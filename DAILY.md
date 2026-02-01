@@ -4,6 +4,37 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-02-01 (Sunday)
+
+### Completed
+- Outmatched vs our MintBet parity review: identified missing NBA/NHL + missing boxing fighters + worse NBL odds source market
+- Punterstech scraper: include full-game `Money Line` markets (exclude quarter/half variants), tighten league filters (drop generic Premier League + non-AU “national basketball league”), and derive home/away from event name to keep selection_key stable
+- Odds matcher: group selections by `selection_key` first (home/away/draw) and avoid name-based false negatives when keys match
+- Added regression test for Money Line parsing and validated via live MintBet+Betfair scrapes that top opportunities now align with Outmatched ordering/PnL (NBL/NBA/NHL/boxing)
+
+### Blockers
+- None
+
+### Next Steps
+- Re-scrape in Docker and compare `/odds/matcher` UI output to Outmatched again (MintBet vs Betfair top rows should now include NBA/NHL + boxing fighters)
+
+## 2026-01-27 (Tuesday)
+
+### Completed
+- Parity audit vs Outmatched MintBet output (boxing/NBA/NBL gaps identified)
+- Fixed Punterstech boxing scrape: include `boxing` event type + parse `Fight Result` markets
+- Fixed Betfair team parsing for NBA/NHL `Away @ Home` format (correct home/away + selection_key)
+- Allowed partial Betfair markets (1-side liquidity) so NBL opportunities aren’t dropped
+- Improved boxing competition normalization (`Professional Boxing - ...` → `boxing`) so events group correctly
+- Odds matcher: group selections by `selection_key` (home/away/draw) before name-normalization fallback
+- Validation: non-strict structural failures now WARN (unless 0 events), as intended
+
+### Blockers
+- None
+
+### Next Steps
+- Run odds matcher UI sanity check: boxing + NBA/NBL/NHL opportunities should now appear with MintBet vs Betfair
+
 ## 2026-01-24 (Saturday)
 
 ### Completed

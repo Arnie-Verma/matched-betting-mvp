@@ -147,7 +147,7 @@ class PunterstechScraper(BaseScraper):
     # Competition filters - only scrape these for matched betting
     COMPETITION_FILTERS = {
         "soccer": [
-            "english premier league", "premier league", "epl",
+            "english premier league", "epl",
             "a-league", "a league", "a-league men", "a-league women", "aleague",
             "la liga", "spanish la liga", "spanish primera", "spain-la-liga",
             "bundesliga", "german bundesliga",
@@ -160,7 +160,8 @@ class PunterstechScraper(BaseScraper):
         ],
         "afl": ["afl", "australian football league"],
         "nrl": ["nrl", "national rugby league"],
-        "basketball": ["nba", "nbl", "national basketball league", "australia-nbl"],
+        # NOTE: Keep this tight. "National Basketball League" matches many countries.
+        "basketball": ["nba", "nbl", "australia-nbl"],
         "ice_hockey": ["nhl", "national hockey league"],
         "boxing": ["boxing", "upcoming fights", "fight night", "ufc", "ultimate-fighting"],
     }
@@ -173,7 +174,9 @@ class PunterstechScraper(BaseScraper):
         "nrl": ["rugby-league"],
         "basketball": ["basketball"],
         "ice_hockey": ["ice-hockey"],
-        "boxing": ["martial-arts"],
+        # MintBet exposes BOTH "boxing" and "martial-arts" event types
+        # (see /api-events/public/open-event-types).
+        "boxing": ["boxing", "martial-arts"],
     }
 
     # Market types we care about (for matched betting)
@@ -356,6 +359,9 @@ class PunterstechScraper(BaseScraper):
         competition_filters = self.COMPETITION_FILTERS.get(target_sport, [])
         if competition_filters:
             comp_lower = self._get_competition_name(event_data).lower()
+            # Skip futures/outrights - odds matcher is for head-to-head fixtures.
+            if any(token in comp_lower for token in ("futures", "outright")):
+                return False
             if not any(f in comp_lower for f in competition_filters):
                 return False
 
@@ -648,13 +654,20 @@ class PunterstechScraper(BaseScraper):
                 if start_time < datetime.now(timezone.utc):
                     continue
 
-                # Extract teams from Competitors or event name
-                competitors = event_data.get("Competitors", [])
-                if len(competitors) >= 2:
-                    home_team = competitors[0].get("Name", "")
-                    away_team = competitors[1].get("Name", "")
-                else:
-                    home_team, away_team = self._parse_teams_from_name(event_name)
+                # Extract teams.
+                #
+                # IMPORTANT: Prefer the event name separator semantics:
+                # - "Home v Away"  -> Home/Away
+                # - "Away @ Home"  -> Away/Home (rare on Punterstech, common on Betfair)
+                #
+                # This keeps home/away consistent across bookmakers and prevents false
+                # arbitrage opportunities when selection_key is used for matching.
+                home_team, away_team = self._parse_teams_from_name(event_name)
+                if not home_team or not away_team:
+                    competitors = event_data.get("Competitors", [])
+                    if len(competitors) >= 2:
+                        home_team = competitors[0].get("Name", "") or None
+                        away_team = competitors[1].get("Name", "") or None
 
                 # Create event
                 event = ScrapedEvent(
@@ -696,11 +709,55 @@ class PunterstechScraper(BaseScraper):
 
                     # Only process Head to Head / Match Result / Match Winner markets
                     market_desc_lower = market_desc.lower()
-                    is_match_winner = (
+                    # NOTE: Punterstech uses different names per sport:
+                    # - Soccer: "Match Result"
+                    # - Basketball/Ice hockey: "Money Line" (and sometimes also "Match Winner")
+                    # - Boxing: "Fight Betting"/"Fight Result"
+                    #
+                    # We explicitly EXCLUDE partial-game markets like "1st Half Money Line"
+                    # so we don't accidentally treat quarters/periods as full-time match winner.
+                    is_partial_market = any(
+                        token in market_desc_lower
+                        for token in (
+                            "1st half",
+                            "first half",
+                            "2nd half",
+                            "second half",
+                            "half time",
+                            "halftime",
+                            "1st quarter",
+                            "first quarter",
+                            "2nd quarter",
+                            "second quarter",
+                            "3rd quarter",
+                            "third quarter",
+                            "4th quarter",
+                            "fourth quarter",
+                            "period",
+                            "set",
+                            "map",
+                            "innings",
+                        )
+                    )
+
+                    is_money_line = ("money line" in market_desc_lower) or ("moneyline" in market_desc_lower)
+                    is_head_to_head = (
                         market_type == "HeadToHead"
-                        or "match winner" in market_desc_lower
-                        or "match result" in market_desc_lower
-                        or market_data.get("ExternalRef") == "MW"
+                        or "head to head" in market_desc_lower
+                        or "head-to-head" in market_desc_lower
+                        or "h2h" in market_desc_lower
+                    )
+                    is_match_result = ("match winner" in market_desc_lower) or ("match result" in market_desc_lower)
+                    is_boxing = "fight" in market_desc_lower
+                    is_match_winner = (
+                        not is_partial_market
+                        and (
+                            is_head_to_head
+                            or is_match_result
+                            or is_money_line
+                            or is_boxing
+                            or market_data.get("ExternalRef") == "MW"
+                        )
                     )
 
                     if not is_match_winner:
@@ -720,6 +777,8 @@ class PunterstechScraper(BaseScraper):
                                 if selection_key == "other":
                                     continue
 
+                                canonical_name = self._canonicalize_selection_name(sel_name, selection_key, event)
+
                                 odds = ScrapedOdds(
                                     event_external_id=event.external_id,
                                     event_name=event.name,
@@ -728,7 +787,7 @@ class PunterstechScraper(BaseScraper):
                                     start_time=event.start_time,
                                     market_type="match_winner",
                                     market_name=market_desc or "Match Result",
-                                    selection_name=sel_name,
+                                    selection_name=canonical_name,
                                     selection_key=selection_key,
                                     decimal_odds=Decimal(str(win_price)).quantize(Decimal("0.01")),
                                     bookmaker_code=self.bookmaker_code,
@@ -905,6 +964,8 @@ class PunterstechScraper(BaseScraper):
             if selection_key == "other":
                 return
 
+            canonical_name = self._canonicalize_selection_name(sel_name, selection_key, event)
+
             odds = ScrapedOdds(
                 event_external_id=event.external_id,
                 event_name=event.name,
@@ -913,7 +974,7 @@ class PunterstechScraper(BaseScraper):
                 start_time=event.start_time,
                 market_type="match_winner",
                 market_name=market_name,
-                selection_name=sel_name,
+                selection_name=canonical_name,
                 selection_key=selection_key,
                 decimal_odds=decimal_odds.quantize(Decimal("0.01")),
                 bookmaker_code=self.bookmaker_code,
@@ -974,7 +1035,47 @@ class PunterstechScraper(BaseScraper):
         if event.away_team and event.away_team.lower() in name_lower:
             return "away"
 
+        # Boxing (and some individual sports) sometimes abbreviate outcomes like "Lopez, T".
+        # Fall back to a surname match so selection_key stays stable across bookmakers.
+        if "," in selection_name and (event.home_team or event.away_team):
+            def surname(text: str) -> str:
+                if not text:
+                    return ""
+                norm_text = self._normalize_selection_text(text)
+                parts = norm_text.split()
+                if not parts:
+                    return ""
+                # If the original had a comma ("Last, F"), treat the first token as surname.
+                if "," in text:
+                    return parts[0]
+                # Otherwise treat the last token as surname (e.g., "Teofimo Lopez" -> "lopez")
+                return parts[-1]
+
+            sel_surname = surname(selection_name)
+            home_surname = surname(event.home_team) if event.home_team else ""
+            away_surname = surname(event.away_team) if event.away_team else ""
+
+            if sel_surname and home_surname and sel_surname == home_surname:
+                return "home"
+            if sel_surname and away_surname and sel_surname == away_surname:
+                return "away"
+
         return "other"
+
+    def _canonicalize_selection_name(self, selection_name: str, selection_key: str, event: ScrapedEvent) -> str:
+        """
+        Prefer full competitor names for H2H selections.
+
+        Punterstech outcome names are sometimes abbreviated (e.g., "Wild", "Kings Win").
+        Using the event's full competitor names improves cross-bookmaker matching.
+        """
+        if selection_key == "home" and event.home_team:
+            return event.home_team
+        if selection_key == "away" and event.away_team:
+            return event.away_team
+        if selection_key == "draw":
+            return "Draw"
+        return selection_name
 
     def _is_simple_team_selection(self, selection_name: str, team_name: str) -> bool:
         """Return True if selection is just the team (optionally with a win suffix)."""

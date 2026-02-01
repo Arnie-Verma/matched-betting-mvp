@@ -125,6 +125,73 @@ class TestOddsParsing:
     def scraper(self):
         return PunterstechScraper("tradiebet", "https://api.public.tradie.bet")
 
+    def test_parse_punterstech_events_includes_money_line_full_game(self, scraper):
+        """Ensure Money Line markets are treated as match-winner (and partial-game markets excluded)."""
+        now = datetime.now(timezone.utc)
+        future_ms = str(int((now + timedelta(hours=24)).timestamp() * 1000))
+
+        events_by_key = {
+            "12618316": {
+                "EventKey": "12618316",
+                "Name": "Cairns Taipans v Sydney Kings",
+                "EventType": "basketball",
+                "EventSubType": "australia-nbl",
+                "StartTime": future_ms,
+                "Competitors": [
+                    {"Name": "Cairns Taipans", "Position": 1},
+                    {"Name": "Sydney Kings", "Position": 2},
+                ],
+            }
+        }
+
+        markets_by_key = {
+            "12618316": [
+                # Should be EXCLUDED (partial-game)
+                {
+                    "Description": "1st Half Money Line",
+                    "ExternalRef": "331",
+                    "Outcomes": [
+                        {"Name": "Cairns Taipans", "Prices": [{"WinPrice": 4.4}]},
+                        {"Name": "Sydney Kings", "Prices": [{"WinPrice": 1.18}]},
+                    ],
+                },
+                # Should be INCLUDED (full-game)
+                {
+                    "Description": "Money Line",
+                    "ExternalRef": "115",
+                    "Outcomes": [
+                        {"Name": "Cairns Taipans", "Prices": [{"WinPrice": 8.5}]},
+                        {"Name": "Sydney Kings", "Prices": [{"WinPrice": 1.06}]},
+                    ],
+                },
+                # Also included (legacy naming used on some events)
+                {
+                    "Description": "Match Winner",
+                    "ExternalRef": "MW",
+                    "Outcomes": [
+                        {"Name": "Cairns Taipans Win", "Prices": [{"WinPrice": 9.0}]},
+                        {"Name": "Sydney Kings Win", "Prices": [{"WinPrice": 1.04}]},
+                    ],
+                },
+            ]
+        }
+
+        events = scraper._parse_punterstech_events(events_by_key, markets_by_key, target_sport="basketball")
+        assert len(events) == 1
+
+        event = events[0]
+        market_names = {o.market_name for o in event.odds}
+        assert "Money Line" in market_names
+        assert all("1st half" not in (o.market_name or "").lower() for o in event.odds)
+
+        # Sanity: Sydney Kings Money Line should be present and greater than 1.0
+        sydney_money_line = [
+            o for o in event.odds
+            if o.market_name == "Money Line" and o.selection_key == "away"
+        ]
+        assert sydney_money_line
+        assert sydney_money_line[0].decimal_odds > Decimal("1.0")
+
     def test_parse_market_structure(self, scraper):
         """Test that _parse_market method exists and accepts correct params"""
         from scrapers.base import ScrapedEvent

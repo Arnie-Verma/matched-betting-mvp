@@ -463,6 +463,14 @@ class OddsPersistence:
             )
         )
 
+        if selection:
+            # Keep selection names in sync with the latest scrape for this selection_key.
+            # This is important when a scraper bugfix changes home/away inference (e.g. Betfair '@'),
+            # otherwise odds could be written onto an existing selection with a stale name.
+            if scraped_odds.selection_name and selection.name != scraped_odds.selection_name:
+                selection.name = scraped_odds.selection_name
+                self.db.add(selection)
+
         if not selection:
             selection = Selection(
                 market_id=market.id,

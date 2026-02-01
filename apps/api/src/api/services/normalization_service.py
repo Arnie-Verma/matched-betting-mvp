@@ -450,6 +450,10 @@ class NormalizationService:
         norm = name.lower().strip()
         # Strip season prefixes like "2025/2026 " or "2025 "
         norm = re.sub(r'^\d{4}(?:/\d{4})?\s+', '', norm)
+        # Boxing often includes event-specific suffixes (e.g., "Professional Boxing - Zayas vs. Baraou")
+        # Treat all such variants as the single canonical competition "boxing" so bookmakers group correctly.
+        if any(token in norm for token in ("boxing", "martial arts", "ufc")):
+            return "boxing"
         # Strip trailing phase markers like "- Round 20" or "- Regular Season"
         norm = re.sub(r'\s*-\s*(round\s+\d+|regular season)\s*$', '', norm)
         norm = norm.strip()
