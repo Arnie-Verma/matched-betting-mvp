@@ -39,6 +39,31 @@ Instructions for Claude Code when working in this repository. Be extremely conci
 
 ---
 
+## Architecture and Decision Tracking
+
+**REQUIRED**: Keep architecture and decision docs in sync with code changes.
+
+**Source of truth files**:
+- `ARCHITECTURE.md` (how system works now)
+- `docs/adr/README.md` + `docs/adr/ADR-xxxx-*.md` (why key decisions were made)
+- `BOOKMAKER_OPERATING_SYSTEM.md` (operating guardrails/lifecycle gates)
+- `SCRAPER_HARDENING_PLAN.md` (current hardening execution plan)
+
+**Must update in same PR/session when behavior changes**:
+1. `ARCHITECTURE.md` if refresh flow, scrape orchestration, matcher read path, data lifecycle, auth/plan gating, or runtime config behavior changes.
+2. Create/update an ADR in `docs/adr/` when changing architectural direction or runtime policy.
+3. `BOOKMAKER_OPERATING_SYSTEM.md` and/or `SCRAPER_HARDENING_PLAN.md` if guardrails/gates/process changed.
+4. Add a short decision note in `DAILY.md` with ADR reference (example: `ADR-0003`).
+
+**Examples that require ADR update**:
+- Changing batch/concurrency policy (for example `SCRAPER_BATCH_SIZE` strategy)
+- Changing refresh queue semantics, retry/backoff, or merge behavior
+- Changing persistence/retention semantics (`is_current`, cleanup, retention windows)
+- Changing normalization or selection-key strategy
+- Changing activation/lifecycle enforcement rules
+
+---
+
 ## Project Overview
 
 Matched betting SaaS platform (Outmatched.com-style) for Australian market.

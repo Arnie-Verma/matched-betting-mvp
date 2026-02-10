@@ -1,0 +1,47 @@
+# Architecture Decision Records
+
+This folder stores key architecture decisions and their rationale.
+
+## When to add/update an ADR
+Create or update an ADR when any of the following changes:
+- refresh/scrape orchestration design
+- data retention or persistence semantics
+- platform adapter model
+- concurrency/isolation policy
+- normalization/matching strategy
+- rollout/activation guardrail design
+
+## ADR Index
+- `ADR-0001-async-refresh-queue.md`
+- `ADR-0002-dynamic-scraper-registry.md`
+- `ADR-0003-local-first-concurrency-policy.md`
+- `ADR-0004-current-odds-first-persistence.md`
+- `ADR-0005-centralized-normalization-for-matching.md`
+- `ADR-0006-bookmaker-isolation-with-circuit-breakers.md`
+
+## ADR Template
+Use this structure:
+
+```md
+# ADR-xxxx: Title
+
+- Status: Accepted | Superseded | Proposed
+- Date: YYYY-MM-DD
+- Owners: @team_or_person
+
+## Context
+Problem and constraints.
+
+## Decision
+What was decided.
+
+## Consequences
+Benefits, tradeoffs, operational impact.
+
+## Alternatives Considered
+What was considered and why not chosen.
+
+## Follow-ups
+Implementation notes, validation steps, or re-evaluation triggers.
+```
+
