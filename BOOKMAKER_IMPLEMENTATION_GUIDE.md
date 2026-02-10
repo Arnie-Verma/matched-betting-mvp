@@ -1,6 +1,7 @@
 # Bookmaker Implementation Guide
 
 **Created**: 2026-01-19
+**Last Updated**: 2026-02-08
 **Purpose**: Quick reference for implementing new bookmaker scrapers
 
 ---
@@ -9,7 +10,7 @@
 
 ### If Platform Scraper Already Exists
 
-**Platforms with working scrapers**: Entain (3), Betfair (1), Punterstech (21)
+**Platforms with working scrapers**: Entain, Betfair, Punterstech, Kindred (Unibet)
 
 1. Add entry to `apps/api/src/api/scripts/seed_all_bookmakers.py`
 2. Run: `docker exec mb_api python -m api.scripts.seed_all_bookmakers`
@@ -44,6 +45,41 @@
 
 ---
 
+## Unibet End-to-End Acceptance Checklist (Local-First)
+
+Use this checklist to prove Unibet is production-like ready in local pre-production mode.
+
+1. **Config + wiring**
+- [ ] `unibet` exists in `seed_all_bookmakers.py` with `platform=kindred`, `scraper_class=kindred`, `is_active=true`.
+- [ ] `kindred` is registered in `apps/worker/src/jobs/scrape_service.py` `SCRAPER_CLASSES`.
+
+2. **Scraper health**
+- [ ] Run a full scrape and confirm Unibet events/odds are saved:
+  - `docker exec mb_api python ../worker/src/manual_scrape.py`
+- [ ] Confirm current odds exist for Unibet in DB (non-zero).
+
+3. **Competition/market correctness**
+- [ ] Validate target competitions one-by-one (EPL, NBA, NHL, boxing, NBL):
+  - `docker exec mb_api python -m worker.src.scripts.validate_scrapers --competition epl --bookmaker unibet`
+  - repeat for other target competitions.
+- [ ] Confirm expected market shapes (2-way or 3-way as intended) and stable `selection_key`.
+
+4. **Local canary (required)**
+- [ ] Run repeated refresh/validation cycles for 30-60 minutes.
+- [ ] Target at least 10-20 cycles across target competitions.
+- [ ] Monitor: success rate, breaker opens, validation trend, event/odds count drift.
+
+5. **UI visibility**
+- [ ] Confirm your account plan allows Unibet.
+- [ ] Open odds matcher and verify Unibet appears as a back bookmaker.
+- [ ] Verify expected opportunities appear for target competitions.
+
+6. **Go/No-Go**
+- [ ] Promote only if checklist passes and no unresolved critical issues.
+- [ ] If failed, set degraded/disabled, capture failure signature, fix, and rerun checklist.
+
+---
+
 ## Platform Status Summary
 
 | Platform | Bookmakers | Scraper | Status | Priority |
@@ -51,7 +87,7 @@
 | **Entain** | 3 | ✅ `entain` | Working | - |
 | **Betfair** | 1 | ✅ `betfair` | Working | - |
 | **Punterstech** | 21 | ✅ `punterstech` | Working | - |
-| **Kindred/Unibet** | 1 | ❌ Needs impl | API discovered | High |
+| **Kindred/Unibet** | 1 | ✅ `kindred` | Implemented | - |
 | **BetCloud** | 26 | ❌ Needs impl | API discovered | High |
 | **Generation Web** | 22 | ❌ Needs impl | Partial discovery | Medium |
 | **BetMakers** | 33 | ❌ Needs impl | SSR approach | Medium |
@@ -61,7 +97,7 @@
 
 ## Platform Implementation Details
 
-### 1. Kindred/Unibet (1 bookmaker) - READY TO IMPLEMENT
+### 1. Kindred/Unibet (1 bookmaker) - IMPLEMENTED
 
 **Discovery Date**: 2025-12-30
 **Owner**: Kindred Group (FDJ acquired 2024)
@@ -96,7 +132,7 @@ GET /sportsbook-feeds/settings?clientId=polopoly_desktop  → Config (50KB)
 - No proxy needed
 - Sport codes: `football`, `basketball`, `ice-hockey`, `american-football`, etc.
 
-**Estimated Effort**: 1-2 days
+**Estimated Effort**: Completed (historical estimate was 1-2 days)
 
 ---
 
@@ -637,14 +673,15 @@ When adding new bookmaker, check these normalizations work:
 
 ## Implementation Priority
 
-1. **Kindred/Unibet** (1 day) - Premium bookmaker, full API ready
-2. **BetCloud** (3 days) - 26 bookmakers, API confirmed
-3. **Generation Web** (4 days) - 22 bookmakers, needs odds endpoint discovery
-4. **BetMakers** (5 days) - 33 bookmakers, DOM parsing required
+1. **BetCloud** (3 days) - 26 bookmakers, API confirmed
+2. **Generation Web** (4 days) - 22 bookmakers, needs odds endpoint discovery
+3. **BetMakers** (5 days) - 33 bookmakers, DOM/API query capture still required
+4. **Standalone premium books** - PointsBet and BetRight next
 
-Total: ~13 days to add 82 bookmakers
+Total remaining effort depends on discovery closure for Generation Web and BetMakers.
 
 ---
 
-*Document version: 1.0*
+*Document version: 1.2*
 *Created: 2026-01-19*
+*Updated: 2026-02-08*
