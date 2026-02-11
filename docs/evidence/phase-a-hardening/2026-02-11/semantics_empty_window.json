@@ -1,0 +1,135 @@
+{
+  "scenario": "empty_eligibility_window",
+  "result": {
+    "competition": "epl",
+    "bookmaker_results": {
+      "mintbet": {
+        "bookmaker_code": "mintbet",
+        "competition": "epl",
+        "status": "SKIP",
+        "is_exchange": false,
+        "event_count": 1,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": null,
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [],
+        "warning_reasons": [
+          "No eligible reference fixtures in window (status=SKIP)"
+        ],
+        "eligible_reference_events": 0,
+        "no_eligible_reference_window": true,
+        "validated_at": "2026-02-11T06:00:51.452586+00:00",
+        "scrape_duration_seconds": 1.0
+      },
+      "ladbrokes": {
+        "bookmaker_code": "ladbrokes",
+        "competition": "epl",
+        "status": "N_A",
+        "is_exchange": false,
+        "event_count": 1,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": null,
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [],
+        "warning_reasons": [
+          "No eligible reference fixtures in window (status=N_A)"
+        ],
+        "eligible_reference_events": 0,
+        "no_eligible_reference_window": true,
+        "validated_at": "2026-02-11T06:00:51.452618+00:00",
+        "scrape_duration_seconds": 1.0
+      }
+    },
+    "has_failures": false,
+    "has_warnings": false,
+    "duration_seconds": 0.0003898143768310547
+  },
+  "report": {
+    "competition": "epl",
+    "reference_bookmaker": "ladbrokes",
+    "reference_events": 0,
+    "reference_total_events": 1,
+    "scores": {
+      "mintbet": {
+        "bookmaker_code": "mintbet",
+        "competition": "epl",
+        "status": "SKIP",
+        "is_exchange": false,
+        "event_count": 1,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": null,
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [],
+        "warning_reasons": [
+          "No eligible reference fixtures in window (status=SKIP)"
+        ],
+        "eligible_reference_events": 0,
+        "no_eligible_reference_window": true,
+        "validated_at": "2026-02-11T06:00:51.452586+00:00",
+        "scrape_duration_seconds": 1.0
+      },
+      "ladbrokes": {
+        "bookmaker_code": "ladbrokes",
+        "competition": "epl",
+        "status": "N_A",
+        "is_exchange": false,
+        "event_count": 1,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": null,
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [],
+        "warning_reasons": [
+          "No eligible reference fixtures in window (status=N_A)"
+        ],
+        "eligible_reference_events": 0,
+        "no_eligible_reference_window": true,
+        "validated_at": "2026-02-11T06:00:51.452618+00:00",
+        "scrape_duration_seconds": 1.0
+      }
+    },
+    "golden_fixtures_summary": {},
+    "summary": {
+      "total_bookmakers": 2,
+      "pass_count": 0,
+      "warn_count": 0,
+      "fail_count": 0,
+      "skip_count": 1,
+      "na_count": 1,
+      "average_coverage": "100.0"
+    },
+    "generated_at": "2026-02-11T06:00:51.452666+00:00",
+    "validation_duration_seconds": 0.0003898143768310547
+  }
+}

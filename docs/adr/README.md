@@ -18,6 +18,8 @@ Create or update an ADR when any of the following changes:
 - `ADR-0004-current-odds-first-persistence.md`
 - `ADR-0005-centralized-normalization-for-matching.md`
 - `ADR-0006-bookmaker-isolation-with-circuit-breakers.md`
+- `ADR-0007-phase-a-unibet-freeze-enforcement.md`
+- `ADR-0008-validation-eligibility-window-semantics.md`
 
 ## ADR Template
 Use this structure:
@@ -44,4 +46,3 @@ What was considered and why not chosen.
 ## Follow-ups
 Implementation notes, validation steps, or re-evaluation triggers.
 ```
-

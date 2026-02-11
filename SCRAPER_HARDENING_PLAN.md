@@ -25,6 +25,7 @@ This plan directly implements:
 ## Scope
 - In scope: Entain (`ladbrokes`, `neds`) and Punterstech (`mintbet`, `tradiebet`, same platform peers)
 - Out of scope: adding new platforms/bookmakers until hardening exit criteria pass
+- Freeze enforcement: Unibet remains code-frozen during Phase A via `BOOKMAKER_FREEZE_UNIBET=true` (default)
 
 ## Workstreams
 
@@ -39,11 +40,15 @@ Changes:
 - Add `SKIP`/`N_A` handling for no-eligible-fixture windows.
 - Calibrate event-count thresholds per competition/season.
 - Ensure event coverage is calculated only against valid reference fixture sets.
+- Surface eligible vs total reference fixture counts in validation reports/JSON.
+- Add regression tests for empty and partial eligibility windows.
 
 Primary files:
 - `apps/worker/src/validation/config.py`
 - `apps/worker/src/validation/pipeline.py`
 - `apps/worker/src/validation/score_calculator.py`
+- `apps/worker/src/validation/report_generator.py`
+- `apps/worker/tests/test_validation.py`
 
 Exit criteria:
 - EPL/NBA/NHL/boxing/NBL validation status is stable and explainable across repeated runs.
@@ -186,6 +191,7 @@ Exit criteria:
 Pause new bookmaker onboarding if either condition is true:
 - Active scraper reliability drops below agreed threshold.
 - Validation outcomes are unstable/non-deterministic across repeated runs.
+- Unibet (and any explicitly frozen bookmaker) cannot be re-enabled while freeze flags remain active.
 
 ## Final Pre-Unibet Go/No-Go Checklist
 - [ ] Entain and Punterstech pass identical DoD tests.

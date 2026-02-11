@@ -1,0 +1,666 @@
+{
+  "generated_at": "2026-02-11T10:40:31.136762+00:00",
+  "data_source": "live_db_from_docker",
+  "competitions": {
+    "epl": {
+      "has_failures": true,
+      "has_warnings": true,
+      "bookmakers": {
+        "betblitz": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "betbuzz": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "betchamps": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "betfair": {
+          "status": "PASS",
+          "critical_anomalies": 0,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "betfocus": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "betreal": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "betvista": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "blondebet": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "cashcage": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "ladbrokes": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "lightningbet": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "millennialbet": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "mintbet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "neds": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "ripperbet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "starsports": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "teambet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "topbet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "tradiebet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "truebet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        },
+        "wizbet": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 31,
+          "eligible_reference_events": 30
+        }
+      }
+    },
+    "nba": {
+      "has_failures": true,
+      "has_warnings": true,
+      "bookmakers": {
+        "betblitz": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "betbuzz": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "betchamps": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "betfair": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "betfocus": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "betreal": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "betvista": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "blondebet": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "cashcage": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "ladbrokes": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "lightningbet": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "millennialbet": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "mintbet": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "neds": {
+          "status": "WARN",
+          "critical_anomalies": 2,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "ripperbet": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "starsports": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "teambet": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "topbet": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "tradiebet": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "truebet": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        },
+        "wizbet": {
+          "status": "FAIL",
+          "critical_anomalies": 40,
+          "total_reference_events": 53,
+          "eligible_reference_events": 52
+        }
+      }
+    },
+    "nhl": {
+      "has_failures": true,
+      "has_warnings": true,
+      "bookmakers": {
+        "betblitz": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "betbuzz": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "betchamps": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "betfair": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "betfocus": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "betreal": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "betvista": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "blondebet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "cashcage": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "ladbrokes": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "lightningbet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "millennialbet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "mintbet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "neds": {
+          "status": "WARN",
+          "critical_anomalies": 2,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "ripperbet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "starsports": {
+          "status": "FAIL",
+          "critical_anomalies": 5,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "teambet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "topbet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "tradiebet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "truebet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        },
+        "wizbet": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 34,
+          "eligible_reference_events": 31
+        }
+      }
+    },
+    "boxing": {
+      "has_failures": true,
+      "has_warnings": true,
+      "bookmakers": {
+        "betblitz": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "betbuzz": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "betchamps": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "betfair": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "betfocus": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "betreal": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "betvista": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "blondebet": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "cashcage": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "ladbrokes": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "lightningbet": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "millennialbet": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "mintbet": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "neds": {
+          "status": "FAIL",
+          "critical_anomalies": 4,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "ripperbet": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "starsports": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "teambet": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "topbet": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "tradiebet": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "truebet": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        },
+        "wizbet": {
+          "status": "FAIL",
+          "critical_anomalies": 19,
+          "total_reference_events": 47,
+          "eligible_reference_events": 47
+        }
+      }
+    },
+    "nbl": {
+      "has_failures": true,
+      "has_warnings": true,
+      "bookmakers": {
+        "betblitz": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "betbuzz": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "betchamps": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "betfair": {
+          "status": "PASS",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "betfocus": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "betreal": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "betvista": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "blondebet": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "cashcage": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "ladbrokes": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "lightningbet": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "millennialbet": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "mintbet": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "neds": {
+          "status": "WARN",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "ripperbet": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "starsports": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "teambet": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "topbet": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "tradiebet": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "truebet": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        },
+        "wizbet": {
+          "status": "FAIL",
+          "critical_anomalies": 0,
+          "total_reference_events": 12,
+          "eligible_reference_events": 12
+        }
+      }
+    }
+  }
+}

@@ -4,6 +4,56 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-02-11 (Wednesday)
+
+### Completed
+- Session start: completed repo onboarding sequence (`README.md`, `CLAUDE.md`, operating docs, hardening plan, roadmap, discovery, implementation guide, validation framework, Unibet runbook) and architecture inspection (worker/api/web paths)
+- Confirmed Phase A priority and freeze-first direction; identified that Unibet is currently active in seed/runtime paths and must be frozen before further onboarding work
+- PR1 freeze enforcement completed:
+  - Added central freeze policy module `api.core.bookmaker_freeze` with `BOOKMAKER_FREEZE_UNIBET` (default `true`)
+  - Worker activation gate now skips frozen bookmakers in `scrape_service`
+  - Plan-exposed bookmaker lists now filter frozen bookmakers in `SubscriptionService`
+  - Set Unibet `is_active=false` in seed scripts (`seed_all_bookmakers.py`, `seed_bookmakers.py`, `seed_odds_data.py`)
+- Added tests for freeze policy and plan exposure filtering: `apps/api/tests/test_bookmaker_freeze.py`
+- Updated required docs in same PR: `ARCHITECTURE.md`, `SCRAPER_HARDENING_PLAN.md`, `BOOKMAKER_OPERATING_SYSTEM.md`
+- Added decision record `ADR-0007-phase-a-unibet-freeze-enforcement.md`
+- PR2 validation semantics hardening completed:
+  - Added eligible-reference fixture filtering by competition selection shape in validation pipeline
+  - Added `SKIP`/`N_A` scoring semantics for empty eligible-reference windows
+  - Added eligible-vs-total reference counts in validation report output
+  - Added tests for empty and partial eligibility windows in `apps/worker/tests/test_validation.py`
+- Added decision record `ADR-0008-validation-eligibility-window-semantics.md`
+- Evidence artifacts saved under `docs/evidence/phase-a-hardening/2026-02-11/`:
+  - `validation_epl.json`, `validation_nba.json`, `validation_nhl.json`, `validation_boxing.json`, `validation_nbl.json`
+  - `semantics_partial_window.json`, `semantics_empty_window.json`
+  - `priority_competition_summary.json`, `commands.txt`, `db_queries.md`
+- PR2.1 follow-up completed:
+  - Regenerated priority competition evidence from live DB inside Docker context:
+    - `validation_live_epl.json`, `validation_live_nba.json`, `validation_live_nhl.json`, `validation_live_boxing.json`, `validation_live_nbl.json`
+  - Added live summary outputs:
+    - `priority_competition_summary_live.json`
+    - `priority_competition_summary_table_live.json`
+    - `priority_competition_summary_table_live.md`
+  - Added explicit artifact source note marking synthetic outputs as interim:
+    - `artifact_sources.md`
+  - Added downstream compatibility check note for `SKIP`/`N_A` handling:
+    - `compatibility_check.md`
+- Validation executed:
+  - `pytest apps/worker/tests/test_punterstech_scraper.py -q` (pass)
+  - `pytest apps/worker/tests/test_validation.py -q` (pass, now 36 tests)
+  - `pytest apps/api/tests/test_bookmaker_freeze.py -q` with `PYTHONPATH=apps/api/src` (pass)
+  - `pytest apps/worker/tests/test_entain_scraper.py -q` (expected fail; file not present yet, scheduled for PR5)
+
+### Decisions
+- `ADR-0007`: enforce Phase A Unibet freeze at runtime and plan exposure layers (not seed-only) to prevent accidental re-enable during hardening
+- `ADR-0008`: validation coverage/probability comparisons must use eligible reference fixture windows, with `SKIP`/`N_A` semantics when none are eligible
+
+### Blockers
+- Pre-existing dirty worktree with unrelated changes; PR1 work is being kept isolated to freeze-only files
+
+### Next Steps
+- PR3: normalization hardening + tests
+
 ## 2026-02-01 (Sunday)
 
 ### Completed
@@ -11,12 +61,14 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Punterstech scraper: include full-game `Money Line` markets (exclude quarter/half variants), tighten league filters (drop generic Premier League + non-AU “national basketball league”), and derive home/away from event name to keep selection_key stable
 - Odds matcher: group selections by `selection_key` first (home/away/draw) and avoid name-based false negatives when keys match
 - Added regression test for Money Line parsing and validated via live MintBet+Betfair scrapes that top opportunities now align with Outmatched ordering/PnL (NBL/NBA/NHL/boxing)
+- Ran Premium-tier bookmaker discovery refresh (PointsBet/BetRight/Unibet/TABTouch/etc) and updated `DISCOVERY_SUMMARY.md` with implementation recommendations
 
 ### Blockers
 - None
 
 ### Next Steps
 - Re-scrape in Docker and compare `/odds/matcher` UI output to Outmatched again (MintBet vs Betfair top rows should now include NBA/NHL + boxing fighters)
+- Start Premium-tier rollout with Unibet, then PointsBet, then BetRight (defer TAB/Sportsbet until proxy/prod)
 
 ## 2026-01-27 (Tuesday)
 

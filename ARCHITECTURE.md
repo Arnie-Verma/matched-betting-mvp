@@ -42,11 +42,15 @@ Key code:
 - Per-bookmaker circuit breaker state in Redis
 - Partial completion is allowed
 
-4. Data model is current-state first:
+4. Phase A onboarding freeze is code-enforced:
+- `BOOKMAKER_FREEZE_UNIBET` (default `true`) freezes Unibet activation.
+- Frozen bookmakers are excluded from worker active scrape selection and plan-exposed bookmaker lists.
+
+5. Data model is current-state first:
 - `odds_snapshots.is_current=true` is matcher truth
 - stale/non-current odds are cleaned aggressively
 
-5. Matching is normalization-driven:
+6. Matching is normalization-driven:
 - events grouped by normalized event + normalized competition key
 - selection matching prioritizes `selection_key` (`home/away/draw`)
 
@@ -114,6 +118,7 @@ Key code:
 - `apps/worker/src/scrapers/entain_scraper.py`
 - `apps/worker/src/scrapers/punterstech_scraper.py`
 - `apps/worker/src/scrapers/kindred_scraper.py`
+- `apps/api/src/api/core/bookmaker_freeze.py`
 
 ## Persistence + Data Lifecycle
 Persistence path:
@@ -170,6 +175,7 @@ Plan enforcement is server-side:
 - feature checks via `SubscriptionService`
 - allowed bookmaker list derived by plan
 - metadata endpoints return plan-allowed bookmakers
+- frozen bookmakers are filtered from allow-lists during freeze windows
 
 Key code:
 - `apps/api/src/api/services/subscription_service.py`
@@ -181,6 +187,10 @@ Validation:
 - optional post-scrape validation path in worker
 - dedicated validation pipeline and CLI
 - supports structural/probability/golden checks
+- reference fixture eligibility is enforced by competition market shape
+  (`home/away/draw` for 3-way, `home/away` for 2-way)
+- empty eligible-reference windows are semantic-neutral:
+  reference bookmaker reports `N_A`, other bookmakers report `SKIP`
 
 Health:
 - `/health/scrapers` reports freshness, odds counts, breaker state
@@ -201,6 +211,7 @@ Important runtime knobs:
 - `ODDS_CACHE_TTL_FAST_SECONDS`
 - `ODDS_REFRESH_PER_USER_SECONDS`
 - `VALIDATION_ENABLED`
+- `BOOKMAKER_FREEZE_UNIBET` (default `true`; set `false` only after explicit GO)
 
 Notes:
 - scraper code defaults `SCRAPER_BATCH_SIZE` to `1` if env is absent
@@ -218,4 +229,3 @@ These are tracked in:
 
 ## Related ADRs
 See `docs/adr/README.md` for index.
-

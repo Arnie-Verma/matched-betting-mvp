@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Set
 
 from validation.config import ValidationConfig
 from validation.structural_validator import StructuralValidator, StructuralValidation
@@ -63,7 +63,7 @@ class ValidationPipeline:
     1. Structural validation (event counts, odds bounds, freshness)
     2. Probability validation (implied probability comparison)
     3. Golden fixtures validation (curated fixture checks)
-    4. Score calculation (final PASS/WARN/FAIL)
+    4. Score calculation (final PASS/WARN/FAIL/SKIP/N_A)
 
     Usage:
         pipeline = ValidationPipeline()
@@ -86,10 +86,10 @@ class ValidationPipeline:
             config: Validation configuration (uses defaults if None)
         """
         self.config = config or ValidationConfig()
-        self.structural_validator = StructuralValidator(config)
-        self.probability_validator = ProbabilityValidator(config)
-        self.golden_validator = GoldenFixturesValidator(config)
-        self.score_calculator = ScoreCalculator(config)
+        self.structural_validator = StructuralValidator(self.config)
+        self.probability_validator = ProbabilityValidator(self.config)
+        self.golden_validator = GoldenFixturesValidator(self.config)
+        self.score_calculator = ScoreCalculator(self.config)
         self.report_generator = ReportGenerator()
 
     def validate_scrape_results(
@@ -154,7 +154,11 @@ class ValidationPipeline:
 
         # Get reference odds
         reference_bookmaker = self.config.reference_bookmaker
-        reference_odds = all_odds_data.get(reference_bookmaker, {})
+        reference_odds_all = all_odds_data.get(reference_bookmaker, {})
+        reference_odds = self._filter_eligible_reference_odds(
+            reference_odds_all, competition
+        )
+        reference_total_events = len(reference_odds_all)
         reference_events = len(reference_odds)
         reference_event_keys = set(reference_odds.keys())
         golden_fixtures = self.config.get_golden_fixtures(competition)
@@ -167,10 +171,13 @@ class ValidationPipeline:
                     active_golden_fixtures.append((home, away, expected_selections))
 
         for bookmaker_code, structural in structural_results.items():
-            bookmaker_event_keys = set(all_odds_data.get(bookmaker_code, {}).keys())
+            bookmaker_event_keys = self._eligible_event_keys_for_competition(
+                all_odds_data.get(bookmaker_code, {}),
+                competition,
+            )
 
             if reference_events == 0:
-                structural.matching_rate = Decimal("100")
+                structural.matching_rate = None
                 continue
 
             if bookmaker_code == reference_bookmaker:
@@ -186,7 +193,7 @@ class ValidationPipeline:
         probability_results: Dict[str, ProbabilityValidation] = {}
         if reference_events == 0:
             logger.warning(
-                f"Reference bookmaker has no events for {competition}; "
+                f"Reference bookmaker has no eligible events for {competition}; "
                 "skipping probability validation"
             )
         else:
@@ -237,6 +244,7 @@ class ValidationPipeline:
             golden_results=golden_results,
             competition=competition,
             scrape_durations=scrape_durations,
+            eligible_reference_events=reference_events,
         )
 
         # Generate golden fixtures summary
@@ -254,6 +262,7 @@ class ValidationPipeline:
             competition=competition,
             reference_bookmaker=reference_bookmaker,
             reference_events=reference_events,
+            reference_total_events=reference_total_events,
             golden_fixtures_summary=golden_summary,
             validation_duration_seconds=duration,
         )
@@ -271,6 +280,7 @@ class ValidationPipeline:
         logger.info(
             f"Validation pipeline completed: "
             f"PASS={report.pass_count} WARN={report.warn_count} FAIL={report.fail_count} "
+            f"SKIP={report.skip_count} N_A={report.na_count} "
             f"({duration:.2f}s)"
         )
 
@@ -317,6 +327,43 @@ class ValidationPipeline:
             all_odds[bookmaker_code] = bookmaker_odds
 
         return all_odds
+
+    def _eligible_event_keys_for_competition(
+        self,
+        odds_by_event: Dict[str, Dict[str, Dict]],
+        competition: str,
+    ) -> Set[str]:
+        """
+        Return event keys that satisfy required selection shape for competition.
+        """
+        required_selection_keys = self.config.get_reference_selection_keys(competition)
+        eligible_event_keys: Set[str] = set()
+
+        for event_key, selections in odds_by_event.items():
+            selection_keys = {
+                str(selection_key).strip().lower()
+                for selection_key in selections.keys()
+                if selection_key is not None
+            }
+            if required_selection_keys.issubset(selection_keys):
+                eligible_event_keys.add(event_key)
+
+        return eligible_event_keys
+
+    def _filter_eligible_reference_odds(
+        self,
+        reference_odds: Dict[str, Dict[str, Dict]],
+        competition: str,
+    ) -> Dict[str, Dict[str, Dict]]:
+        """Filter reference odds down to fixtures with eligible selection shape."""
+        eligible_keys = self._eligible_event_keys_for_competition(
+            reference_odds, competition
+        )
+        return {
+            event_key: selections
+            for event_key, selections in reference_odds.items()
+            if event_key in eligible_keys
+        }
 
     def validate_from_database(
         self,
@@ -410,14 +457,18 @@ class ValidationPipeline:
 
             # Now run probability validation
             reference_bookmaker = self.config.reference_bookmaker
-            reference_odds = all_odds.get(reference_bookmaker, {})
+            reference_odds_all = all_odds.get(reference_bookmaker, {})
+            reference_odds = self._filter_eligible_reference_odds(
+                reference_odds_all, competition
+            )
+            reference_total_events = len(reference_odds_all)
             reference_events = len(reference_odds)
             reference_event_keys = set(reference_odds.keys())
 
             probability_results: Dict[str, ProbabilityValidation] = {}
             if reference_events == 0:
                 logger.warning(
-                    f"Reference bookmaker has no events for {competition}; "
+                    f"Reference bookmaker has no eligible events for {competition}; "
                     "skipping probability validation"
                 )
             else:
@@ -437,11 +488,14 @@ class ValidationPipeline:
                 event_count_valid = expected["min"] <= event_count <= expected["max"]
 
                 if reference_events == 0:
-                    matching_rate = Decimal("100")
+                    matching_rate = None
                 elif bookmaker_code == reference_bookmaker:
                     matching_rate = Decimal("100")
                 else:
-                    matched_events = len(set(bookmaker_odds.keys()) & reference_event_keys)
+                    eligible_keys = self._eligible_event_keys_for_competition(
+                        bookmaker_odds, competition
+                    )
+                    matched_events = len(eligible_keys & reference_event_keys)
                     matching_rate = (
                         Decimal(matched_events) / Decimal(reference_events) * 100
                     ).quantize(Decimal("0.01"))
@@ -462,6 +516,7 @@ class ValidationPipeline:
                 probability_results=probability_results,
                 golden_results={},  # No golden fixtures for DB data
                 competition=competition,
+                eligible_reference_events=reference_events,
             )
 
             duration = time.time() - start_time
@@ -472,6 +527,7 @@ class ValidationPipeline:
                 competition=competition,
                 reference_bookmaker=reference_bookmaker,
                 reference_events=reference_events,
+                reference_total_events=reference_total_events,
                 validation_duration_seconds=duration,
             )
 

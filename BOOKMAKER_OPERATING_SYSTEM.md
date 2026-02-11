@@ -134,6 +134,7 @@ This methodology is designed to be executed locally first to get as close to pro
    - Cloud (optional later): traffic ramp (10% -> 50% -> 100%).
 3. Freeze rule:
    - Pause onboarding if active reliability drops below threshold.
+   - During Phase A hardening, Unibet freeze is code-enforced via `BOOKMAKER_FREEZE_UNIBET=true` until explicit GO.
 
 ## Metrics Dashboard (Per Bookmaker)
 1. Last successful scrape time.
@@ -176,7 +177,10 @@ Use Unibet as the proof case for scaling from Entain/Punterstech to any new book
    - event coverage at or above threshold vs reference
    - no critical odds anomalies beyond threshold
    - correct market shape (expected selections present)
-3. Save validation output as onboarding evidence.
+3. Validation semantics rule:
+   - If reference has no eligible fixtures for that competition window, do not treat as hard FAIL.
+   - Use `N_A` for reference and `SKIP` for non-reference books, then re-run on next eligible window before GO.
+4. Save validation output as onboarding evidence.
 
 ### Step 6: Run performance proof
 1. Measure scrape duration for this bookmaker in isolation.

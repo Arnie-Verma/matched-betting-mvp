@@ -27,17 +27,19 @@ from validation.golden_fixtures import GoldenFixturesValidation
 
 logger = logging.getLogger(__name__)
 
+ValidationStatus = Literal["PASS", "WARN", "FAIL", "SKIP", "N_A"]
+
 
 @dataclass
 class ValidationScore:
     """
     Final validation score for bookmaker x league.
 
-    Combines all phase results into a single PASS/WARN/FAIL status.
+    Combines all phase results into a final validation status.
     """
     bookmaker_code: str
     competition: str
-    status: Literal["PASS", "WARN", "FAIL"]
+    status: ValidationStatus
 
     # Is this bookmaker an exchange? (structure-only validation)
     is_exchange: bool = False
@@ -63,6 +65,8 @@ class ValidationScore:
     # Metadata
     validated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     scrape_duration_seconds: Optional[float] = None
+    eligible_reference_events: Optional[int] = None
+    no_eligible_reference_window: bool = False
 
     # Failure reasons (human-readable)
     failure_reasons: List[str] = field(default_factory=list)
@@ -92,6 +96,8 @@ class ValidationScore:
             "golden_fixtures_passed": self.golden_fixtures_passed,
             "failure_reasons": self.failure_reasons,
             "warning_reasons": self.warning_reasons,
+            "eligible_reference_events": self.eligible_reference_events,
+            "no_eligible_reference_window": self.no_eligible_reference_window,
             "validated_at": self.validated_at.isoformat(),
             "scrape_duration_seconds": self.scrape_duration_seconds,
         }
@@ -105,6 +111,7 @@ class ScoreCalculator:
     - FAIL: Critical issues that indicate broken scraper
     - WARN: Minor issues that should be investigated
     - PASS: All validations passed within thresholds
+    - SKIP/N_A: No eligible reference fixtures in current window
     """
 
     def __init__(self, config: Optional[ValidationConfig] = None):
@@ -124,6 +131,7 @@ class ScoreCalculator:
         bookmaker_code: str,
         competition: str,
         scrape_duration_seconds: Optional[float] = None,
+        eligible_reference_events: Optional[int] = None,
     ) -> ValidationScore:
         """
         Calculate final validation score from all phase results.
@@ -148,6 +156,8 @@ class ScoreCalculator:
             status="PASS",  # Will be updated based on checks
             is_exchange=is_exchange,
             scrape_duration_seconds=scrape_duration_seconds,
+            eligible_reference_events=eligible_reference_events,
+            no_eligible_reference_window=(eligible_reference_events == 0),
         )
 
         # Apply Phase 1 results
@@ -171,6 +181,8 @@ class ScoreCalculator:
             "PASS": logging.INFO,
             "WARN": logging.WARNING,
             "FAIL": logging.ERROR,
+            "SKIP": logging.INFO,
+            "N_A": logging.INFO,
         }.get(status, logging.INFO)
 
         logger.log(
@@ -229,7 +241,7 @@ class ScoreCalculator:
         score.golden_fixtures_found = golden.fixtures_found
         score.golden_fixtures_passed = golden.fixtures_passed
 
-    def _determine_status(self, score: ValidationScore) -> Literal["PASS", "WARN", "FAIL"]:
+    def _determine_status(self, score: ValidationScore) -> ValidationStatus:
         """
         Determine final status based on all metrics.
 
@@ -247,6 +259,21 @@ class ScoreCalculator:
         PASS conditions:
         - All checks within thresholds
         """
+        event_cov_warn, event_cov_fail = self.config.get_event_coverage_thresholds(score.competition)
+
+        # No eligible reference fixtures in this competition window: comparisons are
+        # not meaningful, so classify as neutral instead of warn/fail.
+        if score.no_eligible_reference_window and not score.is_exchange:
+            if score.bookmaker_code.lower() == self.config.reference_bookmaker.lower():
+                score.warning_reasons.append(
+                    "No eligible reference fixtures in window (status=N_A)"
+                )
+                return "N_A"
+            score.warning_reasons.append(
+                "No eligible reference fixtures in window (status=SKIP)"
+            )
+            return "SKIP"
+
         # ========== FAIL CONDITIONS ==========
 
         # Structural failure
@@ -272,9 +299,9 @@ class ScoreCalculator:
                 return "FAIL"
 
         if not score.is_exchange and score.event_coverage_percent is not None:
-            if score.event_coverage_percent < EVENT_COVERAGE_FAIL_THRESHOLD:
+            if score.event_coverage_percent < event_cov_fail:
                 score.failure_reasons.append(
-                    f"Event coverage {score.event_coverage_percent}% < {EVENT_COVERAGE_FAIL_THRESHOLD}%"
+                    f"Event coverage {score.event_coverage_percent}% < {event_cov_fail}%"
                 )
                 return "FAIL"
 
@@ -306,9 +333,9 @@ class ScoreCalculator:
                 )
 
         if not score.is_exchange and score.event_coverage_percent is not None:
-            if score.event_coverage_percent < EVENT_COVERAGE_WARN_THRESHOLD:
+            if score.event_coverage_percent < event_cov_warn:
                 score.warning_reasons.append(
-                    f"Event coverage {score.event_coverage_percent}% < {EVENT_COVERAGE_WARN_THRESHOLD}%"
+                    f"Event coverage {score.event_coverage_percent}% < {event_cov_warn}%"
                 )
 
         # Too many anomalies
@@ -342,6 +369,7 @@ class ScoreCalculator:
         golden_results: Dict[str, GoldenFixturesValidation],
         competition: str,
         scrape_durations: Optional[Dict[str, float]] = None,
+        eligible_reference_events: Optional[int] = None,
     ) -> Dict[str, ValidationScore]:
         """
         Calculate scores for multiple bookmakers.
@@ -373,6 +401,7 @@ class ScoreCalculator:
                 bookmaker_code=bookmaker_code,
                 competition=competition,
                 scrape_duration_seconds=durations.get(bookmaker_code),
+                eligible_reference_events=eligible_reference_events,
             )
 
         return scores
@@ -393,6 +422,8 @@ class ScoreCalculator:
         pass_count = 0
         warn_count = 0
         fail_count = 0
+        skip_count = 0
+        na_count = 0
 
         total_coverage = Decimal("0")
         total_anomalies = 0
@@ -406,6 +437,10 @@ class ScoreCalculator:
             elif score.status == "WARN":
                 warn_count += 1
                 warned_bookmakers.append(bookmaker_code)
+            elif score.status == "SKIP":
+                skip_count += 1
+            elif score.status == "N_A":
+                na_count += 1
             else:
                 fail_count += 1
                 failed_bookmakers.append(bookmaker_code)
@@ -420,6 +455,8 @@ class ScoreCalculator:
             "pass_count": pass_count,
             "warn_count": warn_count,
             "fail_count": fail_count,
+            "skip_count": skip_count,
+            "na_count": na_count,
             "average_coverage": str(avg_coverage.quantize(Decimal("0.1"))),
             "total_anomalies": total_anomalies,
             "failed_bookmakers": failed_bookmakers,

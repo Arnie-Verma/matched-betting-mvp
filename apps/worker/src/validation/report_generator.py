@@ -23,6 +23,7 @@ class ValidationReport:
     competition: str
     reference_bookmaker: str
     reference_events: int
+    reference_total_events: Optional[int] = None
 
     # Per-bookmaker scores
     scores: Dict[str, ValidationScore] = field(default_factory=dict)
@@ -34,6 +35,8 @@ class ValidationReport:
     pass_count: int = 0
     warn_count: int = 0
     fail_count: int = 0
+    skip_count: int = 0
+    na_count: int = 0
     average_coverage: Decimal = Decimal("0")
 
     # Timing
@@ -46,6 +49,7 @@ class ValidationReport:
             "competition": self.competition,
             "reference_bookmaker": self.reference_bookmaker,
             "reference_events": self.reference_events,
+            "reference_total_events": self.reference_total_events,
             "scores": {k: v.to_dict() for k, v in self.scores.items()},
             "golden_fixtures_summary": self.golden_fixtures_summary,
             "summary": {
@@ -53,6 +57,8 @@ class ValidationReport:
                 "pass_count": self.pass_count,
                 "warn_count": self.warn_count,
                 "fail_count": self.fail_count,
+                "skip_count": self.skip_count,
+                "na_count": self.na_count,
                 "average_coverage": str(self.average_coverage),
             },
             "generated_at": self.generated_at.isoformat(),
@@ -89,6 +95,8 @@ class ReportGenerator:
         "PASS": ("OK ", "green"),
         "WARN": ("!  ", "yellow"),
         "FAIL": ("X  ", "red"),
+        "SKIP": ("SKP", "dim"),
+        "N_A": ("N/A", "cyan"),
     }
 
     def __init__(self, use_colors: bool = True):
@@ -129,9 +137,13 @@ class ReportGenerator:
         lines.append(self._generate_header(report))
 
         # Reference info
+        reference_note = ""
+        if report.reference_total_events is not None and report.reference_total_events != report.reference_events:
+            reference_note = f" ({report.reference_events} eligible / {report.reference_total_events} total)"
+
         lines.append(self._color(
             f"REFERENCE: {report.reference_bookmaker.upper()} - "
-            f"{report.reference_events} events indexed",
+            f"{report.reference_events} events indexed{reference_note}",
             "cyan"
         ))
         lines.append("")
@@ -180,7 +192,9 @@ class ReportGenerator:
             f"Bookmakers: "
             f"{self._color(f'{report.pass_count} PASS', 'green')} | "
             f"{self._color(f'{report.warn_count} WARN', 'yellow')} | "
-            f"{self._color(f'{report.fail_count} FAIL', 'red')}"
+            f"{self._color(f'{report.fail_count} FAIL', 'red')} | "
+            f"{self._color(f'{report.skip_count} SKIP', 'dim')} | "
+            f"{self._color(f'{report.na_count} N_A', 'cyan')}"
         )
         lines.append(f"Coverage: {report.average_coverage}% average across all bookmakers")
 
@@ -222,7 +236,7 @@ class ReportGenerator:
             if score.is_exchange:
                 return (1, code)
             # Then by status: PASS, WARN, FAIL
-            status_order = {"PASS": 2, "WARN": 3, "FAIL": 4}
+            status_order = {"PASS": 2, "WARN": 3, "FAIL": 4, "SKIP": 5, "N_A": 6}
             return (status_order.get(score.status, 5), code)
 
         return sorted(scores.items(), key=sort_key)
@@ -252,6 +266,11 @@ class ReportGenerator:
         status = score.status
         if score.is_exchange:
             status = "PASS (structure only)"
+        elif score.status in {"SKIP", "N_A"}:
+            if score.bookmaker_code == reference_bookmaker:
+                extra = " (reference, no eligible reference fixtures)"
+            else:
+                extra = " (no eligible reference fixtures)"
 
         return f"  {symbol_colored} {name:<20} {events:>10} | {status}{extra}"
 
@@ -289,7 +308,8 @@ class ReportGenerator:
         """
         return (
             f"[{report.competition}] "
-            f"PASS={report.pass_count} WARN={report.warn_count} FAIL={report.fail_count} | "
+            f"PASS={report.pass_count} WARN={report.warn_count} FAIL={report.fail_count} "
+            f"SKIP={report.skip_count} N_A={report.na_count} | "
             f"Coverage={report.average_coverage}% | "
             f"Duration={report.validation_duration_seconds:.2f}s"
         )
@@ -300,6 +320,7 @@ class ReportGenerator:
         competition: str,
         reference_bookmaker: str,
         reference_events: int,
+        reference_total_events: Optional[int] = None,
         golden_fixtures_summary: Optional[Dict[str, Dict]] = None,
         validation_duration_seconds: float = 0,
     ) -> ValidationReport:
@@ -321,6 +342,8 @@ class ReportGenerator:
         pass_count = sum(1 for s in scores.values() if s.status == "PASS")
         warn_count = sum(1 for s in scores.values() if s.status == "WARN")
         fail_count = sum(1 for s in scores.values() if s.status == "FAIL")
+        skip_count = sum(1 for s in scores.values() if s.status == "SKIP")
+        na_count = sum(1 for s in scores.values() if s.status == "N_A")
 
         total_coverage = sum(s.coverage_percent for s in scores.values())
         avg_coverage = total_coverage / len(scores) if scores else Decimal("0")
@@ -329,11 +352,14 @@ class ReportGenerator:
             competition=competition,
             reference_bookmaker=reference_bookmaker,
             reference_events=reference_events,
+            reference_total_events=reference_total_events,
             scores=scores,
             golden_fixtures_summary=golden_fixtures_summary or {},
             pass_count=pass_count,
             warn_count=warn_count,
             fail_count=fail_count,
+            skip_count=skip_count,
+            na_count=na_count,
             average_coverage=avg_coverage.quantize(Decimal("0.1")),
             validation_duration_seconds=validation_duration_seconds,
         )

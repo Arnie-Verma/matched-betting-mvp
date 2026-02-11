@@ -1,0 +1,1413 @@
+{
+  "competition": "nbl",
+  "data_source": "live_db_from_docker",
+  "generated_at": "2026-02-11T10:40:35.989035+00:00",
+  "result": {
+    "competition": "nbl",
+    "bookmaker_results": {
+      "cashcage": {
+        "bookmaker_code": "cashcage",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.984918+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betreal": {
+        "bookmaker_code": "betreal",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 12,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "90.90909090909090909090909091",
+        "anomaly_count": 1,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [
+          {
+            "event_name": "Illawarra Hawks v Adelaide 36ers",
+            "event_key": "36ersvillawarrahawks",
+            "selection_name": "Adelaide 36ers",
+            "selection_key": "away",
+            "bookmaker_code": "betreal",
+            "bookmaker_odds": "1.5200",
+            "bookmaker_probability": "65.79",
+            "reference_odds": "1.6000",
+            "reference_probability": "62.50",
+            "reference_source": "ladbrokes",
+            "probability_gap": "3.29",
+            "severity": "warn"
+          }
+        ],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985124+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betfair": {
+        "bookmaker_code": "betfair",
+        "competition": "nbl",
+        "status": "PASS",
+        "is_exchange": true,
+        "event_count": 10,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "75.00",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985207+00:00",
+        "scrape_duration_seconds": null
+      },
+      "starsports": {
+        "bookmaker_code": "starsports",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 0,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "0.00",
+        "coverage_percent": "0",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Coverage 0% < 70%"
+        ],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985223+00:00",
+        "scrape_duration_seconds": null
+      },
+      "lightningbet": {
+        "bookmaker_code": "lightningbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 8,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "33.33",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 33.33% < 70%"
+        ],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985274+00:00",
+        "scrape_duration_seconds": null
+      },
+      "tradiebet": {
+        "bookmaker_code": "tradiebet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "90.90909090909090909090909091",
+        "anomaly_count": 1,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [
+          {
+            "event_name": "Illawarra Hawks v Adelaide 36ers",
+            "event_key": "36ersvillawarrahawks",
+            "selection_name": "Adelaide 36ers",
+            "selection_key": "away",
+            "bookmaker_code": "tradiebet",
+            "bookmaker_odds": "1.5200",
+            "bookmaker_probability": "65.79",
+            "reference_odds": "1.6000",
+            "reference_probability": "62.50",
+            "reference_source": "ladbrokes",
+            "probability_gap": "3.29",
+            "severity": "warn"
+          }
+        ],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985321+00:00",
+        "scrape_duration_seconds": null
+      },
+      "blondebet": {
+        "bookmaker_code": "blondebet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "90.90909090909090909090909091",
+        "anomaly_count": 1,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [
+          {
+            "event_name": "Illawarra Hawks v Adelaide 36ers",
+            "event_key": "36ersvillawarrahawks",
+            "selection_name": "Adelaide 36ers",
+            "selection_key": "away",
+            "bookmaker_code": "blondebet",
+            "bookmaker_odds": "1.5200",
+            "bookmaker_probability": "65.79",
+            "reference_odds": "1.6000",
+            "reference_probability": "62.50",
+            "reference_source": "ladbrokes",
+            "probability_gap": "3.29",
+            "severity": "warn"
+          }
+        ],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985374+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betchamps": {
+        "bookmaker_code": "betchamps",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985474+00:00",
+        "scrape_duration_seconds": null
+      },
+      "neds": {
+        "bookmaker_code": "neds",
+        "competition": "nbl",
+        "status": "WARN",
+        "is_exchange": false,
+        "event_count": 12,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "100.00",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985543+00:00",
+        "scrape_duration_seconds": null
+      },
+      "ladbrokes": {
+        "bookmaker_code": "ladbrokes",
+        "competition": "nbl",
+        "status": "WARN",
+        "is_exchange": false,
+        "event_count": 12,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "100",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985601+00:00",
+        "scrape_duration_seconds": null
+      },
+      "millennialbet": {
+        "bookmaker_code": "millennialbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "90.90909090909090909090909091",
+        "anomaly_count": 1,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [
+          {
+            "event_name": "Illawarra Hawks v Adelaide 36ers",
+            "event_key": "36ersvillawarrahawks",
+            "selection_name": "Adelaide 36ers",
+            "selection_key": "away",
+            "bookmaker_code": "millennialbet",
+            "bookmaker_odds": "1.5200",
+            "bookmaker_probability": "65.79",
+            "reference_odds": "1.6000",
+            "reference_probability": "62.50",
+            "reference_source": "ladbrokes",
+            "probability_gap": "3.29",
+            "severity": "warn"
+          }
+        ],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985642+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betblitz": {
+        "bookmaker_code": "betblitz",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 0,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "0.00",
+        "coverage_percent": "0",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Coverage 0% < 70%"
+        ],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985771+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betbuzz": {
+        "bookmaker_code": "betbuzz",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985923+00:00",
+        "scrape_duration_seconds": null
+      },
+      "wizbet": {
+        "bookmaker_code": "wizbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 0,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "0.00",
+        "coverage_percent": "0",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Coverage 0% < 70%"
+        ],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986022+00:00",
+        "scrape_duration_seconds": null
+      },
+      "truebet": {
+        "bookmaker_code": "truebet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 0,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "0.00",
+        "coverage_percent": "0",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Coverage 0% < 70%"
+        ],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986160+00:00",
+        "scrape_duration_seconds": null
+      },
+      "teambet": {
+        "bookmaker_code": "teambet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986262+00:00",
+        "scrape_duration_seconds": null
+      },
+      "topbet": {
+        "bookmaker_code": "topbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 12,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "90.90909090909090909090909091",
+        "anomaly_count": 1,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [
+          {
+            "event_name": "Illawarra Hawks v Adelaide 36ers",
+            "event_key": "36ersvillawarrahawks",
+            "selection_name": "Adelaide 36ers",
+            "selection_key": "away",
+            "bookmaker_code": "topbet",
+            "bookmaker_odds": "1.5200",
+            "bookmaker_probability": "65.79",
+            "reference_odds": "1.6000",
+            "reference_probability": "62.50",
+            "reference_source": "ladbrokes",
+            "probability_gap": "3.29",
+            "severity": "warn"
+          }
+        ],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986426+00:00",
+        "scrape_duration_seconds": null
+      },
+      "mintbet": {
+        "bookmaker_code": "mintbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986580+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betfocus": {
+        "bookmaker_code": "betfocus",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986850+00:00",
+        "scrape_duration_seconds": null
+      },
+      "ripperbet": {
+        "bookmaker_code": "ripperbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.987049+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betvista": {
+        "bookmaker_code": "betvista",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.987158+00:00",
+        "scrape_duration_seconds": null
+      }
+    },
+    "has_failures": true,
+    "has_warnings": true,
+    "duration_seconds": 0.155792236328125
+  },
+  "report": {
+    "competition": "nbl",
+    "reference_bookmaker": "ladbrokes",
+    "reference_events": 12,
+    "reference_total_events": 12,
+    "scores": {
+      "cashcage": {
+        "bookmaker_code": "cashcage",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.984918+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betreal": {
+        "bookmaker_code": "betreal",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 12,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "90.90909090909090909090909091",
+        "anomaly_count": 1,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [
+          {
+            "event_name": "Illawarra Hawks v Adelaide 36ers",
+            "event_key": "36ersvillawarrahawks",
+            "selection_name": "Adelaide 36ers",
+            "selection_key": "away",
+            "bookmaker_code": "betreal",
+            "bookmaker_odds": "1.5200",
+            "bookmaker_probability": "65.79",
+            "reference_odds": "1.6000",
+            "reference_probability": "62.50",
+            "reference_source": "ladbrokes",
+            "probability_gap": "3.29",
+            "severity": "warn"
+          }
+        ],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985124+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betfair": {
+        "bookmaker_code": "betfair",
+        "competition": "nbl",
+        "status": "PASS",
+        "is_exchange": true,
+        "event_count": 10,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "75.00",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985207+00:00",
+        "scrape_duration_seconds": null
+      },
+      "starsports": {
+        "bookmaker_code": "starsports",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 0,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "0.00",
+        "coverage_percent": "0",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Coverage 0% < 70%"
+        ],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985223+00:00",
+        "scrape_duration_seconds": null
+      },
+      "lightningbet": {
+        "bookmaker_code": "lightningbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 8,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "33.33",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 33.33% < 70%"
+        ],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985274+00:00",
+        "scrape_duration_seconds": null
+      },
+      "tradiebet": {
+        "bookmaker_code": "tradiebet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "90.90909090909090909090909091",
+        "anomaly_count": 1,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [
+          {
+            "event_name": "Illawarra Hawks v Adelaide 36ers",
+            "event_key": "36ersvillawarrahawks",
+            "selection_name": "Adelaide 36ers",
+            "selection_key": "away",
+            "bookmaker_code": "tradiebet",
+            "bookmaker_odds": "1.5200",
+            "bookmaker_probability": "65.79",
+            "reference_odds": "1.6000",
+            "reference_probability": "62.50",
+            "reference_source": "ladbrokes",
+            "probability_gap": "3.29",
+            "severity": "warn"
+          }
+        ],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985321+00:00",
+        "scrape_duration_seconds": null
+      },
+      "blondebet": {
+        "bookmaker_code": "blondebet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "90.90909090909090909090909091",
+        "anomaly_count": 1,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [
+          {
+            "event_name": "Illawarra Hawks v Adelaide 36ers",
+            "event_key": "36ersvillawarrahawks",
+            "selection_name": "Adelaide 36ers",
+            "selection_key": "away",
+            "bookmaker_code": "blondebet",
+            "bookmaker_odds": "1.5200",
+            "bookmaker_probability": "65.79",
+            "reference_odds": "1.6000",
+            "reference_probability": "62.50",
+            "reference_source": "ladbrokes",
+            "probability_gap": "3.29",
+            "severity": "warn"
+          }
+        ],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985374+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betchamps": {
+        "bookmaker_code": "betchamps",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985474+00:00",
+        "scrape_duration_seconds": null
+      },
+      "neds": {
+        "bookmaker_code": "neds",
+        "competition": "nbl",
+        "status": "WARN",
+        "is_exchange": false,
+        "event_count": 12,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "100.00",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985543+00:00",
+        "scrape_duration_seconds": null
+      },
+      "ladbrokes": {
+        "bookmaker_code": "ladbrokes",
+        "competition": "nbl",
+        "status": "WARN",
+        "is_exchange": false,
+        "event_count": 12,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "100",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985601+00:00",
+        "scrape_duration_seconds": null
+      },
+      "millennialbet": {
+        "bookmaker_code": "millennialbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "90.90909090909090909090909091",
+        "anomaly_count": 1,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [
+          {
+            "event_name": "Illawarra Hawks v Adelaide 36ers",
+            "event_key": "36ersvillawarrahawks",
+            "selection_name": "Adelaide 36ers",
+            "selection_key": "away",
+            "bookmaker_code": "millennialbet",
+            "bookmaker_odds": "1.5200",
+            "bookmaker_probability": "65.79",
+            "reference_odds": "1.6000",
+            "reference_probability": "62.50",
+            "reference_source": "ladbrokes",
+            "probability_gap": "3.29",
+            "severity": "warn"
+          }
+        ],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985642+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betblitz": {
+        "bookmaker_code": "betblitz",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 0,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "0.00",
+        "coverage_percent": "0",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Coverage 0% < 70%"
+        ],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985771+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betbuzz": {
+        "bookmaker_code": "betbuzz",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.985923+00:00",
+        "scrape_duration_seconds": null
+      },
+      "wizbet": {
+        "bookmaker_code": "wizbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 0,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "0.00",
+        "coverage_percent": "0",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Coverage 0% < 70%"
+        ],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986022+00:00",
+        "scrape_duration_seconds": null
+      },
+      "truebet": {
+        "bookmaker_code": "truebet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 0,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "0.00",
+        "coverage_percent": "0",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Coverage 0% < 70%"
+        ],
+        "warning_reasons": [],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986160+00:00",
+        "scrape_duration_seconds": null
+      },
+      "teambet": {
+        "bookmaker_code": "teambet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986262+00:00",
+        "scrape_duration_seconds": null
+      },
+      "topbet": {
+        "bookmaker_code": "topbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 12,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "90.90909090909090909090909091",
+        "anomaly_count": 1,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [
+          {
+            "event_name": "Illawarra Hawks v Adelaide 36ers",
+            "event_key": "36ersvillawarrahawks",
+            "selection_name": "Adelaide 36ers",
+            "selection_key": "away",
+            "bookmaker_code": "topbet",
+            "bookmaker_odds": "1.5200",
+            "bookmaker_probability": "65.79",
+            "reference_odds": "1.6000",
+            "reference_probability": "62.50",
+            "reference_source": "ladbrokes",
+            "probability_gap": "3.29",
+            "severity": "warn"
+          }
+        ],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 12 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986426+00:00",
+        "scrape_duration_seconds": null
+      },
+      "mintbet": {
+        "bookmaker_code": "mintbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986580+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betfocus": {
+        "bookmaker_code": "betfocus",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.986850+00:00",
+        "scrape_duration_seconds": null
+      },
+      "ripperbet": {
+        "bookmaker_code": "ripperbet",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.987049+00:00",
+        "scrape_duration_seconds": null
+      },
+      "betvista": {
+        "bookmaker_code": "betvista",
+        "competition": "nbl",
+        "status": "FAIL",
+        "is_exchange": false,
+        "event_count": 13,
+        "structural_passed": false,
+        "structural_issues": [
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "event_coverage_percent": "41.67",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 0,
+        "golden_fixtures_total": 0,
+        "golden_fixtures_passed": 0,
+        "failure_reasons": [
+          "Event coverage 41.67% < 70%"
+        ],
+        "warning_reasons": [
+          "Structural validation failed",
+          "Event count 13 outside expected range [0-10]"
+        ],
+        "eligible_reference_events": 12,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T10:40:35.987158+00:00",
+        "scrape_duration_seconds": null
+      }
+    },
+    "golden_fixtures_summary": {},
+    "summary": {
+      "total_bookmakers": 21,
+      "pass_count": 1,
+      "warn_count": 2,
+      "fail_count": 18,
+      "skip_count": 0,
+      "na_count": 0,
+      "average_coverage": "81.0"
+    },
+    "generated_at": "2026-02-11T10:40:35.987319+00:00",
+    "validation_duration_seconds": 0.155792236328125
+  }
+}

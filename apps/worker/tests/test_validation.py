@@ -31,6 +31,8 @@ from validation.probability_validator import ProbabilityValidator, ProbabilityVa
 from validation.golden_fixtures import GoldenFixturesValidator, GoldenFixturesValidation
 from validation.score_calculator import ScoreCalculator, ValidationScore
 from validation.report_generator import ReportGenerator, ValidationReport
+from validation.pipeline import ValidationPipeline
+from scrapers.base import ScrapeResult, ScrapedEvent, ScrapedOdds, ScraperStatus
 
 
 # =============================================================================
@@ -115,6 +117,69 @@ def sample_events_with_invalid_odds(sample_events):
         ]
     })
     return events
+
+
+def build_scrape_result(
+    bookmaker_code: str,
+    competition: str,
+    events_data: list[dict],
+) -> ScrapeResult:
+    """Build a ScrapeResult with deterministic match-winner selections."""
+    now = datetime.now(timezone.utc)
+    events: list[ScrapedEvent] = []
+    odds_count = 0
+
+    for idx, event_data in enumerate(events_data):
+        event_name = event_data["name"]
+        sport = event_data.get("sport", "soccer")
+        start_time = now + timedelta(days=1, minutes=idx)
+        scraped_odds: list[ScrapedOdds] = []
+
+        for selection in event_data["selections"]:
+            selection_key = selection["selection_key"]
+            selection_name = selection.get("selection_name", selection_key.title())
+            decimal_odds = Decimal(str(selection["decimal_odds"]))
+
+            scraped_odds.append(
+                ScrapedOdds(
+                    event_external_id=f"{bookmaker_code}-{idx}",
+                    event_name=event_name,
+                    sport=sport,
+                    competition=competition,
+                    start_time=start_time,
+                    market_type="match_winner",
+                    market_name="Match Winner",
+                    selection_name=selection_name,
+                    selection_key=selection_key,
+                    decimal_odds=decimal_odds,
+                    bookmaker_code=bookmaker_code,
+                    source_url="https://example.com",
+                    scraped_at=now,
+                )
+            )
+            odds_count += 1
+
+        events.append(
+            ScrapedEvent(
+                external_id=f"{bookmaker_code}-{idx}",
+                name=event_name,
+                sport=sport,
+                competition=competition,
+                start_time=start_time,
+                odds=scraped_odds,
+            )
+        )
+
+    return ScrapeResult(
+        bookmaker_code=bookmaker_code,
+        status=ScraperStatus.SUCCESS,
+        events_scraped=len(events),
+        odds_scraped=odds_count,
+        events=events,
+        errors=[],
+        started_at=now - timedelta(seconds=3),
+        completed_at=now,
+    )
 
 
 # =============================================================================
@@ -605,6 +670,34 @@ class TestScoreCalculator:
 
         assert score.is_exchange is True
 
+    def test_skip_status_when_no_eligible_reference_window(self, score_calculator):
+        """Non-reference bookmakers are SKIP when reference has no eligible fixtures."""
+        score = score_calculator.calculate(
+            structural=None,
+            probability=None,
+            golden=None,
+            bookmaker_code="mintbet",
+            competition="epl",
+            eligible_reference_events=0,
+        )
+
+        assert score.status == "SKIP"
+        assert score.no_eligible_reference_window is True
+
+    def test_na_status_for_reference_when_no_eligible_reference_window(self, score_calculator):
+        """Reference bookmaker is N_A when no eligible reference fixtures exist."""
+        score = score_calculator.calculate(
+            structural=None,
+            probability=None,
+            golden=None,
+            bookmaker_code="ladbrokes",
+            competition="epl",
+            eligible_reference_events=0,
+        )
+
+        assert score.status == "N_A"
+        assert score.no_eligible_reference_window is True
+
 
 # =============================================================================
 # Report Generator Tests
@@ -756,8 +849,104 @@ class TestValidationIntegration:
             competition="epl",
         )
 
-        assert score.status in ["PASS", "WARN", "FAIL"]
+        assert score.status in ["PASS", "WARN", "FAIL", "SKIP", "N_A"]
         assert score.event_count == 3
+
+    def test_pipeline_partial_eligibility_window_uses_only_eligible_reference_events(self):
+        """Coverage denominator should use eligible reference fixtures only."""
+        config = ValidationConfig(
+            expected_events={"epl": {"min": 0, "max": 20, "typical": 10}}
+        )
+        pipeline = ValidationPipeline(config)
+
+        scrape_results = {
+            "ladbrokes": build_scrape_result(
+                "ladbrokes",
+                "epl",
+                [
+                    {
+                        "name": "Arsenal v Chelsea",
+                        "selections": [
+                            {"selection_key": "home", "selection_name": "Arsenal", "decimal_odds": "2.10"},
+                            {"selection_key": "draw", "selection_name": "Draw", "decimal_odds": "3.50"},
+                            {"selection_key": "away", "selection_name": "Chelsea", "decimal_odds": "3.20"},
+                        ],
+                    },
+                    {
+                        "name": "Liverpool v Everton",
+                        "selections": [
+                            {"selection_key": "home", "selection_name": "Liverpool", "decimal_odds": "1.90"},
+                            {"selection_key": "away", "selection_name": "Everton", "decimal_odds": "4.10"},
+                        ],
+                    },
+                ],
+            ),
+            "mintbet": build_scrape_result(
+                "mintbet",
+                "epl",
+                [
+                    {
+                        "name": "Arsenal v Chelsea",
+                        "selections": [
+                            {"selection_key": "home", "selection_name": "Arsenal", "decimal_odds": "2.15"},
+                            {"selection_key": "draw", "selection_name": "Draw", "decimal_odds": "3.45"},
+                            {"selection_key": "away", "selection_name": "Chelsea", "decimal_odds": "3.25"},
+                        ],
+                    },
+                ],
+            ),
+        }
+
+        result = pipeline.validate_scrape_results(scrape_results=scrape_results, competition="epl")
+
+        mintbet_score = result.bookmaker_results["mintbet"]
+        assert mintbet_score.event_coverage_percent == Decimal("100.00")
+        assert result.report.reference_events == 1
+        assert result.report.reference_total_events == 2
+
+    def test_pipeline_empty_eligibility_window_marks_skip_and_na(self):
+        """When no reference fixtures are eligible, score semantics are N_A/SKIP."""
+        config = ValidationConfig(
+            expected_events={"epl": {"min": 0, "max": 20, "typical": 10}}
+        )
+        pipeline = ValidationPipeline(config)
+
+        scrape_results = {
+            "ladbrokes": build_scrape_result(
+                "ladbrokes",
+                "epl",
+                [
+                    {
+                        "name": "Arsenal v Chelsea",
+                        "selections": [
+                            {"selection_key": "home", "selection_name": "Arsenal", "decimal_odds": "2.10"},
+                            {"selection_key": "away", "selection_name": "Chelsea", "decimal_odds": "3.20"},
+                        ],
+                    },
+                ],
+            ),
+            "mintbet": build_scrape_result(
+                "mintbet",
+                "epl",
+                [
+                    {
+                        "name": "Arsenal v Chelsea",
+                        "selections": [
+                            {"selection_key": "home", "selection_name": "Arsenal", "decimal_odds": "2.15"},
+                            {"selection_key": "draw", "selection_name": "Draw", "decimal_odds": "3.45"},
+                            {"selection_key": "away", "selection_name": "Chelsea", "decimal_odds": "3.25"},
+                        ],
+                    },
+                ],
+            ),
+        }
+
+        result = pipeline.validate_scrape_results(scrape_results=scrape_results, competition="epl")
+
+        assert result.bookmaker_results["ladbrokes"].status == "N_A"
+        assert result.bookmaker_results["mintbet"].status == "SKIP"
+        assert result.report.skip_count == 1
+        assert result.report.na_count == 1
 
 
 if __name__ == "__main__":

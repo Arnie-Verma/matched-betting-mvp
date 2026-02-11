@@ -1,0 +1,157 @@
+{
+  "competition": "epl",
+  "data_source": "synthetic_fixture",
+  "result": {
+    "competition": "epl",
+    "bookmaker_results": {
+      "ladbrokes": {
+        "bookmaker_code": "ladbrokes",
+        "competition": "epl",
+        "status": "PASS",
+        "is_exchange": false,
+        "event_count": 2,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "100",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 2,
+        "golden_fixtures_total": 2,
+        "golden_fixtures_passed": 2,
+        "failure_reasons": [],
+        "warning_reasons": [],
+        "eligible_reference_events": 2,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T05:59:37.555103+00:00",
+        "scrape_duration_seconds": 2.0
+      },
+      "mintbet": {
+        "bookmaker_code": "mintbet",
+        "competition": "epl",
+        "status": "PASS",
+        "is_exchange": false,
+        "event_count": 2,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "100.00",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 2,
+        "golden_fixtures_total": 2,
+        "golden_fixtures_passed": 2,
+        "failure_reasons": [],
+        "warning_reasons": [],
+        "eligible_reference_events": 2,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T05:59:37.555152+00:00",
+        "scrape_duration_seconds": 2.0
+      }
+    },
+    "has_failures": false,
+    "has_warnings": false,
+    "duration_seconds": 0.01270437240600586
+  },
+  "report": {
+    "competition": "epl",
+    "reference_bookmaker": "ladbrokes",
+    "reference_events": 2,
+    "reference_total_events": 2,
+    "scores": {
+      "ladbrokes": {
+        "bookmaker_code": "ladbrokes",
+        "competition": "epl",
+        "status": "PASS",
+        "is_exchange": false,
+        "event_count": 2,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "100",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 2,
+        "golden_fixtures_total": 2,
+        "golden_fixtures_passed": 2,
+        "failure_reasons": [],
+        "warning_reasons": [],
+        "eligible_reference_events": 2,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T05:59:37.555103+00:00",
+        "scrape_duration_seconds": 2.0
+      },
+      "mintbet": {
+        "bookmaker_code": "mintbet",
+        "competition": "epl",
+        "status": "PASS",
+        "is_exchange": false,
+        "event_count": 2,
+        "structural_passed": true,
+        "structural_issues": [],
+        "event_coverage_percent": "100.00",
+        "coverage_percent": "100",
+        "match_rate": "100",
+        "anomaly_count": 0,
+        "critical_anomaly_count": 0,
+        "worst_anomalies": [],
+        "golden_fixtures_found": 2,
+        "golden_fixtures_total": 2,
+        "golden_fixtures_passed": 2,
+        "failure_reasons": [],
+        "warning_reasons": [],
+        "eligible_reference_events": 2,
+        "no_eligible_reference_window": false,
+        "validated_at": "2026-02-11T05:59:37.555152+00:00",
+        "scrape_duration_seconds": 2.0
+      }
+    },
+    "golden_fixtures_summary": {
+      "arsenalvchelsea": {
+        "fixture_name": "arsenal v chelsea",
+        "found_in": [
+          "ladbrokes",
+          "mintbet"
+        ],
+        "found_count": 2,
+        "passed_in": [
+          "ladbrokes",
+          "mintbet"
+        ],
+        "passed_count": 2,
+        "total_bookmakers": 2
+      },
+      "liverpoolveverton": {
+        "fixture_name": "liverpool v everton",
+        "found_in": [
+          "ladbrokes",
+          "mintbet"
+        ],
+        "found_count": 2,
+        "passed_in": [
+          "ladbrokes",
+          "mintbet"
+        ],
+        "passed_count": 2,
+        "total_bookmakers": 2
+      }
+    },
+    "summary": {
+      "total_bookmakers": 2,
+      "pass_count": 2,
+      "warn_count": 0,
+      "fail_count": 0,
+      "skip_count": 0,
+      "na_count": 0,
+      "average_coverage": "100.0"
+    },
+    "generated_at": "2026-02-11T05:59:37.555220+00:00",
+    "validation_duration_seconds": 0.01270437240600586
+  }
+}

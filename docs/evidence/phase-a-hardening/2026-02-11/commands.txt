@@ -1,0 +1,32 @@
+# PR2 commands run (2026-02-11)
+
+1. docker ps --format "table {{.Names}}\t{{.Status}}"
+   - result: all required services healthy (`mb_api`, `mb_worker`, `mb_db`, `mb_redis`, `mb_web`).
+
+2. Validation smoke check inside Docker network context:
+   - docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/worker/src:/workspace/apps/api/src python -m scripts.validate_scrapers --competition epl --format json --from-db --no-anomalies --no-colors"
+   - result: successful live DB validation output (non-zero exit expected due FAIL statuses in dataset).
+
+3. Live evidence generation script execution inside Docker (`mb_api`):
+   - docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/worker/src:/workspace/apps/api/src python scripts/generate_live_validation_evidence.py"
+   - result: wrote live artifacts:
+     - validation_live_epl.json
+     - validation_live_nba.json
+     - validation_live_nhl.json
+     - validation_live_boxing.json
+     - validation_live_nbl.json
+     - priority_competition_summary_live.json
+     - priority_competition_summary_table_live.json
+     - priority_competition_summary_table_live.md
+
+4. JSON integrity verification:
+   - local python json.load check across all live evidence files
+   - result: PASS
+
+5. Required regression suite runs:
+   - pytest apps/worker/tests/test_punterstech_scraper.py -q (PASS)
+   - pytest apps/worker/tests/test_validation.py -q (PASS)
+   - pytest apps/worker/tests/test_entain_scraper.py -q (file not found; expected until PR5)
+
+Note:
+- `scripts/generate_live_validation_evidence.py` was used as a temporary helper and removed after artifact generation.
