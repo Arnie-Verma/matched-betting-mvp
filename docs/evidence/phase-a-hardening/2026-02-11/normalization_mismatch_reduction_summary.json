@@ -1,0 +1,45 @@
+{
+  "baseline_mismatches": 11,
+  "after_mismatches": 0,
+  "delta_mismatches": -11,
+  "baseline_match_rate_percent": 26.67,
+  "after_match_rate_percent": 100.0,
+  "delta_match_rate_percent": 73.33,
+  "by_competition": {
+    "epl": {
+      "baseline_mismatches": 1,
+      "after_mismatches": 0,
+      "delta_mismatches": -1,
+      "baseline_match_rate_percent": 66.67,
+      "after_match_rate_percent": 100.0
+    },
+    "nba": {
+      "baseline_mismatches": 3,
+      "after_mismatches": 0,
+      "delta_mismatches": -3,
+      "baseline_match_rate_percent": 0.0,
+      "after_match_rate_percent": 100.0
+    },
+    "nhl": {
+      "baseline_mismatches": 3,
+      "after_mismatches": 0,
+      "delta_mismatches": -3,
+      "baseline_match_rate_percent": 0.0,
+      "after_match_rate_percent": 100.0
+    },
+    "boxing": {
+      "baseline_mismatches": 3,
+      "after_mismatches": 0,
+      "delta_mismatches": -3,
+      "baseline_match_rate_percent": 0.0,
+      "after_match_rate_percent": 100.0
+    },
+    "nbl": {
+      "baseline_mismatches": 1,
+      "after_mismatches": 0,
+      "delta_mismatches": -1,
+      "baseline_match_rate_percent": 66.67,
+      "after_match_rate_percent": 100.0
+    }
+  }
+}

@@ -20,6 +20,7 @@ Create or update an ADR when any of the following changes:
 - `ADR-0006-bookmaker-isolation-with-circuit-breakers.md`
 - `ADR-0007-phase-a-unibet-freeze-enforcement.md`
 - `ADR-0008-validation-eligibility-window-semantics.md`
+- `ADR-0009-priority-normalization-alias-hardening.md`
 
 ## ADR Template
 Use this structure:

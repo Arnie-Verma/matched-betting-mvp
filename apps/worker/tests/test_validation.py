@@ -33,6 +33,7 @@ from validation.score_calculator import ScoreCalculator, ValidationScore
 from validation.report_generator import ReportGenerator, ValidationReport
 from validation.pipeline import ValidationPipeline
 from scrapers.base import ScrapeResult, ScrapedEvent, ScrapedOdds, ScraperStatus
+from api.services.normalization_service import normalize_competition_name, normalize_event_name
 
 
 # =============================================================================
@@ -799,6 +800,45 @@ class TestValidationConfig:
         """Test golden fixtures are configured for major leagues."""
         assert len(config.get_golden_fixtures("epl")) > 0
         assert len(config.get_golden_fixtures("laliga")) > 0
+
+
+class TestNormalizationRegression:
+    """Focused cross-platform normalization regression tests (Entain + Punterstech)."""
+
+    @pytest.mark.parametrize(
+        "raw_name,expected",
+        [
+            ("English Premier League", "epl"),
+            ("National Basketball Association", "nba"),
+            ("NBA Basketball", "nba"),
+            ("National Hockey League", "nhl"),
+            ("NHL Hockey", "nhl"),
+            ("National Basketball League", "nbl"),
+            ("Professional Boxing - Zayas vs. Baraou", "boxing"),
+        ],
+    )
+    def test_priority_competition_aliases(self, raw_name, expected):
+        assert normalize_competition_name(raw_name) == expected
+
+    @pytest.mark.parametrize(
+        "event_a,event_b,expected",
+        [
+            # EPL
+            ("Manchester Utd v Tottenham Hotspur", "Tottenham vs Man United", "manutdvtottenham"),
+            # NBA
+            ("LA Lakers @ New York Knicks", "Los Angeles Lakers vs NY Knicks", "knicksvlalakers"),
+            # NHL
+            ("NY Rangers @ Toronto Maple Leafs", "New York Rangers vs Toronto Maple Leafs", "mapleleafsvnyrangers"),
+            # Boxing
+            ("Xander Zayas v Jorge Garcia Perez", "Xander Zayas Jr vs Jorge Garcia-Perez", "jorgegarciaperezvxanderzayas"),
+            ("Naoya Inoue v Junto Nakatani", "N. Inoue vs J. Nakatani", "inouevnakatani"),
+            # NBL
+            ("SE Melbourne Phoenix v Illawarra Hawks", "South East Melbourne Phoenix vs Illawarra Hawks", "illawarrahawksvsemphoenix"),
+        ],
+    )
+    def test_priority_event_aliases(self, event_a, event_b, expected):
+        assert normalize_event_name(event_a) == expected
+        assert normalize_event_name(event_b) == expected
 
 
 # =============================================================================

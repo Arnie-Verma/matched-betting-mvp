@@ -19,6 +19,7 @@ Usage:
     canonical = normalizer.normalize_competition("English Premier League")  # -> "epl"
 """
 import re
+import unicodedata
 from functools import lru_cache
 from difflib import SequenceMatcher
 from typing import Optional
@@ -72,11 +73,16 @@ class NormalizationService:
         'australian a-league': 'aleague',
         # NBA
         'nba': 'nba',
+        'national basketball association': 'nba',
+        'nba basketball': 'nba',
         # NBL
         'nbl': 'nbl',
         'australia nbl': 'nbl',
+        'national basketball league': 'nbl',
         # NHL
         'nhl': 'nhl',
+        'nhl hockey': 'nhl',
+        'national hockey league': 'nhl',
         # AFL
         'afl': 'afl',
         'australian football league': 'afl',
@@ -109,6 +115,7 @@ class NormalizationService:
         'brighton & hove albion': 'brighton',
         'brighton hove albion': 'brighton',
         'manchester united': 'manutd',
+        'manchester utd': 'manutd',
         'man united': 'manutd',
         'man utd': 'manutd',
         'manchester city': 'mancity',
@@ -311,6 +318,7 @@ class NormalizationService:
         'cleveland cavaliers': 'cavaliers',
         'brooklyn nets': 'nets',
         'new york knicks': 'knicks',
+        'ny knicks': 'knicks',
         'atlanta hawks': 'atlhawks',
         'chicago bulls': 'bulls',
         'detroit pistons': 'pistons',
@@ -376,6 +384,7 @@ class NormalizationService:
         'naoya inoue': 'inoue',
         'junto nakatani': 'nakatani',
         'callum simpson': 'csimpson',
+        'c simpson': 'csimpson',
 
         # ============ AFL Teams ============
         'richmond tigers': 'richmond',
@@ -416,13 +425,17 @@ class NormalizationService:
         'st george illawarra dragons': 'dragons',
         'new zealand warriors': 'nzwarriors',
         'dolphins': 'dolphins',
+
+        # ============ UCL / Europe (common variants) ============
+        # Unibet AU sometimes uses spelling variants vs Entain (e.g., Olympiakos vs Olympiacos)
+        'olympiakos': 'olympiacos',
     }
 
     # Prefixes to remove from team names
     TEAM_PREFIXES = ['as ', 'ac ', 'fc ', 'cf ', 'sc ', 'ss ', 'us ', 'afc ', 'rcd ', 'cd ', 'ca ']
 
     # Suffixes to remove from team names
-    TEAM_SUFFIXES = [' fc', ' cf', ' bc', ' sc', ' ac', ' afc', ' cfc']
+    TEAM_SUFFIXES = [' fc', ' cf', ' bc', ' sc', ' ac', ' afc', ' cfc', ' fk', ' sk']
 
     def __init__(self):
         """Initialize the normalization service."""
@@ -448,6 +461,7 @@ class NormalizationService:
         if not name:
             return ""
         norm = name.lower().strip()
+        norm = self._numeric_prefix_pattern.sub('', norm)
         # Strip season prefixes like "2025/2026 " or "2025 "
         norm = re.sub(r'^\d{4}(?:/\d{4})?\s+', '', norm)
         # Boxing often includes event-specific suffixes (e.g., "Professional Boxing - Zayas vs. Baraou")
@@ -475,6 +489,16 @@ class NormalizationService:
 
         norm = name.lower().strip()
 
+        # Normalize unicode (strip accents/diacritics) and common separators.
+        # This improves cross-bookmaker matching for teams like "Bodø/Glimt" vs "Bodo/Glimt",
+        # "Qarabağ" vs "Qarabag", etc.
+        norm = unicodedata.normalize("NFKD", norm).encode("ascii", "ignore").decode("ascii")
+        norm = norm.replace("/", " ")
+        # Normalize punctuation used in abbreviated/compound names.
+        for ch in [".", ",", "-", "'", "\"", "(", ")"]:
+            norm = norm.replace(ch, " ")
+        norm = " ".join(norm.split())
+
         # Handle draw variations
         if norm in ["draw", "the draw", "tie", "the tie"]:
             return "draw"
@@ -500,8 +524,15 @@ class NormalizationService:
                 norm = norm.replace(old, new)
                 break  # Stop after first match
 
-        # Remove all spaces for final comparison
-        return norm.replace(' ', '')
+        # Drop common individual suffixes/initials so
+        # "Xander Zayas Jr" and "N. Inoue" align with full-name variants.
+        tokens = [t for t in norm.split() if t]
+        while tokens and tokens[-1] in {"jr", "sr", "ii", "iii", "iv"}:
+            tokens.pop()
+        if len(tokens) == 2 and len(tokens[0]) == 1:
+            tokens = tokens[1:]
+
+        return "".join(tokens)
 
     @lru_cache(maxsize=10000)
     def normalize_event(self, name: str) -> str:
@@ -523,58 +554,22 @@ class NormalizationService:
             return ""
 
         norm = name.lower().strip()
+        norm = unicodedata.normalize("NFKD", norm).encode("ascii", "ignore").decode("ascii")
+        norm = norm.replace("/", " ")
 
-        # Remove numeric prefixes like "1. " (e.g., "1. FC Heidenheim")
-        norm = self._numeric_prefix_pattern.sub('', norm)
-
-        # Standardize separators to "v"
+        # Standardize separators to "v".
         for pattern, replacement in self._separator_patterns:
             norm = pattern.sub(replacement, norm)
 
-        # CRITICAL: Mark the separator BEFORE suffix/prefix removal
-        # This prevents issues like "mallorca v" matching "ca " prefix
-        norm = norm.replace(' v ', '|VS|')
+        if " v " in norm:
+            teams = [self.normalize_team(part) for part in norm.split(" v ") if part.strip()]
+            teams = [team for team in teams if team]
+            if len(teams) == 2:
+                return "v".join(sorted(teams))
+            return "v".join(teams)
 
-        # Split into teams and process each separately
-        if '|VS|' in norm:
-            parts = norm.split('|VS|')
-            normalized_parts = []
-            for part in parts:
-                team = part.strip()
-                # Remove common team suffixes (at end of team name)
-                for suffix in self.TEAM_SUFFIXES:
-                    if team.endswith(suffix):
-                        team = team[:-len(suffix)]
-                # Remove common team prefixes (at start of team name)
-                for prefix in self.TEAM_PREFIXES:
-                    if team.startswith(prefix):
-                        team = team[len(prefix):]
-                # Apply team mappings
-                for old, new in sorted(self.TEAM_MAP.items(), key=lambda x: -len(x[0])):
-                    team = team.replace(old, new)
-                # Remove spaces
-                team = team.replace(' ', '')
-                normalized_parts.append(team)
-            # Sort teams alphabetically to handle reversed order
-            # Betfair: "Boston Celtics @ Toronto Raptors" → sorted → "celticsvraptors"
-            # Ladbrokes: "Toronto Raptors vs Boston Celtics" → sorted → "celticsvraptors"
-            if len(normalized_parts) == 2:
-                norm = 'v'.join(sorted(normalized_parts))
-            else:
-                norm = 'v'.join(normalized_parts)
-        else:
-            # No separator found - process as single entity
-            for suffix in self.TEAM_SUFFIXES:
-                if norm.endswith(suffix):
-                    norm = norm[:-len(suffix)]
-            for prefix in self.TEAM_PREFIXES:
-                if norm.startswith(prefix):
-                    norm = norm[len(prefix):]
-            for old, new in sorted(self.TEAM_MAP.items(), key=lambda x: -len(x[0])):
-                norm = norm.replace(old, new)
-            norm = norm.replace(' ', '')
-
-        return norm
+        # No separator found - normalize as a single participant/entity.
+        return self.normalize_team(norm)
 
     def normalize_selection(self, name: str) -> str:
         """

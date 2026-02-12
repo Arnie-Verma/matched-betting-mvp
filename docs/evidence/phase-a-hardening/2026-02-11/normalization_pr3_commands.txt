@@ -1,0 +1,24 @@
+# PR3 normalization commands run (2026-02-11)
+
+1. Baseline mismatch snapshot (before normalization changes):
+   - python inline script -> `normalization_mismatch_baseline.json`
+   - result: 11 mismatches / 15 cases
+
+2. Required regression tests after normalization updates:
+   - pytest apps/worker/tests/test_validation.py -q (PASS, 49)
+   - pytest apps/worker/tests/test_punterstech_scraper.py -q (PASS, 31)
+   - pytest apps/worker/tests/test_entain_scraper.py -q (file not found; expected until PR5)
+
+3. Syntax check:
+   - python -m py_compile apps/api/src/api/services/normalization_service.py (PASS)
+
+4. After snapshot + reduction summary generation:
+   - python inline script ->
+     - `normalization_mismatch_after_pr3.json`
+     - `normalization_mismatch_reduction_summary.json`
+     - `normalization_mismatch_reduction_summary.md`
+   - result: 0 mismatches / 15 cases
+
+5. API smoke tests after normalization change:
+   - PYTHONPATH=apps/api/src pytest apps/api/tests/test_health.py -q (PASS)
+   - PYTHONPATH=apps/api/src pytest apps/api/tests/test_bookmaker_freeze.py -q (PASS)

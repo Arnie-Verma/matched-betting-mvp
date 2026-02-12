@@ -164,6 +164,9 @@ Centralized normalization is in one service:
 - team normalization
 - event normalization
 - selection normalization and fuzzy support
+- event normalization now delegates per-side normalization to team normalization,
+  reducing cross-platform alias drift (Entain + Punterstech priority comps)
+- priority regression coverage includes `epl`, `nba`, `nhl`, `boxing`, `nbl`
 
 This is foundational for cross-bookmaker matching and validation consistency.
 

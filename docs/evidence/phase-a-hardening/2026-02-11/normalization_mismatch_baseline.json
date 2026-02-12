@@ -1,0 +1,344 @@
+{
+  "summary": {
+    "phase": "before_pr3",
+    "total_cases": 15,
+    "mismatches": 11,
+    "match_rate_percent": 26.67,
+    "by_competition": {
+      "epl": {
+        "cases": 3,
+        "mismatches": 1,
+        "match_rate_percent": 66.67
+      },
+      "nba": {
+        "cases": 3,
+        "mismatches": 3,
+        "match_rate_percent": 0.0
+      },
+      "nhl": {
+        "cases": 3,
+        "mismatches": 3,
+        "match_rate_percent": 0.0
+      },
+      "boxing": {
+        "cases": 3,
+        "mismatches": 3,
+        "match_rate_percent": 0.0
+      },
+      "nbl": {
+        "cases": 3,
+        "mismatches": 1,
+        "match_rate_percent": 66.67
+      }
+    },
+    "mismatch_details": [
+      {
+        "competition": "epl",
+        "case_id": 2,
+        "competition_match": true,
+        "event_match": false,
+        "normalized_competition_a": "epl",
+        "normalized_competition_b": "epl",
+        "normalized_event_a": "manchesterutdvtottenham",
+        "normalized_event_b": "manutdvtottenham"
+      },
+      {
+        "competition": "nba",
+        "case_id": 1,
+        "competition_match": true,
+        "event_match": false,
+        "normalized_competition_a": "nba",
+        "normalized_competition_b": "nba",
+        "normalized_event_a": "knicksvlalalakers",
+        "normalized_event_b": "lalalakersvnyknicks"
+      },
+      {
+        "competition": "nba",
+        "case_id": 2,
+        "competition_match": false,
+        "event_match": true,
+        "normalized_competition_a": "national basketball association",
+        "normalized_competition_b": "nba",
+        "normalized_event_a": "pelicansvthunder",
+        "normalized_event_b": "pelicansvthunder"
+      },
+      {
+        "competition": "nba",
+        "case_id": 3,
+        "competition_match": false,
+        "event_match": true,
+        "normalized_competition_a": "nba basketball",
+        "normalized_competition_b": "nba",
+        "normalized_event_a": "celticsvsixers",
+        "normalized_event_b": "celticsvsixers"
+      },
+      {
+        "competition": "nhl",
+        "case_id": 1,
+        "competition_match": false,
+        "event_match": true,
+        "normalized_competition_a": "nhl",
+        "normalized_competition_b": "national hockey league",
+        "normalized_event_a": "mapleleafsvnyrangers",
+        "normalized_event_b": "mapleleafsvnyrangers"
+      },
+      {
+        "competition": "nhl",
+        "case_id": 2,
+        "competition_match": false,
+        "event_match": true,
+        "normalized_competition_a": "nhl hockey",
+        "normalized_competition_b": "nhl",
+        "normalized_event_a": "lakingsvstlblues",
+        "normalized_event_b": "lakingsvstlblues"
+      },
+      {
+        "competition": "nhl",
+        "case_id": 3,
+        "competition_match": false,
+        "event_match": true,
+        "normalized_competition_a": "national hockey league",
+        "normalized_competition_b": "nhl",
+        "normalized_event_a": "canadiensvwpgjets",
+        "normalized_event_b": "canadiensvwpgjets"
+      },
+      {
+        "competition": "boxing",
+        "case_id": 1,
+        "competition_match": true,
+        "event_match": false,
+        "normalized_competition_a": "boxing",
+        "normalized_competition_b": "boxing",
+        "normalized_event_a": "jorgegarciaperezvxanderzayas",
+        "normalized_event_b": "jorgegarcia-perezvxanderzayasjr"
+      },
+      {
+        "competition": "boxing",
+        "case_id": 2,
+        "competition_match": true,
+        "event_match": false,
+        "normalized_competition_a": "boxing",
+        "normalized_competition_b": "boxing",
+        "normalized_event_a": "inouevnakatani",
+        "normalized_event_b": "j.nakatanivn.inoue"
+      },
+      {
+        "competition": "boxing",
+        "case_id": 3,
+        "competition_match": true,
+        "event_match": false,
+        "normalized_competition_a": "boxing",
+        "normalized_competition_b": "boxing",
+        "normalized_event_a": "csimpsonvivanzucco",
+        "normalized_event_b": "c.simpsonvivanzucco"
+      },
+      {
+        "competition": "nbl",
+        "case_id": 2,
+        "competition_match": false,
+        "event_match": true,
+        "normalized_competition_a": "national basketball league",
+        "normalized_competition_b": "nbl",
+        "normalized_event_a": "breakersvwildcats",
+        "normalized_event_b": "breakersvwildcats"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "competition": "epl",
+      "case_id": 1,
+      "competition_a": "English Premier League",
+      "competition_b": "Premier League",
+      "normalized_competition_a": "epl",
+      "normalized_competition_b": "epl",
+      "event_a": "Brighton & Hove Albion v Crystal Palace",
+      "event_b": "Crystal Palace vs Brighton",
+      "normalized_event_a": "brightonvcrystalpalace",
+      "normalized_event_b": "brightonvcrystalpalace",
+      "match": true
+    },
+    {
+      "competition": "epl",
+      "case_id": 2,
+      "competition_a": "England Premier League",
+      "competition_b": "EPL",
+      "normalized_competition_a": "epl",
+      "normalized_competition_b": "epl",
+      "event_a": "Manchester Utd v Tottenham Hotspur",
+      "event_b": "Tottenham vs Man United",
+      "normalized_event_a": "manchesterutdvtottenham",
+      "normalized_event_b": "manutdvtottenham",
+      "match": false
+    },
+    {
+      "competition": "epl",
+      "case_id": 3,
+      "competition_a": "Premier League",
+      "competition_b": "English Premier League",
+      "normalized_competition_a": "epl",
+      "normalized_competition_b": "epl",
+      "event_a": "Wolverhampton Wanderers v Nottingham Forest",
+      "event_b": "Wolves vs Nottm Forest",
+      "normalized_event_a": "nottinghamvwolves",
+      "normalized_event_b": "nottinghamvwolves",
+      "match": true
+    },
+    {
+      "competition": "nba",
+      "case_id": 1,
+      "competition_a": "NBA",
+      "competition_b": "nba",
+      "normalized_competition_a": "nba",
+      "normalized_competition_b": "nba",
+      "event_a": "LA Lakers @ New York Knicks",
+      "event_b": "Los Angeles Lakers vs NY Knicks",
+      "normalized_event_a": "knicksvlalalakers",
+      "normalized_event_b": "lalalakersvnyknicks",
+      "match": false
+    },
+    {
+      "competition": "nba",
+      "case_id": 2,
+      "competition_a": "National Basketball Association",
+      "competition_b": "NBA",
+      "normalized_competition_a": "national basketball association",
+      "normalized_competition_b": "nba",
+      "event_a": "OKC Thunder v New Orleans Pelicans",
+      "event_b": "Oklahoma City Thunder vs New Orleans Pelicans",
+      "normalized_event_a": "pelicansvthunder",
+      "normalized_event_b": "pelicansvthunder",
+      "match": false
+    },
+    {
+      "competition": "nba",
+      "case_id": 3,
+      "competition_a": "NBA Basketball",
+      "competition_b": "nba",
+      "normalized_competition_a": "nba basketball",
+      "normalized_competition_b": "nba",
+      "event_a": "Philadelphia 76ers v Boston Celtics",
+      "event_b": "Phila 76ers vs Boston Celtics",
+      "normalized_event_a": "celticsvsixers",
+      "normalized_event_b": "celticsvsixers",
+      "match": false
+    },
+    {
+      "competition": "nhl",
+      "case_id": 1,
+      "competition_a": "NHL",
+      "competition_b": "National Hockey League",
+      "normalized_competition_a": "nhl",
+      "normalized_competition_b": "national hockey league",
+      "event_a": "NY Rangers @ Toronto Maple Leafs",
+      "event_b": "New York Rangers vs Toronto Maple Leafs",
+      "normalized_event_a": "mapleleafsvnyrangers",
+      "normalized_event_b": "mapleleafsvnyrangers",
+      "match": false
+    },
+    {
+      "competition": "nhl",
+      "case_id": 2,
+      "competition_a": "NHL Hockey",
+      "competition_b": "NHL",
+      "normalized_competition_a": "nhl hockey",
+      "normalized_competition_b": "nhl",
+      "event_a": "St. Louis Blues v LA Kings",
+      "event_b": "St Louis Blues vs Los Angeles Kings",
+      "normalized_event_a": "lakingsvstlblues",
+      "normalized_event_b": "lakingsvstlblues",
+      "match": false
+    },
+    {
+      "competition": "nhl",
+      "case_id": 3,
+      "competition_a": "National Hockey League",
+      "competition_b": "NHL",
+      "normalized_competition_a": "national hockey league",
+      "normalized_competition_b": "nhl",
+      "event_a": "Montreal Canadiens v Winnipeg Jets",
+      "event_b": "Canadiens vs Winnipeg Jets",
+      "normalized_event_a": "canadiensvwpgjets",
+      "normalized_event_b": "canadiensvwpgjets",
+      "match": false
+    },
+    {
+      "competition": "boxing",
+      "case_id": 1,
+      "competition_a": "Professional Boxing - Zayas vs. Baraou",
+      "competition_b": "Upcoming Fights",
+      "normalized_competition_a": "boxing",
+      "normalized_competition_b": "boxing",
+      "event_a": "Xander Zayas v Jorge Garcia Perez",
+      "event_b": "Xander Zayas Jr vs Jorge Garcia-Perez",
+      "normalized_event_a": "jorgegarciaperezvxanderzayas",
+      "normalized_event_b": "jorgegarcia-perezvxanderzayasjr",
+      "match": false
+    },
+    {
+      "competition": "boxing",
+      "case_id": 2,
+      "competition_a": "Boxing Matches",
+      "competition_b": "boxing",
+      "normalized_competition_a": "boxing",
+      "normalized_competition_b": "boxing",
+      "event_a": "Naoya Inoue v Junto Nakatani",
+      "event_b": "N. Inoue vs J. Nakatani",
+      "normalized_event_a": "inouevnakatani",
+      "normalized_event_b": "j.nakatanivn.inoue",
+      "match": false
+    },
+    {
+      "competition": "boxing",
+      "case_id": 3,
+      "competition_a": "Professional Boxing",
+      "competition_b": "Upcoming Fights",
+      "normalized_competition_a": "boxing",
+      "normalized_competition_b": "boxing",
+      "event_a": "Callum Simpson v Ivan Zucco",
+      "event_b": "C. Simpson vs Ivan Zucco",
+      "normalized_event_a": "csimpsonvivanzucco",
+      "normalized_event_b": "c.simpsonvivanzucco",
+      "match": false
+    },
+    {
+      "competition": "nbl",
+      "case_id": 1,
+      "competition_a": "Australia NBL",
+      "competition_b": "NBL",
+      "normalized_competition_a": "nbl",
+      "normalized_competition_b": "nbl",
+      "event_a": "SE Melbourne Phoenix v Illawarra Hawks",
+      "event_b": "South East Melbourne Phoenix vs Illawarra Hawks",
+      "normalized_event_a": "illawarrahawksvsemphoenix",
+      "normalized_event_b": "illawarrahawksvsemphoenix",
+      "match": true
+    },
+    {
+      "competition": "nbl",
+      "case_id": 2,
+      "competition_a": "National Basketball League",
+      "competition_b": "NBL",
+      "normalized_competition_a": "national basketball league",
+      "normalized_competition_b": "nbl",
+      "event_a": "Perth Wildcats v NZ Breakers",
+      "event_b": "Perth Wildcats vs New Zealand Breakers",
+      "normalized_event_a": "breakersvwildcats",
+      "normalized_event_b": "breakersvwildcats",
+      "match": false
+    },
+    {
+      "competition": "nbl",
+      "case_id": 3,
+      "competition_a": "NBL",
+      "competition_b": "Australia NBL",
+      "normalized_competition_a": "nbl",
+      "normalized_competition_b": "nbl",
+      "event_a": "Melbourne United v Sydney Kings",
+      "event_b": "Melb United vs Sydney Kings",
+      "normalized_event_a": "melbunitedvsydneykings",
+      "normalized_event_b": "melbunitedvsydneykings",
+      "match": true
+    }
+  ]
+}

@@ -38,6 +38,17 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - `artifact_sources.md`
   - Added downstream compatibility check note for `SKIP`/`N_A` handling:
     - `compatibility_check.md`
+- PR3 normalization hardening completed (normalization-only scope):
+  - Expanded cross-platform competition aliases for priority competitions (`epl`, `nba`, `nhl`, `boxing`, `nbl`)
+  - Expanded team aliases for Entain/Punterstech style naming variants (for example `Manchester Utd`, `NY Knicks`, boxing abbreviations)
+  - Refactored event normalization to reuse per-side team normalization for deterministic keys
+  - Added focused normalization regression tests in `apps/worker/tests/test_validation.py`
+  - Added before/after mismatch evidence:
+    - `normalization_mismatch_baseline.json`
+    - `normalization_mismatch_after_pr3.json`
+    - `normalization_mismatch_reduction_summary.json`
+    - `normalization_mismatch_reduction_summary.md`
+- Added decision record `ADR-0009-priority-normalization-alias-hardening.md`
 - Validation executed:
   - `pytest apps/worker/tests/test_punterstech_scraper.py -q` (pass)
   - `pytest apps/worker/tests/test_validation.py -q` (pass, now 36 tests)
@@ -47,12 +58,13 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 ### Decisions
 - `ADR-0007`: enforce Phase A Unibet freeze at runtime and plan exposure layers (not seed-only) to prevent accidental re-enable during hardening
 - `ADR-0008`: validation coverage/probability comparisons must use eligible reference fixture windows, with `SKIP`/`N_A` semantics when none are eligible
+- `ADR-0009`: priority competition normalization should be centralized and side-normalized to reduce cross-platform alias drift
 
 ### Blockers
 - Pre-existing dirty worktree with unrelated changes; PR1 work is being kept isolated to freeze-only files
 
 ### Next Steps
-- PR3: normalization hardening + tests
+- PR4: market hygiene hardening (Entain + Punterstech) + tests
 
 ## 2026-02-01 (Sunday)
 
