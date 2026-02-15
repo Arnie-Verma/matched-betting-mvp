@@ -38,7 +38,12 @@ Why it matters:
 
 Changes:
 - Add `SKIP`/`N_A` handling for no-eligible-fixture windows.
+- Add explicit bookmaker x competition coverage scope policy:
+  - out-of-scope => `SKIP`
+  - in-scope zero-event => `FAIL`
 - Calibrate event-count thresholds per competition/season.
+- Add competition-aware coverage/anomaly scoring thresholds where local evidence
+  shows repeat false FAIL/WARN patterns.
 - Ensure event coverage is calculated only against valid reference fixture sets.
 - Surface eligible vs total reference fixture counts in validation reports/JSON.
 - Add regression tests for empty and partial eligibility windows.
@@ -52,7 +57,8 @@ Primary files:
 
 Exit criteria:
 - EPL/NBA/NHL/boxing/NBL validation status is stable and explainable across repeated runs.
-- No hard FAIL caused solely by empty windows or threshold mismatch.
+- No hard FAIL caused solely by empty windows or scope-policy mismatch.
+- Explicit in-scope/out-of-scope policy is documented for boxing and NBL.
 
 ## 2) Competition + Event Normalization Hardening (P0)
 What it is:
@@ -83,6 +89,8 @@ Why it matters:
 Changes:
 - Strictly filter out futures/outrights/partial-game markets from matcher pipeline.
 - Add assertions for expected market shape by sport (2-way vs 3-way).
+- Enforce matcher `selection_key` to `home/away/draw` only and retire stale invalid
+  `is_current=true` rows from pre-hardening runs.
 
 Primary files:
 - `apps/worker/src/scrapers/entain_scraper.py`

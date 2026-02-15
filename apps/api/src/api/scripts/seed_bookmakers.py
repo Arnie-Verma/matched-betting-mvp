@@ -197,7 +197,7 @@ def seed_bookmakers(db: Session):
             "display_name": "Unibet",
             "website_url": "https://www.unibet.com.au",
             "country": "AU",
-            "is_active": True,
+            "is_active": False,  # Phase A freeze: keep disabled until hardening GO
             "default_source_type": "api",
             "base_url": "https://www.unibet.com.au",
             "rate_limit_seconds": 2

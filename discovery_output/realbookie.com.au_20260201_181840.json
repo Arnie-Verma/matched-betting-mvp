@@ -1,0 +1,194 @@
+{
+  "bookmaker": "realbookie.com.au",
+  "base_url": "https://www.realbookie.com.au",
+  "sport_paths": [
+    "/sports/soccer"
+  ],
+  "timestamp": "2026-02-01T18:18:40.290451",
+  "endpoints_captured": 6,
+  "unique_endpoints": 3,
+  "endpoints": {
+    "/query": {
+      "full_url": "https://platform.realbookie.bmapollo.com/query",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "data"
+      ],
+      "response_size": 469,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/messenger/web/launcher_settings": {
+      "full_url": "https://api-iam.intercom.io/messenger/web/launcher_settings",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "alignment",
+        "color",
+        "color_dark",
+        "has_required_features",
+        "horizontal_padding",
+        "instant_boot_enabled",
+        "launcher_logo_url",
+        "launcher_logo_dark_url",
+        "secondary_color",
+        "secondary_color_dark",
+        "show_launcher",
+        "theme_mode",
+        "updated_at",
+        "vertical_padding"
+      ],
+      "response_size": 374,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/messenger/web/ping": {
+      "full_url": "https://api-iam.intercom.io/messenger/web/ping",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "app",
+        "user",
+        "client_matches",
+        "launcher_settings",
+        "modules",
+        "unread_conversation_ids",
+        "unread_dismissed_conversation_ids",
+        "anonymous_session",
+        "identity_verification_ready",
+        "origin_cookie_domain",
+        "cdas_breaching_limit",
+        "checklists",
+        "open_config",
+        "unread_tickets_count",
+        "jwt_expired"
+      ],
+      "response_size": 6844,
+      "sports_where_found": [
+        "soccer"
+      ]
+    }
+  },
+  "odds_endpoints": [],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/query",
+      "/messenger/web/launcher_settings",
+      "/messenger/web/ping"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://platform.realbookie.bmapollo.com/query",
+      "endpoint": "/query",
+      "sport": "soccer",
+      "status": 200,
+      "size": 469,
+      "sample": {
+        "data": {
+          "getConfiguration": "..."
+        }
+      }
+    },
+    {
+      "url": "https://sports.realbookie.bmapollo.com/query",
+      "endpoint": "/query",
+      "sport": "soccer",
+      "status": 200,
+      "size": 2195,
+      "sample": {
+        "data": {
+          "sports": "..."
+        }
+      }
+    },
+    {
+      "url": "https://platform.realbookie.bmapollo.com/query",
+      "endpoint": "/query",
+      "sport": "soccer",
+      "status": 200,
+      "size": 350,
+      "sample": {
+        "data": {
+          "stakeLimitEnabled": "...",
+          "betVisionEnabled": "...",
+          "skyVisionEnabled": "...",
+          "cancelWithdrawalRequestEnabled": "...",
+          "appBetslipAutoDismissEnabled": "..."
+        }
+      }
+    },
+    {
+      "url": "https://sports.realbookie.bmapollo.com/query",
+      "endpoint": "/query",
+      "sport": "soccer",
+      "status": 200,
+      "size": 31,
+      "sample": {
+        "data": {
+          "nextUpMarkets": "..."
+        }
+      }
+    },
+    {
+      "url": "https://api-iam.intercom.io/messenger/web/launcher_settings",
+      "endpoint": "/messenger/web/launcher_settings",
+      "sport": "soccer",
+      "status": 200,
+      "size": 374,
+      "sample": {
+        "alignment": "right",
+        "color": "#016A70",
+        "color_dark": "#359ea4",
+        "has_required_features": true,
+        "horizontal_padding": 20
+      }
+    },
+    {
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "endpoint": "/messenger/web/ping",
+      "sport": "soccer",
+      "status": 200,
+      "size": 6844,
+      "sample": {
+        "app": {
+          "name": "...",
+          "audio_enabled": "...",
+          "show_powered_by": "...",
+          "team_intro": "...",
+          "team_greeting": "..."
+        },
+        "user": {
+          "id": "...",
+          "role": "...",
+          "locale": "...",
+          "has_conversations": "...",
+          "anonymous_id": "..."
+        },
+        "client_matches": [
+          "..."
+        ],
+        "launcher_settings": {
+          "alignment": "...",
+          "color": "...",
+          "color_dark": "...",
+          "has_required_features": "...",
+          "horizontal_padding": "..."
+        },
+        "modules": {
+          "messages": "...",
+          "rtm": "...",
+          "metrics": "...",
+          "error_reporting": "...",
+          "customization": "..."
+        }
+      }
+    }
+  ]
+}

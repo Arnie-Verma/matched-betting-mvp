@@ -148,6 +148,7 @@ class PunterstechScraper(BaseScraper):
     COMPETITION_FILTERS = {
         "soccer": [
             "english premier league", "epl",
+            "england premier league",
             "a-league", "a league", "a-league men", "a-league women", "aleague",
             "la liga", "spanish la liga", "spanish primera", "spain-la-liga",
             "bundesliga", "german bundesliga",
@@ -186,6 +187,92 @@ class PunterstechScraper(BaseScraper):
         "match betting", "full time result", "1x2",
     ]
 
+    ALLOWED_MARKET_TOKENS_BY_SPORT = {
+        "soccer": (
+            "match result",
+            "match winner",
+            "head to head",
+            "head-to-head",
+            "h2h",
+            "full time result",
+            "full-time result",
+            "1x2",
+        ),
+        "basketball": (
+            "money line",
+            "moneyline",
+            "head to head",
+            "head-to-head",
+            "h2h",
+            "match winner",
+            "to win",
+        ),
+        "ice_hockey": (
+            "money line",
+            "moneyline",
+            "head to head",
+            "head-to-head",
+            "h2h",
+            "match winner",
+            "to win",
+        ),
+        "boxing": (
+            "fight betting",
+            "fight result",
+            "money line",
+            "moneyline",
+            "match winner",
+            "to win",
+        ),
+    }
+
+    DISALLOWED_MARKET_TOKENS = (
+        "futures",
+        "outright",
+        "championship",
+        "conference",
+        "division",
+        "season",
+        "series winner",
+        "to make",
+        "to qualify",
+        "qualify",
+        "group winner",
+        "winner without",
+        "top scorer",
+        "method of victory",
+        "win by",
+        "by ko",
+        "by tko",
+        "by decision",
+        "exact score",
+        "draw no bet",
+        "double chance",
+        "both teams to score",
+        "corners",
+        "cards",
+        "first to",
+        "race to",
+        "half time",
+        "halftime",
+        "1st half",
+        "first half",
+        "2nd half",
+        "second half",
+        "1st quarter",
+        "first quarter",
+        "2nd quarter",
+        "second quarter",
+        "3rd quarter",
+        "third quarter",
+        "4th quarter",
+        "fourth quarter",
+        "period",
+        "set",
+        "innings",
+        "map",
+    )
+
     # Selection phrases that indicate non-match-winner markets
     DISALLOWED_SELECTION_PHRASES = [
         "score first",
@@ -217,6 +304,94 @@ class PunterstechScraper(BaseScraper):
     ]
 
     ALL_SPORTS = ["soccer", "basketball", "ice_hockey", "boxing"]
+
+    def _expected_selection_keys(self, sport: str) -> tuple:
+        if sport == "soccer":
+            return ("home", "draw", "away")
+        return ("home", "away")
+
+    def _is_matcher_market(
+        self,
+        market_desc: str,
+        market_type: str,
+        external_ref: str,
+        sport: str,
+    ) -> bool:
+        market_lower = (market_desc or "").lower().strip()
+        ref = (external_ref or "").upper().strip()
+        mtype = (market_type or "").strip().lower()
+
+        if not market_lower and ref not in {"MW", "H2H"} and mtype != "headtohead":
+            return False
+
+        if any(token in market_lower for token in self.DISALLOWED_MARKET_TOKENS):
+            return False
+
+        allowed_tokens = self.ALLOWED_MARKET_TOKENS_BY_SPORT.get(sport, ())
+        if any(token in market_lower for token in allowed_tokens):
+            return True
+
+        if ref in {"MW", "H2H"}:
+            return True
+
+        if mtype == "headtohead":
+            return True
+
+        return False
+
+    def _build_matcher_market_odds(
+        self,
+        outcomes: List[Dict[str, Any]],
+        event: ScrapedEvent,
+        market_name: str,
+        sport: str,
+        source_url: str,
+    ) -> List[ScrapedOdds]:
+        expected_keys = self._expected_selection_keys(sport)
+        allowed_keys = set(expected_keys)
+        odds_by_key: Dict[str, ScrapedOdds] = {}
+
+        for outcome in outcomes:
+            if outcome.get("Scratched"):
+                continue
+
+            sel_name = outcome.get("Name", "")
+            if not sel_name:
+                continue
+
+            for price_data in outcome.get("Prices", []):
+                win_price = price_data.get("WinPrice", 0)
+                if not win_price or win_price <= 1:
+                    continue
+
+                selection_key = self._get_selection_key(sel_name, event)
+                if selection_key not in allowed_keys:
+                    continue
+                if selection_key in odds_by_key:
+                    break
+
+                canonical_name = self._canonicalize_selection_name(sel_name, selection_key, event)
+                odds_by_key[selection_key] = ScrapedOdds(
+                    event_external_id=event.external_id,
+                    event_name=event.name,
+                    sport=event.sport,
+                    competition=event.competition,
+                    start_time=event.start_time,
+                    market_type="match_winner",
+                    market_name=market_name or "Match Result",
+                    selection_name=canonical_name,
+                    selection_key=selection_key,
+                    decimal_odds=Decimal(str(win_price)).quantize(Decimal("0.01")),
+                    bookmaker_code=self.bookmaker_code,
+                    source_url=source_url,
+                    scraped_at=datetime.now(timezone.utc)
+                )
+                break
+
+        if not all(key in odds_by_key for key in expected_keys):
+            return []
+
+        return [odds_by_key[key] for key in expected_keys]
 
     def __init__(
         self,
@@ -346,6 +521,36 @@ class PunterstechScraper(BaseScraper):
             competition = meta["MasterEventName"]
         return competition or "Unknown Competition"
 
+    @staticmethod
+    def _normalize_competition_text(value: str) -> str:
+        """Normalize competition text for resilient include-filter matching."""
+        if not value:
+            return ""
+        normalized = value.lower()
+        for ch in ("-", "_", "/", ",", "(", ")", ":"):
+            normalized = normalized.replace(ch, " ")
+        return " ".join(normalized.split())
+
+    def _competition_matches_filters(
+        self,
+        competition_name: str,
+        filters: List[str],
+    ) -> bool:
+        """Check if a competition matches any configured filter token."""
+        if not filters:
+            return True
+
+        comp_raw = (competition_name or "").lower()
+        comp_norm = self._normalize_competition_text(comp_raw)
+        for token in filters:
+            if not token:
+                continue
+            token_raw = str(token).lower()
+            token_norm = self._normalize_competition_text(token_raw)
+            if token_raw in comp_raw or token_norm in comp_norm:
+                return True
+        return False
+
     def _should_include_event(self, event_data: Dict[str, Any], target_sport: str) -> bool:
         event_type = event_data.get("EventType", "").lower()
         mapped_sport = self.SPORT_MAPPINGS.get(event_type)
@@ -358,11 +563,12 @@ class PunterstechScraper(BaseScraper):
 
         competition_filters = self.COMPETITION_FILTERS.get(target_sport, [])
         if competition_filters:
-            comp_lower = self._get_competition_name(event_data).lower()
+            competition_name = self._get_competition_name(event_data)
+            comp_lower = competition_name.lower()
             # Skip futures/outrights - odds matcher is for head-to-head fixtures.
             if any(token in comp_lower for token in ("futures", "outright")):
                 return False
-            if not any(f in comp_lower for f in competition_filters):
+            if not self._competition_matches_filters(competition_name, competition_filters):
                 return False
 
         return True
@@ -390,7 +596,9 @@ class PunterstechScraper(BaseScraper):
             errors.append(error_msg)
             return self._create_failed_result(started_at, errors)
 
-        api_limit = int(self.config.get("result_limit", 500))
+        # Some brands have >500 football events in next-to-go; using a higher
+        # default prevents EPL fixtures from being truncated out of the payload.
+        api_limit = int(self.config.get("result_limit", 1000))
         if limit:
             api_limit = min(api_limit, limit)
 
@@ -465,11 +673,9 @@ class PunterstechScraper(BaseScraper):
             # Apply competition filters (log only; pre-filter already done)
             competition_filters = self.COMPETITION_FILTERS.get(sport, [])
             if competition_filters:
-                filter_set = {f.lower() for f in competition_filters}
                 filtered_events = []
                 for event in all_events:
-                    comp_lower = event.competition.lower()
-                    if any(f in comp_lower for f in filter_set):
+                    if self._competition_matches_filters(event.competition, competition_filters):
                         filtered_events.append(event)
 
                 self.logger.info(
@@ -693,12 +899,14 @@ class PunterstechScraper(BaseScraper):
                 for market_data in markets:
                     # /markets endpoint returns flat structure
                     # /quick-markets wraps in {"Type": ..., "Market": {...}}
+                    market_ref = ""
                     if "Market" in market_data:
                         # quick-markets format
                         market = market_data.get("Market", {})
                         market_type = market_data.get("Type", "")
                         market_desc = market.get("Description", "")
                         outcomes = market.get("Outcomes", [])
+                        market_ref = market.get("ExternalRef", "") or market_data.get("ExternalRef", "")
                     else:
                         # /markets format (flat structure)
                         market_desc = market_data.get("Description", "")
@@ -707,94 +915,18 @@ class PunterstechScraper(BaseScraper):
                         # MW = Match Winner, H2H = Head to Head
                         market_type = "HeadToHead" if market_ref in ["MW", "H2H"] else ""
 
-                    # Only process Head to Head / Match Result / Match Winner markets
-                    market_desc_lower = market_desc.lower()
-                    # NOTE: Punterstech uses different names per sport:
-                    # - Soccer: "Match Result"
-                    # - Basketball/Ice hockey: "Money Line" (and sometimes also "Match Winner")
-                    # - Boxing: "Fight Betting"/"Fight Result"
-                    #
-                    # We explicitly EXCLUDE partial-game markets like "1st Half Money Line"
-                    # so we don't accidentally treat quarters/periods as full-time match winner.
-                    is_partial_market = any(
-                        token in market_desc_lower
-                        for token in (
-                            "1st half",
-                            "first half",
-                            "2nd half",
-                            "second half",
-                            "half time",
-                            "halftime",
-                            "1st quarter",
-                            "first quarter",
-                            "2nd quarter",
-                            "second quarter",
-                            "3rd quarter",
-                            "third quarter",
-                            "4th quarter",
-                            "fourth quarter",
-                            "period",
-                            "set",
-                            "map",
-                            "innings",
-                        )
-                    )
-
-                    is_money_line = ("money line" in market_desc_lower) or ("moneyline" in market_desc_lower)
-                    is_head_to_head = (
-                        market_type == "HeadToHead"
-                        or "head to head" in market_desc_lower
-                        or "head-to-head" in market_desc_lower
-                        or "h2h" in market_desc_lower
-                    )
-                    is_match_result = ("match winner" in market_desc_lower) or ("match result" in market_desc_lower)
-                    is_boxing = "fight" in market_desc_lower
-                    is_match_winner = (
-                        not is_partial_market
-                        and (
-                            is_head_to_head
-                            or is_match_result
-                            or is_money_line
-                            or is_boxing
-                            or market_data.get("ExternalRef") == "MW"
-                        )
-                    )
-
-                    if not is_match_winner:
+                    if not self._is_matcher_market(market_desc, market_type, market_ref, target_sport):
                         continue
 
-                    for outcome in outcomes:
-                        if outcome.get("Scratched"):
-                            continue
-
-                        sel_name = outcome.get("Name", "")
-                        prices = outcome.get("Prices", [])
-
-                        for price_data in prices:
-                            win_price = price_data.get("WinPrice", 0)
-                            if win_price and win_price > 1:
-                                selection_key = self._get_selection_key(sel_name, event)
-                                if selection_key == "other":
-                                    continue
-
-                                canonical_name = self._canonicalize_selection_name(sel_name, selection_key, event)
-
-                                odds = ScrapedOdds(
-                                    event_external_id=event.external_id,
-                                    event_name=event.name,
-                                    sport=event.sport,
-                                    competition=event.competition,
-                                    start_time=event.start_time,
-                                    market_type="match_winner",
-                                    market_name=market_desc or "Match Result",
-                                    selection_name=canonical_name,
-                                    selection_key=selection_key,
-                                    decimal_odds=Decimal(str(win_price)).quantize(Decimal("0.01")),
-                                    bookmaker_code=self.bookmaker_code,
-                                    source_url=event_url,
-                                    scraped_at=datetime.now(timezone.utc)
-                                )
-                                event.odds.append(odds)
+                    event.odds.extend(
+                        self._build_matcher_market_odds(
+                            outcomes=outcomes,
+                            event=event,
+                            market_name=market_desc or "Match Result",
+                            sport=target_sport,
+                            source_url=event_url,
+                        )
+                    )
 
                 if event.odds:
                     parsed_events.append(event)
@@ -915,12 +1047,9 @@ class PunterstechScraper(BaseScraper):
         """Parse a market and add odds to the event."""
         market_name = market_data.get("MarketName") or market_data.get("Name", "")
         market_type_raw = market_data.get("MarketType", "")
+        market_ref = market_data.get("ExternalRef", "")
 
-        # Check if this is a market we care about
-        market_lower = market_name.lower()
-        is_target_market = any(t in market_lower for t in self.TARGET_MARKET_TYPES)
-
-        if not is_target_market:
+        if not self._is_matcher_market(market_name, market_type_raw, market_ref, event.sport):
             return
 
         # Get selections
@@ -928,35 +1057,67 @@ class PunterstechScraper(BaseScraper):
         if not selections:
             selections = market_data.get("Outcomes", [])
 
+        outcomes: List[Dict[str, Any]] = []
         for sel_data in selections:
-            self._parse_selection(sel_data, market_name, event)
+            sel_name = sel_data.get("Name") or sel_data.get("SelectionName", "")
+            price = self._extract_selection_price(sel_data)
+            if not sel_name or price is None:
+                continue
+            outcomes.append({"Name": sel_name, "Prices": [{"WinPrice": price}]})
+
+        event.odds.extend(
+            self._build_matcher_market_odds(
+                outcomes=outcomes,
+                event=event,
+                market_name=market_name or "Match Result",
+                sport=event.sport,
+                source_url=f"{self.base_url}/event/{event.external_id}",
+            )
+        )
 
     def _parse_inline_selections(self, selections: List[Dict], event: ScrapedEvent):
         """Parse selections that are directly on the event (not in markets)."""
+        outcomes: List[Dict[str, Any]] = []
         for sel_data in selections:
-            # Default to match result market
-            self._parse_selection(sel_data, "Match Result", event)
+            sel_name = sel_data.get("Name") or sel_data.get("SelectionName", "")
+            price = self._extract_selection_price(sel_data)
+            if not sel_name or price is None:
+                continue
+            outcomes.append({"Name": sel_name, "Prices": [{"WinPrice": price}]})
+
+        event.odds.extend(
+            self._build_matcher_market_odds(
+                outcomes=outcomes,
+                event=event,
+                market_name="Match Result",
+                sport=event.sport,
+                source_url=f"{self.base_url}/event/{event.external_id}",
+            )
+        )
+
+    def _extract_selection_price(self, sel_data: Dict[str, Any]) -> Optional[Decimal]:
+        """Extract a decimal odds value from legacy selection payloads."""
+        price = None
+        for price_field in ["Price", "Odds", "DecimalOdds", "WinPrice", "FixedOdds"]:
+            if price_field in sel_data:
+                price = sel_data[price_field]
+                break
+        if price in (None, ""):
+            return None
+        try:
+            decimal_odds = Decimal(str(price))
+        except Exception:
+            return None
+        if decimal_odds <= 1:
+            return None
+        return decimal_odds
 
     def _parse_selection(self, sel_data: Dict, market_name: str, event: ScrapedEvent):
         """Parse a single selection and add odds to the event."""
         try:
             sel_name = sel_data.get("Name") or sel_data.get("SelectionName", "")
-
-            # Get price - try multiple field names
-            price = None
-            for price_field in ["Price", "Odds", "DecimalOdds", "WinPrice", "FixedOdds"]:
-                if price_field in sel_data:
-                    price = sel_data[price_field]
-                    break
-
-            if not price or not sel_name:
-                return
-
-            try:
-                decimal_odds = Decimal(str(price))
-                if decimal_odds <= 1:
-                    return  # Invalid odds
-            except:
+            decimal_odds = self._extract_selection_price(sel_data)
+            if decimal_odds is None or not sel_name:
                 return
 
             # Determine selection key

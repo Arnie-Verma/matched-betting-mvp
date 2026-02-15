@@ -1,0 +1,2243 @@
+{
+  "status_counts": {
+    "FAIL": 72,
+    "WARN": 12,
+    "PASS": 1,
+    "SKIP": 19,
+    "N_A": 1
+  },
+  "category_counts": {
+    "eligible_coverage": 33,
+    "structural_event_count": 80,
+    "none": 5,
+    "probability_anomalies": 37,
+    "eligible_window_empty": 20
+  },
+  "competition_status_counts": {
+    "epl": {
+      "FAIL": 18,
+      "WARN": 2,
+      "PASS": 1
+    },
+    "nba": {
+      "WARN": 3,
+      "FAIL": 18
+    },
+    "nhl": {
+      "FAIL": 18,
+      "WARN": 3
+    },
+    "boxing": {
+      "SKIP": 19,
+      "WARN": 1,
+      "N_A": 1
+    },
+    "nbl": {
+      "FAIL": 18,
+      "WARN": 3
+    }
+  },
+  "competition_category_counts": {
+    "epl": {
+      "eligible_coverage": 18,
+      "structural_event_count": 20,
+      "none": 1
+    },
+    "nba": {
+      "structural_event_count": 21,
+      "probability_anomalies": 19
+    },
+    "nhl": {
+      "probability_anomalies": 18,
+      "structural_event_count": 21,
+      "eligible_coverage": 1
+    },
+    "boxing": {
+      "eligible_window_empty": 20,
+      "structural_event_count": 1
+    },
+    "nbl": {
+      "eligible_coverage": 14,
+      "structural_event_count": 17,
+      "none": 4
+    }
+  },
+  "rows": [
+    {
+      "competition": "epl",
+      "bookmaker": "blondebet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 9,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "starsports",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betreal",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "tradiebet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 19,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betvista",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betbuzz",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "lightningbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 9,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "topbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "teambet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betblitz",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ladbrokes",
+      "status": "WARN",
+      "categories": [
+        "structural_event_count"
+      ],
+      "event_count": 41,
+      "event_coverage_percent": "100",
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 41,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 41 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "truebet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "millennialbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 9,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "mintbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 22,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ripperbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betfocus",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "neds",
+      "status": "WARN",
+      "categories": [
+        "structural_event_count"
+      ],
+      "event_count": 41,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 41,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 41 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betchamps",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "wizbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 9,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "cashcage",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 25,
+      "event_coverage_percent": "60.98",
+      "coverage_percent": "100",
+      "anomaly_count": 21,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 41,
+      "failure_reasons": [
+        "Event coverage 60.98% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 25 outside expected range [3-20]"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betfair",
+      "status": "PASS",
+      "categories": [
+        "none"
+      ],
+      "event_count": 20,
+      "event_coverage_percent": "48.78",
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 41,
+      "failure_reasons": [],
+      "warning_reasons": []
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betfair",
+      "status": "WARN",
+      "categories": [
+        "structural_event_count"
+      ],
+      "event_count": 55,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 55,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 55 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "blondebet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 47,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "starsports",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 49,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betvista",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "ladbrokes",
+      "status": "WARN",
+      "categories": [
+        "structural_event_count"
+      ],
+      "event_count": 55,
+      "event_coverage_percent": "100",
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 55,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 55 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betchamps",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "mintbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "lightningbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 47,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "wizbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betreal",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 49,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betfocus",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "cashcage",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "neds",
+      "status": "WARN",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 6,
+      "critical_anomaly_count": 2,
+      "eligible_reference_events": 55,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]",
+        "6 anomalies (warn threshold: 5)"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "ripperbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "teambet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "tradiebet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 49,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "topbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 49,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "millennialbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 47,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betbuzz",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betblitz",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "truebet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "96.36",
+      "coverage_percent": "100",
+      "anomaly_count": 48,
+      "critical_anomaly_count": 40,
+      "eligible_reference_events": 55,
+      "failure_reasons": [
+        "40 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betblitz",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 52,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 52 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "lightningbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "neds",
+      "status": "WARN",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 35,
+      "event_coverage_percent": "70.97",
+      "coverage_percent": "100",
+      "anomaly_count": 4,
+      "critical_anomaly_count": 2,
+      "eligible_reference_events": 31,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 35 outside expected range [0-30]",
+        "Event coverage 70.97% < 85%"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betchamps",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betfocus",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 52,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 52 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "topbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ripperbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 11,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betreal",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 52,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 11,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 52 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betbuzz",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 52,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 11,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 52 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ladbrokes",
+      "status": "WARN",
+      "categories": [
+        "structural_event_count"
+      ],
+      "event_count": 31,
+      "event_coverage_percent": "100",
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 31,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 31 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betfair",
+      "status": "WARN",
+      "categories": [
+        "structural_event_count"
+      ],
+      "event_count": 45,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 31,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 45 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "teambet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 11,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "blondebet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betvista",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 51,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 11,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 51 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "tradiebet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "truebet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 52,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 52 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "millennialbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 53,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 11,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 53 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "starsports",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 52,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 5,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "5 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 52 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "mintbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 52,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 52 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "wizbet",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 52,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 12,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 52 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "cashcage",
+      "status": "FAIL",
+      "categories": [
+        "probability_anomalies",
+        "structural_event_count"
+      ],
+      "event_count": 51,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 11,
+      "critical_anomaly_count": 4,
+      "eligible_reference_events": 31,
+      "failure_reasons": [
+        "4 critical anomalies (max: 2)"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 51 outside expected range [0-30]"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betvista",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "topbet",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betfair",
+      "status": "WARN",
+      "categories": [
+        "structural_event_count"
+      ],
+      "event_count": 35,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 35 outside expected range [0-20]"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betfocus",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "millennialbet",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "lightningbet",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "ladbrokes",
+      "status": "N_A",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=N_A)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "blondebet",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betblitz",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "ripperbet",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "mintbet",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "neds",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 15,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betreal",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "tradiebet",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "cashcage",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betchamps",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "wizbet",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "starsports",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "truebet",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betbuzz",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "teambet",
+      "status": "SKIP",
+      "categories": [
+        "eligible_window_empty"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": null,
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 0,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "No eligible reference fixtures in window (status=SKIP)"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betfocus",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 1,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betchamps",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 1,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "teambet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 1,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "wizbet",
+      "status": "FAIL",
+      "categories": [
+        "none"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": "0.00",
+      "coverage_percent": "0",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ],
+      "warning_reasons": []
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "tradiebet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 2,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "ripperbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 1,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "neds",
+      "status": "WARN",
+      "categories": [
+        "structural_event_count"
+      ],
+      "event_count": 15,
+      "event_coverage_percent": "100.00",
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 15 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "ladbrokes",
+      "status": "WARN",
+      "categories": [
+        "structural_event_count"
+      ],
+      "event_count": 15,
+      "event_coverage_percent": "100",
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 15 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betblitz",
+      "status": "FAIL",
+      "categories": [
+        "none"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": "0.00",
+      "coverage_percent": "0",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ],
+      "warning_reasons": []
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "truebet",
+      "status": "FAIL",
+      "categories": [
+        "none"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": "0.00",
+      "coverage_percent": "0",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ],
+      "warning_reasons": []
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betfair",
+      "status": "WARN",
+      "categories": [
+        "structural_event_count"
+      ],
+      "event_count": 15,
+      "event_coverage_percent": "80.00",
+      "coverage_percent": "100",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 15 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betbuzz",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 1,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betvista",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 1,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "starsports",
+      "status": "FAIL",
+      "categories": [
+        "none"
+      ],
+      "event_count": 0,
+      "event_coverage_percent": "0.00",
+      "coverage_percent": "0",
+      "anomaly_count": 0,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ],
+      "warning_reasons": []
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betreal",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 15,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 2,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 15 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "topbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 15,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 2,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 15 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "mintbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 1,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "cashcage",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 1,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "millennialbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 2,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "blondebet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 16,
+      "event_coverage_percent": "53.33",
+      "coverage_percent": "100",
+      "anomaly_count": 2,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 53.33% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 16 outside expected range [0-10]"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "lightningbet",
+      "status": "FAIL",
+      "categories": [
+        "eligible_coverage",
+        "structural_event_count"
+      ],
+      "event_count": 12,
+      "event_coverage_percent": "46.67",
+      "coverage_percent": "100",
+      "anomaly_count": 1,
+      "critical_anomaly_count": 0,
+      "eligible_reference_events": 15,
+      "failure_reasons": [
+        "Event coverage 46.67% < 70%"
+      ],
+      "warning_reasons": [
+        "Structural validation failed",
+        "Event count 12 outside expected range [0-10]"
+      ]
+    }
+  ]
+}

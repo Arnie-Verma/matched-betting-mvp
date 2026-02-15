@@ -5,7 +5,8 @@ Platform groups allow reusing scrapers across multiple bookmaker skins:
 - STANDALONE: Major operators with proprietary systems (need individual scrapers)
 - GENERATION_WEB: ~15 skins on shared platform (1 scraper covers all)
 - PUNTERS_TECH: ~15 skins on shared platform (1 scraper covers all)
-- ENTAIN: Ladbrokes, Neds, Unibet (1 scraper covers all)
+- ENTAIN: Ladbrokes, Neds (1 scraper covers both)
+- KINDRED: Unibet (separate API platform)
 - BETMAKERS: Platform provider for multiple skins
 
 Tier structure:
@@ -147,13 +148,16 @@ def seed_all_bookmakers(db: Session):
             "name": "UniBet",
             "display_name": "UniBet",
             "website_url": "https://www.unibet.com.au",
-            "is_active": False,
+            "is_active": False,  # Phase A freeze: keep disabled until hardening GO
             "scraping_config": {
                 "tier": "premium",
-                "platform": "entain",
-                "scraper_class": "entain",
-                "difficulty": "medium",
+                "platform": "kindred",
+                "scraper_class": "kindred",
+                "difficulty": "easy",
                 "requires_proxy": False,
+                "onboarding_frozen": True,
+                # UCL fixtures can be >14 days out; keep a bit more runway.
+                "horizon_days": 21,
             },
         },
         {

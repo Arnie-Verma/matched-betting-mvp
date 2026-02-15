@@ -76,6 +76,9 @@ This methodology is designed to be executed locally first to get as close to pro
    - Grouping alignment with reference books.
 3. Validation gate:
    - Meets minimum threshold and no hard FAIL in priority competitions.
+   - Scope policy is explicit per bookmaker x competition:
+     - out-of-scope => `SKIP`
+     - in-scope zero-event => `FAIL`
 4. Performance gate:
    - Bookmaker scrape latency inside platform SLO band.
 5. Reliability gate:
@@ -170,6 +173,10 @@ Use Unibet as the proof case for scaling from Entain/Punterstech to any new book
 1. Add competition name mappings.
 2. Add participant/team name mapping edge cases.
 3. Confirm deterministic `selection_key` mapping (`home`, `away`, `draw`).
+4. Enforce matcher market hygiene:
+   - exclude futures/outrights/partials from matcher path
+   - keep expected market shape only (3-way soccer; 2-way where applicable)
+   - do not allow `selection_key=other` in current matcher markets
 
 ### Step 5: Run proof validation on priority competitions
 1. Validate each target competition separately (not one global check only).
@@ -180,6 +187,7 @@ Use Unibet as the proof case for scaling from Entain/Punterstech to any new book
 3. Validation semantics rule:
    - If reference has no eligible fixtures for that competition window, do not treat as hard FAIL.
    - Use `N_A` for reference and `SKIP` for non-reference books, then re-run on next eligible window before GO.
+   - If bookmaker is explicitly out-of-scope for a competition, classify as `SKIP` (not `FAIL`) for that competition.
 4. Save validation output as onboarding evidence.
 
 ### Step 6: Run performance proof

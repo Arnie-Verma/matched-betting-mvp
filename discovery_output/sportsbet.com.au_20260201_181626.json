@@ -1,0 +1,201 @@
+{
+  "bookmaker": "sportsbet.com.au",
+  "base_url": "https://www.sportsbet.com.au",
+  "sport_paths": [
+    "/betting/soccer"
+  ],
+  "timestamp": "2026-02-01T18:16:26.287241",
+  "endpoints_captured": 6,
+  "unique_endpoints": 6,
+  "endpoints": {
+    "/apigw/sportsbook-racing/Sportsbook/Racing/NextEvents": {
+      "full_url": "https://www.sportsbet.com.au/apigw/sportsbook-racing/Sportsbook/Racing/NextEvents?racingFilters=HR_DOMESTIC,HR_INTERNATIONAL,GH_DOMESTIC,GH_INTERNATIONAL,HA_DOMESTIC,HA_INTERNATIONAL&groupByFilters=true",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": null,
+      "response_size": 170020,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/apigw/cms/app/messages": {
+      "full_url": "https://www.sportsbet.com.au/apigw/cms/app/messages?loggedIn=false&platform=cxp_web",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": null,
+      "response_size": 2,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/apigw/sportsbook-sports/Sportsbook/Sports/Events/Commentary": {
+      "full_url": "https://www.sportsbet.com.au/apigw/sportsbook-sports/Sportsbook/Sports/Events/Commentary?eventIds=10084177",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": null,
+      "response_size": 1235,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/apigw/page-content/safer_gambling_message": {
+      "full_url": "https://www.sportsbet.com.au/apigw/page-content/safer_gambling_message",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "id",
+        "phrase",
+        "cta",
+        "mobileCta"
+      ],
+      "response_size": 326,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/apigw/time": {
+      "full_url": "https://www.sportsbet.com.au/apigw/time",
+      "method": "GET",
+      "status": 200,
+      "content_type": "",
+      "sample_keys": [],
+      "response_size": 2,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/5T5RWK/-1733909187844267031": {
+      "full_url": "https://deliveryapi-tx4-27161589503.us-central1.run.app/5T5RWK/-1733909187844267031?id=245792",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": null,
+      "response_size": 8079,
+      "sports_where_found": [
+        "soccer"
+      ]
+    }
+  },
+  "odds_endpoints": [
+    "/apigw/sportsbook-racing/Sportsbook/Racing/NextEvents",
+    "/apigw/sportsbook-sports/Sportsbook/Sports/Events/Commentary"
+  ],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/apigw/sportsbook-racing/Sportsbook/Racing/NextEvents",
+      "/apigw/cms/app/messages",
+      "/apigw/sportsbook-sports/Sportsbook/Sports/Events/Commentary",
+      "/apigw/page-content/safer_gambling_message",
+      "/apigw/time",
+      "/5T5RWK/-1733909187844267031"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://www.sportsbet.com.au/apigw/sportsbook-racing/Sportsbook/Racing/NextEvents?racingFilters=HR_DOMESTIC,HR_INTERNATIONAL,GH_DOMESTIC,GH_INTERNATIONAL,HA_DOMESTIC,HA_INTERNATIONAL&groupByFilters=true",
+      "endpoint": "/apigw/sportsbook-racing/Sportsbook/Racing/NextEvents",
+      "sport": "soccer",
+      "status": 200,
+      "size": 170020,
+      "sample": [
+        {
+          "id": "...",
+          "classId": "...",
+          "className": "...",
+          "competitionId": "...",
+          "competitionName": "..."
+        },
+        {
+          "id": "...",
+          "classId": "...",
+          "className": "...",
+          "competitionId": "...",
+          "competitionName": "..."
+        },
+        {
+          "id": "...",
+          "classId": "...",
+          "className": "...",
+          "competitionId": "...",
+          "competitionName": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://www.sportsbet.com.au/apigw/cms/app/messages?loggedIn=false&platform=cxp_web",
+      "endpoint": "/apigw/cms/app/messages",
+      "sport": "soccer",
+      "status": 200,
+      "size": 2,
+      "sample": []
+    },
+    {
+      "url": "https://www.sportsbet.com.au/apigw/sportsbook-sports/Sportsbook/Sports/Events/Commentary?eventIds=10084177",
+      "endpoint": "/apigw/sportsbook-sports/Sportsbook/Sports/Events/Commentary",
+      "sport": "soccer",
+      "status": 200,
+      "size": 1235,
+      "sample": [
+        {
+          "id": "...",
+          "name": "...",
+          "geolocationExclusion": "...",
+          "eventParticipants": "...",
+          "eventPeriods": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://www.sportsbet.com.au/apigw/page-content/safer_gambling_message",
+      "endpoint": "/apigw/page-content/safer_gambling_message",
+      "sport": "soccer",
+      "status": 200,
+      "size": 326,
+      "sample": {
+        "id": "4417",
+        "phrase": "CHANCES ARE YOU\u2019RE ABOUT TO LOSE.",
+        "cta": [
+          "...",
+          "...",
+          "..."
+        ],
+        "mobileCta": "Set a deposit limit"
+      }
+    },
+    {
+      "url": "https://www.sportsbet.com.au/apigw/time",
+      "endpoint": "/apigw/time",
+      "sport": "soccer",
+      "status": 200,
+      "size": 2,
+      "sample": {}
+    },
+    {
+      "url": "https://deliveryapi-tx4-27161589503.us-central1.run.app/5T5RWK/-1733909187844267031?id=245792",
+      "endpoint": "/5T5RWK/-1733909187844267031",
+      "sport": "soccer",
+      "status": 200,
+      "size": 8079,
+      "sample": [
+        {
+          "id": "...",
+          "type": "...",
+          "version": "...",
+          "shouldResolveDataForAllUrls": "...",
+          "config": "..."
+        },
+        {
+          "id": "...",
+          "type": "...",
+          "version": "...",
+          "shouldResolveDataForAllUrls": "...",
+          "config": "..."
+        }
+      ]
+    }
+  ]
+}

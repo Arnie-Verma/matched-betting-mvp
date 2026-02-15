@@ -1,7 +1,7 @@
 # Scraper Strategy: Scaling to 100+ Bookmakers
 
 **Created**: 2025-12-28
-**Last Updated**: 2026-01-04
+**Last Updated**: 2026-02-06
 **Goal**: Production-ready scraping for 103 Australian bookmakers serving 1000+ users
 
 ---
@@ -28,7 +28,7 @@ Plus:
 | **Entain** | 2 (Ladbrokes, Neds) | 1 scraper | ✅ Working |
 | **Betfair** | 1 (Exchange) | 1 scraper | ✅ Working |
 | **Punterstech** | 21 | 1 scraper | ✅ Ready (API complete) |
-| **Kindred** | 1 (Unibet) | 1 scraper | ✅ Ready (API discovered) |
+| **Kindred** | 1 (Unibet) | 1 scraper | ✅ Implemented (`KindredScraper`) |
 | **BetMakers** | 33 | 1 scraper | ⚠️ Clear approach (SSR) |
 | **Generation Web** | 22 | 1 scraper | ⚠️ Partial (config + JS endpoints found) |
 | **BetCloud** | 26 | 1 scraper | ✅ Ready (sports odds endpoints found) |
@@ -157,9 +157,9 @@ BetProfessor, VolcanoBet, PuntGenie, WellBet, QuestBet, BetGalaxy, PuntCity
 
 ### 1. Entain Platform (READY)
 
-**Status**: ✅ Working (Ladbrokes implemented)
+**Status**: ✅ Working (Ladbrokes + Neds)
 
-**Bookmakers**: Ladbrokes, Neds, Unibet
+**Bookmakers**: Ladbrokes, Neds
 
 **API Pattern**:
 ```
@@ -178,7 +178,7 @@ https://api.{domain}.com.au/v2/sport/event-request?category_ids=[CATEGORY_ID]
 
 **Implementation**:
 - `LadbrokesScraper` already working
-- Neds/Unibet = same code, different `base_url`
+- Neds = same code, different `base_url`
 - Refactor to `EntainScraper` with configurable URL
 
 **Requires Proxy**: No
@@ -238,9 +238,9 @@ https://api.{domain}.com.au/v2/sport/event-request?category_ids=[CATEGORY_ID]
 
 ---
 
-### 4. Punterstech Platform (RESEARCH NEEDED)
+### 4. Punterstech Platform (IMPLEMENTED)
 
-**Status**: ❌ Not implemented
+**Status**: ✅ Implemented
 
 **Bookmakers**: 21 (TradieBET, MintBet, BetChamps, etc.)
 
@@ -344,7 +344,7 @@ Includes FREE tier plus:
 | Sportsbet | Standalone | ❌ Needs custom |
 | TAB | TAB | ⚠️ Needs proxy |
 | Pointsbet | Standalone | ❌ Needs custom |
-| Unibet | Entain | ✅ Config only |
+| Unibet | Kindred | ✅ Implemented (`KindredScraper`) |
 | Betr | Standalone | ❌ Needs custom |
 | BetDeluxe | Standalone | ❌ Needs custom |
 | BetRight | Standalone | ❌ Needs custom |
@@ -362,13 +362,13 @@ All bookmakers - covered by 8 platform scrapers.
 
 ## Implementation Roadmap (Revised)
 
-### Phase 1: Complete Free Tier (Week 1)
+### Phase 1: Core Baseline (Historical)
 - [ ] Refactor `LadbrokesScraper` to `EntainScraper` with configurable URL
 - [ ] Test Neds with EntainScraper
-- [ ] Test Unibet with EntainScraper
+- [ ] Validate Unibet with `KindredScraper`
 - [ ] Run seed script to update bookmaker configs
 
-### Phase 2: Platform Research (Week 2)
+### Phase 2: Platform Discovery (Ongoing)
 - [ ] Research BetMakers API (RealBookie, CrossBet)
 - [ ] Research Generation Web API (EliteBet, WinnersBet)
 - [ ] Research Punterstech API (TradieBET, MintBet)
@@ -717,7 +717,7 @@ odds_json = await page.evaluate("window.__ODDS_DATA__ || null")
 - Set `Origin`/`Referer` to the non-www base domain to avoid 403
 - **Covers 26 bookmakers with 1 scraper**
 
-#### Kindred/Unibet (1 site) - READY TO IMPLEMENT
+#### Kindred/Unibet (1 site) - IMPLEMENTED
 **Discovery Date**: 2025-12-30
 **Owner**: Kindred Group (acquired by FDJ in Oct 2024)
 
@@ -899,7 +899,7 @@ docker logs mb_api 2>&1 | grep -E "\[(Ladbrokes|Betfair|TAB)\]"
 | Entain (Ladbrokes, Neds) | 2 | 1 | ✅ Working |
 | Betfair | 1 | 1 | ✅ Working |
 | Punterstech | 21 | 1 | ✅ Ready (API complete) |
-| Kindred (Unibet) | 1 | 1 | ✅ Ready (API discovered) |
+| Kindred (Unibet) | 1 | 1 | ✅ Implemented (`KindredScraper`) |
 | BetMakers | 33 | 1 | ⚠️ Clear approach (SSR) |
 | Generation Web | 22 | 1 | ⚠️ Partial (config + JS endpoints found) |
 | BetCloud | 26 | 1 | ✅ Ready (sports odds endpoints found) |
@@ -925,4 +925,4 @@ docker logs mb_api 2>&1 | grep -E "\[(Ladbrokes|Betfair|TAB)\]"
 
 *Document version: 2.3*
 *Last updated: 2026-01-04*
-*Latest changes: Added targeted discovery updates for Generation Web and BetCloud; BetCloud sports odds API confirmed; documented JS endpoints/payloads and header requirements.*
+*Latest changes: Status refresh for implemented Kindred and Punterstech, and alignment with current operating docs.*

@@ -1,0 +1,375 @@
+{
+  "bookmaker": "betr.com.au",
+  "base_url": "https://www.betr.com.au",
+  "sport_paths": [
+    "/sports/soccer"
+  ],
+  "timestamp": "2026-02-01T18:12:14.052721",
+  "endpoints_captured": 14,
+  "unique_endpoints": 11,
+  "endpoints": {
+    "/jersey-mapping-v2": {
+      "full_url": "https://bluebet.azureedge.net/jersey-mapping-v2",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "A-League",
+        "AFL",
+        "BBL",
+        "EPL",
+        "MLB",
+        "NBA",
+        "NBL",
+        "NFL",
+        "NHL",
+        "NRL",
+        "Rugby",
+        "WNBA"
+      ],
+      "response_size": 22618,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/home/FeatureFlags": {
+      "full_url": "https://web20-api.bluebet.com.au/home/FeatureFlags",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "FeatureFlags",
+        "ErrorNo"
+      ],
+      "response_size": 114,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/StaticContent": {
+      "full_url": "https://web20-api.bluebet.com.au/StaticContent?LinkToDocument=responsible-gambling-tagline",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "StaticContent",
+        "ErrorNo",
+        "Message"
+      ],
+      "response_size": 214,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/pixels/t2_eg0gzkql/config": {
+      "full_url": "https://pixel-config.reddit.com/pixels/t2_eg0gzkql/config",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "aam"
+      ],
+      "response_size": 11,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/UserContentfulPromotionsWithMetaData": {
+      "full_url": "https://web20-api.bluebet.com.au/UserContentfulPromotionsWithMetaData",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "MetaData",
+        "Promotions"
+      ],
+      "response_size": 97005,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/v1/config/7683a95128d84bf5ba24001fd385089e": {
+      "full_url": "https://pixels.spotify.com/v1/config/7683a95128d84bf5ba24001fd385089e",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "pixelId",
+        "aamFields"
+      ],
+      "response_size": 64,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/v1/ingest": {
+      "full_url": "https://pixels.spotify.com/v1/ingest",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "response"
+      ],
+      "response_size": 48,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/flags/": {
+      "full_url": "https://events.betr.com.au/flags/?v=2&config=true&ip=0&_=1769929923155&ver=1.282.0&compression=base64",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "errorsWhileComputingFlags",
+        "flags",
+        "requestId",
+        "evaluatedAt",
+        "autocaptureExceptions",
+        "token",
+        "autocapture_opt_out",
+        "capturePerformance",
+        "hasFeatureFlags",
+        "supportedCompression",
+        "conversations",
+        "defaultIdentifiedOnly",
+        "siteApps",
+        "captureDeadClicks",
+        "productTours",
+        "sessionRecording",
+        "surveys",
+        "analytics",
+        "errorTracking",
+        "logs",
+        "elementsChainAsString",
+        "heatmaps"
+      ],
+      "response_size": 1421,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/embeddedservice/v1/embedded-service-config": {
+      "full_url": "https://bluebet.my.salesforce-scrt.com/embeddedservice/v1/embedded-service-config?orgId=00D2w00000FCMX8&esConfigName=Betr_MIAW_Web&language=en_US",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json;charset=utf-8",
+      "sample_keys": [
+        "embeddedServiceConfig",
+        "standardLabels",
+        "timestamp"
+      ],
+      "response_size": 24397,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/saq_pxl": {
+      "full_url": "https://tags.srv.stackadapt.com/saq_pxl?uid=G5tElTW2EXBYJYevsgR6WA&is_js=true&landing_url=https%3A%2F%2Fwww.betr.com.au%2Fsports%2Fsoccer&t=&tip=5weNSmjygYOKH_uXiiMoc1taOgpJDlbTryRDI3IMQrQ&host=https%3A%2F%2Fwww.betr.com.au&l_src=&l_src_d=&u_src=&u_src_d=&shop=false&sa-user-id-v3=s%253AAQAKIOaS1Nv5xpawjZFi7_TqVn03gyVuOVx8lD9srIf3szn3EAEYAyDE-fvLBjABOgSbDnvpQgR6Jb2x.V6pLIAmYB2XqYt2RiTEh6dn987B%252F3XGXFFJr%252Bsfh3JQ&sa-user-id-v2=s%253AG2IVDU7tW-lI7J5PO5DZtmWzARo.hoa4aBFOFh9UiQcgqJp8mNnON5oh6lfc%252FocpfkKEKXA&sa-user-id=s%253A0-1b62150d-4eed-5be9-48ec-9e4f3b90d9b6.WfkInDVmFS0UwVfI00u4jgFIVbFrt5CWppHYF2hC%252BYI",
+      "method": "GET",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "sample_keys": [
+        "conversion_tracker_uids",
+        "retargeting_tracker_uids",
+        "lookalike_tracker_uids"
+      ],
+      "response_size": 99,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/track/realtimeconversion": {
+      "full_url": "https://insight.adsrvr.org/track/realtimeconversion",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Message",
+        "EventResponses"
+      ],
+      "response_size": 39,
+      "sports_where_found": [
+        "soccer"
+      ]
+    }
+  },
+  "odds_endpoints": [],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/jersey-mapping-v2",
+      "/home/FeatureFlags",
+      "/StaticContent",
+      "/pixels/t2_eg0gzkql/config",
+      "/UserContentfulPromotionsWithMetaData",
+      "/v1/config/7683a95128d84bf5ba24001fd385089e",
+      "/v1/ingest",
+      "/flags/",
+      "/embeddedservice/v1/embedded-service-config",
+      "/saq_pxl",
+      "/track/realtimeconversion"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://bluebet.azureedge.net/jersey-mapping-v2",
+      "endpoint": "/jersey-mapping-v2",
+      "sport": "soccer",
+      "status": 200,
+      "size": 22618,
+      "sample": {
+        "A-League": {
+          "nameVariations": "...",
+          "teamNameVariations": "..."
+        },
+        "AFL": {
+          "nameVariations": "...",
+          "teamNameVariations": "..."
+        },
+        "BBL": {
+          "nameVariations": "...",
+          "teamNameVariations": "..."
+        },
+        "EPL": {
+          "nameVariations": "...",
+          "teamNameVariations": "..."
+        },
+        "MLB": {
+          "nameVariations": "...",
+          "teamNameVariations": "..."
+        }
+      }
+    },
+    {
+      "url": "https://web20-api.bluebet.com.au/home/FeatureFlags",
+      "endpoint": "/home/FeatureFlags",
+      "sport": "soccer",
+      "status": 200,
+      "size": 114,
+      "sample": {
+        "FeatureFlags": [
+          "...",
+          "..."
+        ],
+        "ErrorNo": 0
+      }
+    },
+    {
+      "url": "https://web20-api.bluebet.com.au/StaticContent?LinkToDocument=responsible-gambling-tagline",
+      "endpoint": "/StaticContent",
+      "sport": "soccer",
+      "status": 200,
+      "size": 214,
+      "sample": {
+        "StaticContent": {
+          "Id": "...",
+          "Name": "...",
+          "URL": "...",
+          "Content": "..."
+        },
+        "ErrorNo": 0,
+        "Message": "Successful Operation"
+      }
+    },
+    {
+      "url": "https://pixel-config.reddit.com/pixels/t2_eg0gzkql/config",
+      "endpoint": "/pixels/t2_eg0gzkql/config",
+      "sport": "soccer",
+      "status": 200,
+      "size": 11,
+      "sample": {
+        "aam": {}
+      }
+    },
+    {
+      "url": "https://web20-api.bluebet.com.au/UserContentfulPromotionsWithMetaData",
+      "endpoint": "/UserContentfulPromotionsWithMetaData",
+      "sport": "soccer",
+      "status": 200,
+      "size": 97005,
+      "sample": {
+        "MetaData": [
+          "...",
+          "...",
+          "..."
+        ],
+        "Promotions": [
+          "...",
+          "...",
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://pixels.spotify.com/v1/config/7683a95128d84bf5ba24001fd385089e",
+      "endpoint": "/v1/config/7683a95128d84bf5ba24001fd385089e",
+      "sport": "soccer",
+      "status": 200,
+      "size": 64,
+      "sample": {
+        "pixelId": "7683a95128d84bf5ba24001fd385089e",
+        "aamFields": []
+      }
+    },
+    {
+      "url": "https://pixels.spotify.com/v1/ingest",
+      "endpoint": "/v1/ingest",
+      "sport": "soccer",
+      "status": 200,
+      "size": 48,
+      "sample": {
+        "response": "7683a95128d84bf5ba24001fd385089e"
+      }
+    },
+    {
+      "url": "https://events.betr.com.au/flags/?v=2&config=true&ip=0&_=1769929923155&ver=1.282.0&compression=base64",
+      "endpoint": "/flags/",
+      "sport": "soccer",
+      "status": 200,
+      "size": 1421,
+      "sample": {
+        "errorsWhileComputingFlags": false,
+        "flags": {
+          "session-replay-feature-flag": "..."
+        },
+        "requestId": "ae224ad6-6218-4d8a-a8e8-201306f80892",
+        "evaluatedAt": 1769929924517,
+        "autocaptureExceptions": true
+      }
+    },
+    {
+      "url": "https://bluebet.my.salesforce-scrt.com/embeddedservice/v1/embedded-service-config?orgId=00D2w00000FCMX8&esConfigName=Betr_MIAW_Web&language=en_US",
+      "endpoint": "/embeddedservice/v1/embedded-service-config",
+      "sport": "soccer",
+      "status": 200,
+      "size": 24397,
+      "sample": {
+        "embeddedServiceConfig": {
+          "siteUrl": "...",
+          "attachments": "...",
+          "fallbackMessage": "...",
+          "branding": "...",
+          "customLabels": "..."
+        },
+        "standardLabels": [
+          "...",
+          "...",
+          "..."
+        ],
+        "timestamp": 1769926176559
+      }
+    },
+    {
+      "url": "https://tags.srv.stackadapt.com/saq_pxl?uid=G5tElTW2EXBYJYevsgR6WA&is_js=true&landing_url=https%3A%2F%2Fwww.betr.com.au%2Fsports%2Fsoccer&t=&tip=5weNSmjygYOKH_uXiiMoc1taOgpJDlbTryRDI3IMQrQ&host=https%3A%2F%2Fwww.betr.com.au&l_src=&l_src_d=&u_src=&u_src_d=&shop=false&sa-user-id-v3=s%253AAQAKIOaS1Nv5xpawjZFi7_TqVn03gyVuOVx8lD9srIf3szn3EAEYAyDE-fvLBjABOgSbDnvpQgR6Jb2x.V6pLIAmYB2XqYt2RiTEh6dn987B%252F3XGXFFJr%252Bsfh3JQ&sa-user-id-v2=s%253AG2IVDU7tW-lI7J5PO5DZtmWzARo.hoa4aBFOFh9UiQcgqJp8mNnON5oh6lfc%252FocpfkKEKXA&sa-user-id=s%253A0-1b62150d-4eed-5be9-48ec-9e4f3b90d9b6.WfkInDVmFS0UwVfI00u4jgFIVbFrt5CWppHYF2hC%252BYI",
+      "endpoint": "/saq_pxl",
+      "sport": "soccer",
+      "status": 200,
+      "size": 99,
+      "sample": {
+        "conversion_tracker_uids": null,
+        "retargeting_tracker_uids": null,
+        "lookalike_tracker_uids": null
+      }
+    }
+  ]
+}

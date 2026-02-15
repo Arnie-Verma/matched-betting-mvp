@@ -1,0 +1,505 @@
+{
+  "bookmaker": "betdeluxe.com.au",
+  "base_url": "https://www.betdeluxe.com.au",
+  "sport_paths": [
+    "/sports/soccer"
+  ],
+  "timestamp": "2026-02-01T18:12:51.699717",
+  "endpoints_captured": 26,
+  "unique_endpoints": 21,
+  "endpoints": {
+    "/api/sports/v1/multi-sports-competitions": {
+      "full_url": "https://api.blackstream.com.au/api/sports/v1/multi-sports-competitions",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 44,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/cms/v1/company-details": {
+      "full_url": "https://api.blackstream.com.au/api/cms/v1/company-details",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 592,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/sports/v1/sports": {
+      "full_url": "https://api.blackstream.com.au/api/sports/v1/sports",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 3124,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/cms/v1/side-menus": {
+      "full_url": "https://api.blackstream.com.au/api/cms/v1/side-menus",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 1812,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/featureflag/v1/kv": {
+      "full_url": "https://api.blackstream.com.au/api/featureflag/v1/kv?label=*&api-version=1.0",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/vnd.microsoft.appconfig.kvset+json; charset=utf-8",
+      "sample_keys": [
+        "items"
+      ],
+      "response_size": 23085,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/config": {
+      "full_url": "https://sr-client-cfg.amplitude.com/config?api_key=79f3b517dcf27aa2c81004789f310850&config_keys=sessionReplay",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "configs"
+      ],
+      "response_size": 34,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/4506116048945152/envelope/": {
+      "full_url": "https://o4504086207987712.ingest.sentry.io/api/4506116048945152/envelope/?sentry_key=5e4e3276ef11a0884ad5976da08d6c06&sentry_version=7&sentry_client=sentry.javascript.nextjs%2F7.120.3",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [],
+      "response_size": 2,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/cms/v1/rgintervention-questionnaire": {
+      "full_url": "https://api.blackstream.com.au/api/cms/v1/rgintervention-questionnaire",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 447,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/messenger/web/launcher_settings": {
+      "full_url": "https://api-iam.intercom.io/messenger/web/launcher_settings",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "alignment",
+        "color",
+        "color_dark",
+        "has_required_features",
+        "horizontal_padding",
+        "instant_boot_enabled",
+        "launcher_logo_url",
+        "launcher_logo_dark_url",
+        "secondary_color",
+        "secondary_color_dark",
+        "show_launcher",
+        "theme_mode",
+        "updated_at",
+        "vertical_padding"
+      ],
+      "response_size": 376,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/messenger/web/ping": {
+      "full_url": "https://api-iam.intercom.io/messenger/web/ping",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "app",
+        "user",
+        "client_matches",
+        "launcher_settings",
+        "modules",
+        "unread_conversation_ids",
+        "unread_dismissed_conversation_ids",
+        "anonymous_session",
+        "identity_verification_ready",
+        "origin_cookie_domain",
+        "cdas_breaching_limit",
+        "checklists",
+        "open_config",
+        "unread_tickets_count",
+        "jwt_expired"
+      ],
+      "response_size": 6429,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/cms/v2/banners/active": {
+      "full_url": "https://api.blackstream.com.au/api/cms/v2/banners/active?organizationId=400&device=1&location=1",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 13888,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/cms/v1/home/quicknav": {
+      "full_url": "https://api.blackstream.com.au/api/cms/v1/home/quicknav",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 2079,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/racing/v2/home/nextup": {
+      "full_url": "https://api.blackstream.com.au/api/racing/v2/home/nextup",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 21963,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/racing/v1/home/featured-races": {
+      "full_url": "https://api.blackstream.com.au/api/racing/v1/home/featured-races",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 53,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/racing/v1/marketmover": {
+      "full_url": "https://api.blackstream.com.au/api/racing/v1/marketmover",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 10241,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/racing/v1/futures": {
+      "full_url": "https://api.blackstream.com.au/api/racing/v1/futures?page=1&limit=20",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 14240,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/racing/v1/srm/featured-bets": {
+      "full_url": "https://api.blackstream.com.au/api/racing/v1/srm/featured-bets",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 11489,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/2/httpapi": {
+      "full_url": "https://api2.amplitude.com/2/httpapi",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "server_upload_time",
+        "payload_size_bytes",
+        "events_ingested"
+      ],
+      "response_size": 100,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/cms/v1/seo-contents": {
+      "full_url": "https://api.blackstream.com.au/api/cms/v1/seo-contents?routeId=home",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 1003,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/racing/v1/silks": {
+      "full_url": "https://api.blackstream.com.au/api/racing/v1/silks?raceIds=8482066,8482089,8482151,8487623,8487624,8487679,8489215,8489216,8501892,8506685",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "message",
+        "data"
+      ],
+      "response_size": 7145,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/track/realtimeconversion": {
+      "full_url": "https://insight.adsrvr.org/track/realtimeconversion",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Message",
+        "EventResponses"
+      ],
+      "response_size": 39,
+      "sports_where_found": [
+        "soccer"
+      ]
+    }
+  },
+  "odds_endpoints": [
+    "/api/sports/v1/multi-sports-competitions",
+    "/api/sports/v1/sports",
+    "/api/racing/v1/marketmover"
+  ],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/api/sports/v1/multi-sports-competitions",
+      "/api/cms/v1/company-details",
+      "/api/sports/v1/sports",
+      "/api/cms/v1/side-menus",
+      "/api/featureflag/v1/kv",
+      "/config",
+      "/api/4506116048945152/envelope/",
+      "/api/cms/v1/rgintervention-questionnaire",
+      "/messenger/web/launcher_settings",
+      "/messenger/web/ping",
+      "/api/cms/v2/banners/active",
+      "/api/cms/v1/home/quicknav",
+      "/api/racing/v2/home/nextup",
+      "/api/racing/v1/home/featured-races",
+      "/api/racing/v1/marketmover",
+      "/api/racing/v1/futures",
+      "/api/racing/v1/srm/featured-bets",
+      "/2/httpapi",
+      "/api/cms/v1/seo-contents",
+      "/api/racing/v1/silks",
+      "/track/realtimeconversion"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://api.blackstream.com.au/api/sports/v1/multi-sports-competitions",
+      "endpoint": "/api/sports/v1/multi-sports-competitions",
+      "sport": "soccer",
+      "status": 200,
+      "size": 44,
+      "sample": {
+        "code": "200",
+        "message": "OK",
+        "data": []
+      }
+    },
+    {
+      "url": "https://api.blackstream.com.au/api/cms/v1/company-details",
+      "endpoint": "/api/cms/v1/company-details",
+      "sport": "soccer",
+      "status": 200,
+      "size": 592,
+      "sample": {
+        "code": "200",
+        "message": null,
+        "data": {
+          "phone": "...",
+          "phoneFormatted": "...",
+          "email": "...",
+          "serviceHours": "...",
+          "instagram": "..."
+        }
+      }
+    },
+    {
+      "url": "https://api.blackstream.com.au/api/sports/v1/sports",
+      "endpoint": "/api/sports/v1/sports",
+      "sport": "soccer",
+      "status": 200,
+      "size": 3124,
+      "sample": {
+        "code": "200",
+        "message": "OK",
+        "data": {
+          "popularSports": "...",
+          "sports": "..."
+        }
+      }
+    },
+    {
+      "url": "https://api.blackstream.com.au/api/cms/v1/side-menus",
+      "endpoint": "/api/cms/v1/side-menus",
+      "sport": "soccer",
+      "status": 200,
+      "size": 1812,
+      "sample": {
+        "code": "200",
+        "message": null,
+        "data": [
+          "...",
+          "...",
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://api.blackstream.com.au/api/featureflag/v1/kv?label=*&api-version=1.0",
+      "endpoint": "/api/featureflag/v1/kv",
+      "sport": "soccer",
+      "status": 200,
+      "size": 23085,
+      "sample": {
+        "items": [
+          "...",
+          "...",
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://sr-client-cfg.amplitude.com/config?api_key=79f3b517dcf27aa2c81004789f310850&config_keys=sessionReplay",
+      "endpoint": "/config",
+      "sport": "soccer",
+      "status": 200,
+      "size": 34,
+      "sample": {
+        "configs": {
+          "sessionReplay": "..."
+        }
+      }
+    },
+    {
+      "url": "https://o4504086207987712.ingest.sentry.io/api/4506116048945152/envelope/?sentry_key=5e4e3276ef11a0884ad5976da08d6c06&sentry_version=7&sentry_client=sentry.javascript.nextjs%2F7.120.3",
+      "endpoint": "/api/4506116048945152/envelope/",
+      "sport": "soccer",
+      "status": 200,
+      "size": 2,
+      "sample": {}
+    },
+    {
+      "url": "https://sr-client-cfg.amplitude.com/config?api_key=79f3b517dcf27aa2c81004789f310850&config_keys=sessionReplay",
+      "endpoint": "/config",
+      "sport": "soccer",
+      "status": 200,
+      "size": 34,
+      "sample": {
+        "configs": {
+          "sessionReplay": "..."
+        }
+      }
+    },
+    {
+      "url": "https://sr-client-cfg.amplitude.com/config?api_key=79f3b517dcf27aa2c81004789f310850&config_keys=sessionReplay",
+      "endpoint": "/config",
+      "sport": "soccer",
+      "status": 200,
+      "size": 34,
+      "sample": {
+        "configs": {
+          "sessionReplay": "..."
+        }
+      }
+    },
+    {
+      "url": "https://sr-client-cfg.amplitude.com/config?api_key=79f3b517dcf27aa2c81004789f310850&config_keys=sessionReplay",
+      "endpoint": "/config",
+      "sport": "soccer",
+      "status": 200,
+      "size": 34,
+      "sample": {
+        "configs": {
+          "sessionReplay": "..."
+        }
+      }
+    }
+  ]
+}

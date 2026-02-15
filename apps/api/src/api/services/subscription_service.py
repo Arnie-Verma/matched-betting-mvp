@@ -8,6 +8,7 @@ from sqlalchemy import desc, or_
 import stripe
 
 from api.models import User, Subscription, Plan, WebhookEvent, Bookmaker
+from api.core.bookmaker_freeze import filter_frozen_bookmaker_codes
 from api.services.stripe_service import StripeService
 
 logger = logging.getLogger(__name__)
@@ -410,26 +411,28 @@ class SubscriptionService:
         - Platinum tier: All 103 bookmakers + Betfair
 
         Note: Betfair is ALWAYS included as it's the exchange (provides lay odds).
+        Note: Temporary onboarding freezes (for example Unibet during Phase A)
+        are applied via `api.core.bookmaker_freeze`.
         """
         plan = user.current_plan.lower()
 
         # Free tier: 2 bookmakers + Betfair (exchange)
         if plan == "free":
-            return ["ladbrokes", "neds", "betfair"]
+            return filter_frozen_bookmaker_codes(["ladbrokes", "neds", "betfair"])
 
         # Premium tier: 16 bookmakers + Betfair
         if plan == "premium":
-            return [
+            return filter_frozen_bookmaker_codes([
                 "sportsbet", "ladbrokes", "neds", "tab", "pointsbet", "unibet",
                 "betr", "betdeluxe", "betright", "crossbet", "dabble",
                 "elitebet", "tabtouch", "realbookie", "picklebet",
                 # Exchange (always included)
                 "betfair"
-            ]
+            ])
 
         # Platinum tier: All 103 bookmakers
         if plan in ["platinum", "diamond"]:
-            return [
+            return filter_frozen_bookmaker_codes([
                 # All bookmakers
                 "alphabet", "baggybet", "bet575", "bet66", "bet777", "betbetbet",
                 "betblitz", "betchamps", "betdeluxe", "betestate", "betfocus",
@@ -453,7 +456,7 @@ class SubscriptionService:
                 "wellbet", "winnersbet", "wishbet", "wizbet", "zbet",
                 # Exchange (always included)
                 "betfair"
-            ]
+            ])
 
         # Default: free tier
-        return ["ladbrokes", "neds", "betfair"]
+        return filter_frozen_bookmaker_codes(["ladbrokes", "neds", "betfair"])

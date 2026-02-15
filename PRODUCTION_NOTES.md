@@ -1,244 +1,68 @@
 # Production Deployment Notes
 
-Configuration changes and considerations for deploying to production.
+## Purpose
+Runtime and deployment defaults for production environments.
 
----
+## Environment Profiles
 
-## Environment Variables
+### Local/Dev (Docker constrained)
+- `SCRAPER_BATCH_SIZE=1`
+- Conservative parallelism to avoid local resource contention.
 
-### Scraping Performance
+### Staging
+- Production-like behavior with reduced concurrency caps.
+- Validate breaker behavior, refresh latency, and degraded states.
 
-| Variable | Dev Value | Production Value | Notes |
-|----------|-----------|------------------|-------|
-| `SCRAPER_BATCH_SIZE` | `1` | `6` | Parallel sports per bookmaker. Docker can't handle >1, cloud servers can. |
-| `BOOKMAKER_TIMEOUT_SECONDS` | `25` | `15-20` | Can reduce with faster cloud network |
-| `BOOKMAKER_BREAKER_THRESHOLD` | `5` | `3` | Fail faster in production |
-| `BOOKMAKER_BREAKER_COOLDOWN_SECONDS` | `60` | `120` | Longer cooldown to avoid hammering failing services |
+### Production
+- Increase concurrency per platform based on observed latency/error rates.
+- Keep per-platform limits and rollback thresholds explicit.
 
-### Proxy Configuration (Required for TAB)
+## Key Environment Variables
 
-```bash
-# Rotating residential proxy for anti-bot bookmakers
-RESIDENTIAL_PROXY_URL=http://user:pass@proxy.smartproxy.com:port
+| Variable | Dev | Production Guidance |
+|----------|-----|---------------------|
+| `SCRAPER_BATCH_SIZE` | `1` | Tune by platform and hardware capacity |
+| `BOOKMAKER_TIMEOUT_SECONDS` | `25` | Usually `15-25` by platform class |
+| `BOOKMAKER_BREAKER_THRESHOLD` | `5` | Usually stricter than dev |
+| `BOOKMAKER_BREAKER_COOLDOWN_SECONDS` | `60` | Usually longer than dev |
+| `BOOKMAKER_FREEZE_UNIBET` | `true` | Keep `true` until Phase A GO; set `false` only with explicit gate approval |
+| `DATABASE_URL` | local postgres | managed postgres |
+| `REDIS_URL` | local redis | managed redis |
 
-# Proxy-required bookmakers (add as implemented)
-PROXY_BOOKMAKERS=tab,sportsbet,pointsbet
-```
-
-**Recommended providers** (~$30/mo for matched betting scale):
-- SmartProxy (residential)
-- Bright Data (residential)
-- Oxylabs (residential)
-
-### Database
-
-| Variable | Dev Value | Production Value |
-|----------|-----------|------------------|
-| `DATABASE_URL` | `postgresql://postgres:postgres@db:5432/mb_dev` | Use managed PostgreSQL (Supabase, RDS, etc.) |
-| `REDIS_URL` | `redis://redis:6379/0` | Use managed Redis (Upstash, ElastiCache, etc.) |
-
-### Security
+## Proxy Configuration
+Use proxy only for books that need it.
 
 ```bash
-# Generate new secrets for production
-CLERK_SECRET_KEY=sk_live_...
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-# Restrict CORS
-CORS_ORIGINS=https://yourdomain.com
+RESIDENTIAL_PROXY_URL=http://user:pass@proxy.example:port
+PROXY_BOOKMAKERS=tab,sportsbet
 ```
 
----
+## Current Platform Notes
 
-## Scraper-Specific Notes
+| Platform/Book | Proxy Needed | Status |
+|---------------|--------------|--------|
+| Entain (Ladbrokes/Neds) | No | Active |
+| Betfair | No | Active |
+| Punterstech | No | Active |
+| Kindred (Unibet) | No | Active |
+| TAB | Yes | Slower / anti-bot constrained |
 
-### Currently Implemented
+## Monitoring Requirements
+Track per bookmaker:
+- Success rate (1h/24h)
+- P50/P95 scrape duration
+- Last successful scrape timestamp
+- Validation score trend
+- Circuit breaker state
 
-| Scraper | Proxy Needed | Status | Notes |
-|---------|--------------|--------|-------|
-| Betfair | No | Ready | Exchange API is scrape-friendly |
-| Ladbrokes | No | Ready | API works without proxy currently |
-| TAB | **Yes** | Disabled | Akamai blocks after 3-4 requests from same IP |
+## Deployment Checklist
+1. Set production secrets and CORS origins.
+2. Run migrations: `alembic upgrade head`.
+3. Seed config: `seed_plans`, `seed_all_bookmakers`.
+4. Run a manual scrape and validate health endpoints.
+5. Confirm refresh, partial results, and degraded-bookmaker behavior.
 
-### Future Bookmakers
-
-| Bookmaker | Likely Proxy Needed | Tier |
-|-----------|---------------------|------|
-| Neds | No (same as Ladbrokes) | FREE |
-| Sportsbet | Probably | PREMIUM |
-| Pointsbet | Probably | PREMIUM |
-| Unibet | Probably | PREMIUM |
-| bet365 | Yes (aggressive anti-bot) | PREMIUM |
-
-**Test protocol**: 5 sequential requests + 10 burst requests. If any 403 → needs proxy.
-
----
-
-## Infrastructure
-
-### Recommended Stack
-
-| Component | Dev | Production |
-|-----------|-----|------------|
-| Web hosting | Docker local | Vercel (Next.js) |
-| API hosting | Docker local | Railway / Render / Fly.io |
-| Database | Docker PostgreSQL | Supabase / PlanetScale |
-| Redis | Docker Redis | Upstash (serverless) |
-| Scraper workers | Same container | Dedicated container with more RAM |
-
-### Resource Requirements
-
-**Scraper container**:
-- Minimum: 2GB RAM, 2 vCPU (for parallel Playwright browsers)
-- Recommended: 4GB RAM, 4 vCPU (handles batch_size=6 comfortably)
-
-**API container**:
-- Minimum: 512MB RAM, 1 vCPU
-- Scales horizontally as needed
-
----
-
-## Performance Tuning
-
-### Current Dev Performance
-- Total scrape: ~92s (2 bookmakers × 6 sports, batch_size=1)
-- Ladbrokes: ~43s solo
-- Betfair: ~89s solo
-
-### Expected Production Performance (batch_size=6)
-- Total scrape: ~15-20s (parallel sports + parallel bookmakers)
-- Each bookmaker: ~10-15s (all 6 sports truly parallel)
-
-### Caching Strategy
-
-| Cache | TTL | Purpose |
-|-------|-----|---------|
-| Odds data | 5 min | Prevent redundant scrapes |
-| ETag/Last-Modified | Per response | Client-side cache validation |
-| Rate limit keys | 60s | Per-user rate limiting |
-| Circuit breaker | 120s | Bookmaker health tracking |
-
----
-
-## Monitoring & Alerting
-
-### Recommended Setup
-
-1. **Sentry** - Error tracking
-   - Capture scraper failures
-   - Track circuit breaker opens
-   - Monitor timeout rates
-
-2. **Uptime monitoring** - Pingdom/UptimeRobot
-   - `/health` endpoint on API
-   - Alert on downtime
-
-3. **Log aggregation** - Datadog/LogTail
-   - Scraper timing logs (already structured)
-   - Error patterns by bookmaker
-
-### Key Metrics to Track
-
-```
-# Scraper health
-scrape_duration_seconds{bookmaker}
-scrape_events_count{bookmaker, sport}
-scrape_errors_total{bookmaker, error_type}
-circuit_breaker_state{bookmaker}
-
-# API health
-request_duration_seconds{endpoint}
-active_users_count
-odds_freshness_seconds
-```
-
----
-
-## Security Checklist
-
-- [ ] Rotate all secrets (Clerk, Stripe, DB passwords)
-- [ ] Enable HTTPS only
-- [ ] Restrict CORS to production domain
-- [ ] Set up rate limiting at API gateway level
-- [ ] Configure WAF rules (Cloudflare/AWS WAF)
-- [ ] Enable database SSL
-- [ ] Set up backup schedule for PostgreSQL
-- [ ] Review Clerk webhook signature verification
-
----
-
-## Database Migrations
-
-Run before first production deploy:
-
-```bash
-# Inside API container
-alembic upgrade head
-
-# Seed bookmakers
-python -m api.scripts.seed_all_bookmakers
-python -m api.scripts.seed_plans
-```
-
----
-
-## Launch Checklist
-
-### Pre-launch
-- [ ] All environment variables set
-- [ ] Database migrated and seeded
-- [ ] Stripe webhooks configured for production
-- [ ] Clerk production instance configured
-- [ ] Domain DNS configured
-- [ ] SSL certificates active
-
-### Post-launch
-- [ ] Run manual scrape to populate initial odds
-- [ ] Verify frontend loads odds correctly
-- [ ] Test signup/login flow
-- [ ] Test subscription purchase flow
-- [ ] Monitor first 24h for errors
-
----
-
-## Cost Estimates
-
-| Service | Monthly Cost | Notes |
-|---------|--------------|-------|
-| Vercel (web) | $0-20 | Free tier usually sufficient |
-| Railway (API) | $5-20 | Based on usage |
-| Supabase (DB) | $0-25 | Free tier has 500MB |
-| Upstash (Redis) | $0-10 | Pay per request |
-| Rotating proxy | $30-50 | Only needed for TAB/anti-bot sites |
-| **Total** | **~$35-125/mo** | Scales with traffic |
-
----
-
-## Rollback Plan
-
-If issues occur after deployment:
-
-1. **API issues**: Railway/Render have instant rollback
-2. **Database issues**: Restore from backup, run `alembic downgrade -1`
-3. **Scraper issues**: Can disable individual bookmakers via env var without redeploy
-
-```bash
-# Disable problematic bookmaker
-DISABLED_BOOKMAKERS=tab,sportsbet
-```
-
----
-
-## Future Improvements (Post-Launch)
-
-1. **Dynamic waits** - Replace fixed 5s waits with networkidle detection
-2. **Scraper scheduling** - Cron-based background scraping (every 5 min)
-3. **WebSocket updates** - Push new odds to connected clients
-4. **Multi-region** - Deploy scrapers in AU region for lower latency
-5. **Horizontal scaling** - Multiple scraper workers for more bookmakers
-What Requires Production Infrastructure
-Optimization	Savings	Requirement
-batch_size=6	~25s → 9s (3x)	More memory, native Playwright
-Persistent browser pool	~1s startup	Long-running workers
-HTTP/2 connection pooling	~0.5s/sport	Native networking
+## Related Docs
+- `BOOKMAKER_OPERATING_SYSTEM.md`
+- `VALIDATION_FRAMEWORK.md`
+- `ROADMAP.md`

@@ -16,10 +16,6 @@ from validation.config import (
     ValidationConfig,
     COVERAGE_WARN_THRESHOLD,
     COVERAGE_FAIL_THRESHOLD,
-    EVENT_COVERAGE_WARN_THRESHOLD,
-    EVENT_COVERAGE_FAIL_THRESHOLD,
-    MAX_ANOMALIES_WARN,
-    MAX_CRITICAL_ANOMALIES,
 )
 from validation.structural_validator import StructuralValidation
 from validation.probability_validator import ProbabilityValidation, OddsAnomaly
@@ -260,6 +256,7 @@ class ScoreCalculator:
         - All checks within thresholds
         """
         event_cov_warn, event_cov_fail = self.config.get_event_coverage_thresholds(score.competition)
+        anomaly_warn_threshold, critical_anomaly_threshold = self.config.get_anomaly_thresholds(score.competition)
 
         # No eligible reference fixtures in this competition window: comparisons are
         # not meaningful, so classify as neutral instead of warn/fail.
@@ -271,6 +268,21 @@ class ScoreCalculator:
                 return "N_A"
             score.warning_reasons.append(
                 "No eligible reference fixtures in window (status=SKIP)"
+            )
+            return "SKIP"
+
+        # Explicit competition coverage policy: out-of-scope bookmakers are
+        # excluded from competition gate scoring.
+        if (
+            not score.is_exchange
+            and score.bookmaker_code.lower() != self.config.reference_bookmaker.lower()
+            and self.config.get_bookmaker_competition_scope(
+                score.bookmaker_code,
+                score.competition,
+            ) == "out_of_scope"
+        ):
+            score.warning_reasons.append(
+                "Out-of-scope competition coverage policy (status=SKIP)"
             )
             return "SKIP"
 
@@ -306,10 +318,10 @@ class ScoreCalculator:
                 return "FAIL"
 
         # Too many critical anomalies
-        if score.critical_anomaly_count > MAX_CRITICAL_ANOMALIES:
+        if score.critical_anomaly_count > critical_anomaly_threshold:
             score.failure_reasons.append(
                 f"{score.critical_anomaly_count} critical anomalies "
-                f"(max: {MAX_CRITICAL_ANOMALIES})"
+                f"(max: {critical_anomaly_threshold})"
             )
             return "FAIL"
 
@@ -339,9 +351,9 @@ class ScoreCalculator:
                 )
 
         # Too many anomalies
-        if score.anomaly_count > MAX_ANOMALIES_WARN:
+        if score.anomaly_count > anomaly_warn_threshold:
             score.warning_reasons.append(
-                f"{score.anomaly_count} anomalies (warn threshold: {MAX_ANOMALIES_WARN})"
+                f"{score.anomaly_count} anomalies (warn threshold: {anomaly_warn_threshold})"
             )
 
         # Any missing golden fixtures

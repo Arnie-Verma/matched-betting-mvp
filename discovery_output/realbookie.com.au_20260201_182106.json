@@ -1,0 +1,271 @@
+{
+  "bookmaker": "realbookie.com.au",
+  "base_url": "https://www.realbookie.com.au",
+  "sport_paths": [
+    "/sports/soccer"
+  ],
+  "timestamp": "2026-02-01T18:21:06.116821",
+  "endpoints_captured": 6,
+  "unique_endpoints": 3,
+  "endpoints": {
+    "/query": {
+      "full_url": "https://platform.realbookie.bmapollo.com/query",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "data"
+      ],
+      "response_size": 469,
+      "sports_where_found": [
+        "soccer"
+      ],
+      "example_request_headers": {
+        "referer": "https://realbookie.com.au/",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "accept": "application/graphql-response+json, application/json",
+        "content-type": "application/json"
+      },
+      "example_request_post_data": "{\"query\":\"\\n    query getConfiguration {\\n  getConfiguration {\\n    minimum_stake\\n    minimum_flexi\\n    minimum_deposit\\n    minimum_withdrawal\\n    currency\\n    user_pool_id\\n    user_pool_client_id\\n    brand_email\\n    brand_phone\\n    brand_url\\n    payid_providers\\n    deposit_bank {\\n      account_name\\n      account_number\\n      bank_bsb\\n    }\\n  }\\n}\\n    \",\"variables\":{},\"operationName\":\"getConfiguration\"}"
+    },
+    "/messenger/web/launcher_settings": {
+      "full_url": "https://api-iam.intercom.io/messenger/web/launcher_settings",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "alignment",
+        "color",
+        "color_dark",
+        "has_required_features",
+        "horizontal_padding",
+        "instant_boot_enabled",
+        "launcher_logo_url",
+        "launcher_logo_dark_url",
+        "secondary_color",
+        "secondary_color_dark",
+        "show_launcher",
+        "theme_mode",
+        "updated_at",
+        "vertical_padding"
+      ],
+      "response_size": 374,
+      "sports_where_found": [
+        "soccer"
+      ],
+      "example_request_headers": {
+        "referer": "",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      "example_request_post_data": "app_id=xfciigbf&v=3&g=0f2edd89f91314f54544816688340ff5fbb08403&s=8f10a59a-bdeb-4c36-9268-94637b7f0c65&r=&platform=web&installation_type=npm-package&installation_version=undefined&Idempotency-Key=5ef1139da689701b&internal=&is_intersection_booted=false&page_title=RealBookie&user_active_company_id=undefined&user_data=%7B%7D&referer=https%3A%2F%2Frealbookie.com.au%2Fsports%2Fsoccer"
+    },
+    "/messenger/web/ping": {
+      "full_url": "https://api-iam.intercom.io/messenger/web/ping",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "app",
+        "user",
+        "client_matches",
+        "launcher_settings",
+        "modules",
+        "unread_conversation_ids",
+        "unread_dismissed_conversation_ids",
+        "anonymous_session",
+        "identity_verification_ready",
+        "origin_cookie_domain",
+        "cdas_breaching_limit",
+        "checklists",
+        "open_config",
+        "unread_tickets_count",
+        "jwt_expired"
+      ],
+      "response_size": 6844,
+      "sports_where_found": [
+        "soccer"
+      ],
+      "example_request_headers": {
+        "referer": "",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      "example_request_post_data": "app_id=xfciigbf&v=3&g=0f2edd89f91314f54544816688340ff5fbb08403&s=d10edcd2-c386-49ee-926e-9da1ee788fcf&r=&platform=web&installation_type=npm-package&installation_version=undefined&Idempotency-Key=8bc852b4f7ec81ff&internal=%7B%7D&is_intersection_booted=false&page_title=RealBookie&user_active_company_id=undefined&user_data=%7B%7D&source=apiBoot&sampling=false&referer=https%3A%2F%2Frealbookie.com.au%2Fsports%2Fsoccer"
+    }
+  },
+  "odds_endpoints": [],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/query",
+      "/messenger/web/launcher_settings",
+      "/messenger/web/ping"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://platform.realbookie.bmapollo.com/query",
+      "endpoint": "/query",
+      "sport": "soccer",
+      "status": 200,
+      "size": 469,
+      "sample": {
+        "data": {
+          "getConfiguration": "..."
+        }
+      },
+      "request": {
+        "method": "POST",
+        "headers": {
+          "referer": "https://realbookie.com.au/",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "accept": "application/graphql-response+json, application/json",
+          "content-type": "application/json"
+        },
+        "post_data": "{\"query\":\"\\n    query getConfiguration {\\n  getConfiguration {\\n    minimum_stake\\n    minimum_flexi\\n    minimum_deposit\\n    minimum_withdrawal\\n    currency\\n    user_pool_id\\n    user_pool_client_id\\n    brand_email\\n    brand_phone\\n    brand_url\\n    payid_providers\\n    deposit_bank {\\n      account_name\\n      account_number\\n      bank_bsb\\n    }\\n  }\\n}\\n    \",\"variables\":{},\"operationName\":\"getConfiguration\"}"
+      }
+    },
+    {
+      "url": "https://platform.realbookie.bmapollo.com/query",
+      "endpoint": "/query",
+      "sport": "soccer",
+      "status": 200,
+      "size": 350,
+      "sample": {
+        "data": {
+          "stakeLimitEnabled": "...",
+          "betVisionEnabled": "...",
+          "skyVisionEnabled": "...",
+          "cancelWithdrawalRequestEnabled": "...",
+          "appBetslipAutoDismissEnabled": "..."
+        }
+      },
+      "request": {
+        "method": "POST",
+        "headers": {
+          "referer": "https://realbookie.com.au/",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "accept": "application/graphql-response+json, application/json",
+          "content-type": "application/json"
+        },
+        "post_data": "{\"query\":\"\\n    query getTenantFlags {\\n  stakeLimitEnabled: getTenantFlag(flag: \\\"stakeLimitEnabled\\\")\\n  betVisionEnabled: getTenantFlag(flag: \\\"betVision\\\")\\n  skyVisionEnabled: getTenantFlag(flag: \\\"skyVision\\\")\\n  cancelWithdrawalRequestEnabled: getTenantFlag(\\n    flag: \\\"cancelWithdrawalRequestEnabled\\\"\\n  )\\n  appBetslipAutoDismissEnabled: getTenantFlag(\\n    flag: \\\"appBetslipAutoDismissEnabled\\\"\\n  )\\n  nativeSgmEnabled: getTenantFlag(flag: \\\"nativeSgmEnabled\\\")\\n  sportsEnabled: getTenantFlag(flag: \\\"sportsEnabled\\\")\\n  racelabStoriesEnabled: getTenantFlag(flag: \\\"racelabStoriesEnabled\\\")\\n  hideLongBreakWithPSExclusion: getTenantFlag(\\n    flag: \\\"hideLongBreakWithPSExclusion\\\"\\n  )\\n  runnerInsightsEnabled: getTenantFlag(flag: \\\"runnerInsightsEnabled\\\")\\n  racingFuturesEnabled: getTenantFlag(flag: \\\"racingFuturesEnabled\\\")\\n}\\n    \",\"variables\":{},\"operationName\":\"getTenantFlags\"}"
+      }
+    },
+    {
+      "url": "https://sports.realbookie.bmapollo.com/query",
+      "endpoint": "/query",
+      "sport": "soccer",
+      "status": 200,
+      "size": 2195,
+      "sample": {
+        "data": {
+          "sports": "..."
+        }
+      },
+      "request": {
+        "method": "POST",
+        "headers": {
+          "referer": "https://realbookie.com.au/",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "accept": "application/graphql-response+json, application/json",
+          "content-type": "application/json"
+        },
+        "post_data": "{\"query\":\"\\n    query allSports {\\n  sports {\\n    id\\n    name\\n    core_sport_id\\n    featured_flag\\n  }\\n}\\n    \",\"variables\":{},\"operationName\":\"allSports\"}"
+      }
+    },
+    {
+      "url": "https://sports.realbookie.bmapollo.com/query",
+      "endpoint": "/query",
+      "sport": "soccer",
+      "status": 200,
+      "size": 31,
+      "sample": {
+        "data": {
+          "nextUpMarkets": "..."
+        }
+      },
+      "request": {
+        "method": "POST",
+        "headers": {
+          "referer": "https://realbookie.com.au/",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "accept": "application/graphql-response+json, application/json",
+          "content-type": "application/json"
+        },
+        "post_data": "{\"query\":\"\\n    query nextUpMarkets($sportId: ID, $baseCompetitionId: ID, $competitionId: ID, $eventIds: [ID!], $eventLimit: Int, $isMainMarketTypeGroup: Boolean, $fsgmEnabled: Boolean, $sgmEnabled: Boolean, $marketLimit: Int, $featuredFlag: Boolean) {\\n  nextUpMarkets(\\n    sport_id: $sportId\\n    base_competition_id: $baseCompetitionId\\n    competition_id: $competitionId\\n    event_ids: $eventIds\\n    fsgm_enabled: $fsgmEnabled\\n    sgm_enabled: $sgmEnabled\\n    featured_flag: $featuredFlag\\n    limit: $eventLimit\\n  ) {\\n    ...NextUpMarket\\n  }\\n}\\n    \\n    fragment NextUpMarket on Next {\\n  sport_id\\n  sport_name\\n  base_competition_id\\n  base_competition_name\\n  competition_id\\n  competition_name\\n  event_id\\n  event_name\\n  event_start_date\\n  event_status\\n  event_sgm_enabled\\n  event_fsgm_enabled\\n  teams {\\n    ...Team\\n  }\\n  markets(\\n    is_main_market_type_group: $isMainMarketTypeGroup\\n    limit: $marketLimit\\n    is_fsgm_market: $fsgmEnabled\\n  ) {\\n    ...Market\\n  }\\n}\\n    \\n    fragment Team on Team {\\n  id\\n  name\\n  color\\n  team_position\\n  players {\\n    id\\n    name\\n    first_name\\n    last_name\\n  }\\n}\\n    \\n\\n    fragment Market on MarketView {\\n  id\\n  name\\n  status\\n  market_type_id\\n  market_type_name\\n  event_id\\n  market_score_home\\n  market_score_away\\n  market_score_total\\n  display_flag\\n  refund_flag\\n  allow_multiple_selection\\n  selections {\\n    ...Selection\\n  }\\n  sort_order\\n}\\n    \\n    fragment Selection on SelectionView {\\n  id\\n  market_id\\n  event_id\\n  name\\n  status\\n  odds\\n  sort_order\\n  external_id\\n  is_home_team\\n  is_away_team\\n}\\n    \",\"variables\":{\"marketLimit\":1,\"isMainMarketTypeGroup\":true,\"eventLimit\":15,\"featuredFlag\":true},\"operationName\":\"nextUpMarkets\"}"
+      }
+    },
+    {
+      "url": "https://api-iam.intercom.io/messenger/web/launcher_settings",
+      "endpoint": "/messenger/web/launcher_settings",
+      "sport": "soccer",
+      "status": 200,
+      "size": 374,
+      "sample": {
+        "alignment": "right",
+        "color": "#016A70",
+        "color_dark": "#359ea4",
+        "has_required_features": true,
+        "horizontal_padding": 20
+      },
+      "request": {
+        "method": "POST",
+        "headers": {
+          "referer": "",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "content-type": "application/x-www-form-urlencoded"
+        },
+        "post_data": "app_id=xfciigbf&v=3&g=0f2edd89f91314f54544816688340ff5fbb08403&s=8f10a59a-bdeb-4c36-9268-94637b7f0c65&r=&platform=web&installation_type=npm-package&installation_version=undefined&Idempotency-Key=5ef1139da689701b&internal=&is_intersection_booted=false&page_title=RealBookie&user_active_company_id=undefined&user_data=%7B%7D&referer=https%3A%2F%2Frealbookie.com.au%2Fsports%2Fsoccer"
+      }
+    },
+    {
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "endpoint": "/messenger/web/ping",
+      "sport": "soccer",
+      "status": 200,
+      "size": 6844,
+      "sample": {
+        "app": {
+          "name": "...",
+          "audio_enabled": "...",
+          "show_powered_by": "...",
+          "team_intro": "...",
+          "team_greeting": "..."
+        },
+        "user": {
+          "id": "...",
+          "role": "...",
+          "locale": "...",
+          "has_conversations": "...",
+          "anonymous_id": "..."
+        },
+        "client_matches": [
+          "..."
+        ],
+        "launcher_settings": {
+          "alignment": "...",
+          "color": "...",
+          "color_dark": "...",
+          "has_required_features": "...",
+          "horizontal_padding": "..."
+        },
+        "modules": {
+          "messages": "...",
+          "rtm": "...",
+          "metrics": "...",
+          "error_reporting": "...",
+          "customization": "..."
+        }
+      },
+      "request": {
+        "method": "POST",
+        "headers": {
+          "referer": "",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "content-type": "application/x-www-form-urlencoded"
+        },
+        "post_data": "app_id=xfciigbf&v=3&g=0f2edd89f91314f54544816688340ff5fbb08403&s=d10edcd2-c386-49ee-926e-9da1ee788fcf&r=&platform=web&installation_type=npm-package&installation_version=undefined&Idempotency-Key=8bc852b4f7ec81ff&internal=%7B%7D&is_intersection_booted=false&page_title=RealBookie&user_active_company_id=undefined&user_data=%7B%7D&source=apiBoot&sampling=false&referer=https%3A%2F%2Frealbookie.com.au%2Fsports%2Fsoccer"
+      }
+    }
+  ]
+}

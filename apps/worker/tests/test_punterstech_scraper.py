@@ -223,6 +223,105 @@ class TestOddsParsing:
             # May fail if odds list not set up, but should not crash catastrophically
             assert "object" not in str(e).lower() or True
 
+    @pytest.mark.parametrize(
+        "sport,market_desc,market_type,external_ref,expected",
+        [
+            ("soccer", "Match Result", "", "MW", True),
+            ("soccer", "1st Half Match Result", "", "MW", False),
+            ("soccer", "Team A To Win League", "", "", False),
+            ("basketball", "Money Line", "", "", True),
+            ("basketball", "2nd Quarter Money Line", "", "", False),
+            ("ice_hockey", "Head To Head", "HeadToHead", "H2H", True),
+            ("boxing", "Fight Result", "", "", True),
+            ("boxing", "Fight Winner By Decision", "", "", False),
+        ],
+    )
+    def test_market_allow_deny_by_sport(self, scraper, sport, market_desc, market_type, external_ref, expected):
+        assert scraper._is_matcher_market(market_desc, market_type, external_ref, sport) is expected
+
+    def test_market_shape_soccer_requires_home_draw_away(self, scraper):
+        now = datetime.now(timezone.utc)
+        future_ms = str(int((now + timedelta(hours=24)).timestamp() * 1000))
+        events_by_key = {
+            "soccer-1": {
+                "EventKey": "soccer-1",
+                "Name": "Arsenal v Chelsea",
+                "EventType": "football",
+                "EventSubType": "english-premier-league",
+                "StartTime": future_ms,
+            }
+        }
+        markets_by_key = {
+            "soccer-1": [
+                {
+                    "Description": "Match Result",
+                    "ExternalRef": "MW",
+                    "Outcomes": [
+                        {"Name": "Arsenal", "Prices": [{"WinPrice": 2.10}]},
+                        {"Name": "Chelsea", "Prices": [{"WinPrice": 3.20}]},
+                    ],
+                }
+            ]
+        }
+
+        events = scraper._parse_punterstech_events(events_by_key, markets_by_key, target_sport="soccer")
+        assert events == []
+
+    def test_market_shape_two_way_for_basketball(self, scraper):
+        now = datetime.now(timezone.utc)
+        future_ms = str(int((now + timedelta(hours=24)).timestamp() * 1000))
+        events_by_key = {
+            "nbl-1": {
+                "EventKey": "nbl-1",
+                "Name": "Cairns Taipans v Sydney Kings",
+                "EventType": "basketball",
+                "EventSubType": "australia-nbl",
+                "StartTime": future_ms,
+            }
+        }
+        markets_by_key = {
+            "nbl-1": [
+                {
+                    "Description": "Money Line",
+                    "ExternalRef": "MW",
+                    "Outcomes": [
+                        {"Name": "Cairns Taipans", "Prices": [{"WinPrice": 2.50}]},
+                        {"Name": "Sydney Kings", "Prices": [{"WinPrice": 1.55}]},
+                        {"Name": "Draw", "Prices": [{"WinPrice": 26.00}]},
+                    ],
+                }
+            ]
+        }
+
+        events = scraper._parse_punterstech_events(events_by_key, markets_by_key, target_sport="basketball")
+        assert len(events) == 1
+        selection_keys = {odds.selection_key for odds in events[0].odds}
+        assert selection_keys == {"home", "away"}
+
+    @pytest.mark.parametrize(
+        "selection_name,event_name,expected_key",
+        [
+            ("Sydney Kings Win", "Cairns Taipans v Sydney Kings", "away"),
+            ("The Draw", "Arsenal v Chelsea", "draw"),
+            ("Lopez, T", "Teofimo Lopez v Arnold Barboza Jr", "home"),
+        ],
+    )
+    def test_selection_key_stability(self, scraper, selection_name, event_name, expected_key):
+        from scrapers.base import ScrapedEvent
+
+        home_team, away_team = scraper._parse_teams_from_name(event_name)
+        event = ScrapedEvent(
+            external_id="evt-1",
+            name=event_name,
+            sport="soccer",
+            competition="test",
+            start_time=datetime.now(timezone.utc) + timedelta(hours=24),
+            home_team=home_team,
+            away_team=away_team,
+            odds=[],
+        )
+        assert scraper._get_selection_key(selection_name, event) == expected_key
+
 
 class TestErrorHandling:
     """Test error handling scenarios"""
@@ -343,6 +442,41 @@ class TestEventNormalization:
         """Test competition filter patterns are defined"""
         assert hasattr(scraper, 'COMPETITION_PATTERNS')
         assert "soccer" in scraper.COMPETITION_PATTERNS
+
+    def test_competition_filter_matches_england_premier_league(self, scraper):
+        """EPL variants should match competition filters after normalization."""
+        assert scraper._competition_matches_filters(
+            "2025/2026 England Premier League - Round 31",
+            scraper.COMPETITION_FILTERS["soccer"],
+        )
+
+    def test_should_include_event_accepts_england_premier_league(self, scraper):
+        """Soccer include-filter should not drop 'England Premier League' fixtures."""
+        start_time_ms = int((datetime.now(timezone.utc) + timedelta(hours=6)).timestamp() * 1000)
+        event_data = {
+            "EventType": "football",
+            "EventSubType": "england-premier-league",
+            "StartTime": str(start_time_ms),
+            "Meta": {"MasterEventName": "2025/2026 England Premier League - Round 31"},
+        }
+        assert scraper._should_include_event(event_data, "soccer") is True
+
+    @pytest.mark.asyncio
+    async def test_soccer_default_next_to_go_limit_is_1000(self, scraper):
+        """Soccer scrape should use elevated default next-to-go limit to avoid EPL truncation."""
+        observed = {}
+
+        async def fake_next_to_go(event_types, result_limit):
+            observed["event_types"] = list(event_types)
+            observed["result_limit"] = result_limit
+            return []
+
+        with patch.object(scraper, "_fetch_next_to_go", side_effect=fake_next_to_go):
+            result = await scraper.scrape_sport("soccer")
+
+        assert observed["event_types"] == ["football"]
+        assert observed["result_limit"] == 1000
+        assert result.events_scraped == 0
 
 
 class TestDataIntegrity:

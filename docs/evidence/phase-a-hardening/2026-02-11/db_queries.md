@@ -1,50 +1,68 @@
-# DB evidence queries (PR2)
+# DB evidence queries
 
-No database evidence queries were successfully executed in this shell context.
+## PR2 note
+- Live DB validation outputs were generated in Docker context (see `commands.txt`).
 
-Reason:
-- `DATABASE_URL` resolves to docker network host `db`.
-- Current runtime could not reach that host, and docker daemon access was unavailable/timeouting from this shell.
+## PR4 market-hygiene queries
 
-Planned queries once DB connectivity is available:
-
-1. Eligible reference fixture shape audit (per competition):
+1. Current matcher-market scope extraction (Entain + Punterstech):
 ```sql
 SELECT
-  b.code AS bookmaker,
-  c.name AS competition,
+  os.id AS odds_snapshot_id,
+  b.code AS bookmaker_code,
+  b.scraping_config->>'scraper_class' AS scraper_class,
+  c.name AS competition_name,
   e.id AS event_id,
-  e.name AS event_name,
-  COUNT(DISTINCT lower(s.selection_key)) AS selection_key_count,
-  ARRAY_AGG(DISTINCT lower(s.selection_key)) AS selection_keys
+  m.id AS market_id,
+  m.name AS market_name,
+  s.selection_key
 FROM odds_snapshots os
-JOIN bookmakers b ON b.id = os.bookmaker_id
 JOIN selections s ON s.id = os.selection_id
 JOIN markets m ON m.id = s.market_id
 JOIN events e ON e.id = m.event_id
 JOIN competitions c ON c.id = e.competition_id
-WHERE os.is_current = true
+JOIN bookmakers b ON b.id = os.bookmaker_id
+WHERE os.is_current = TRUE
   AND m.market_type = 'match_winner'
-  AND b.code = 'ladbrokes'
-GROUP BY b.code, c.name, e.id, e.name
-ORDER BY c.name, e.name;
+  AND (b.scraping_config->>'scraper_class') IN ('entain', 'punterstech');
 ```
 
-2. Cross-bookmaker eligible overlap check (Entain vs Punterstech examples):
+2. One-time stale-row cleanup update:
 ```sql
-SELECT
-  c.name AS competition,
-  COUNT(DISTINCT CASE WHEN b.code='ladbrokes' THEN e.id END) AS ladbrokes_events,
-  COUNT(DISTINCT CASE WHEN b.code='mintbet' THEN e.id END) AS mintbet_events
-FROM odds_snapshots os
-JOIN bookmakers b ON b.id = os.bookmaker_id
-JOIN selections s ON s.id = os.selection_id
-JOIN markets m ON m.id = s.market_id
-JOIN events e ON e.id = m.event_id
-JOIN competitions c ON c.id = e.competition_id
-WHERE os.is_current = true
-  AND m.market_type = 'match_winner'
-  AND b.code IN ('ladbrokes', 'mintbet')
-GROUP BY c.name
-ORDER BY c.name;
+UPDATE odds_snapshots
+SET is_current = FALSE
+WHERE id = ANY(:ids);
 ```
+
+Selection of `:ids` was driven by query result evaluation for priority competitions
+(`epl`, `nba`, `nhl`, `boxing`, `nbl`) when any of the following was true:
+- disallowed market token match (futures/outright/partial)
+- invalid `selection_key` (not `home/away/draw`)
+- invalid expected market shape (`home,draw,away` for `epl`; `home,away` for `nba/nhl/boxing/nbl`)
+
+3. Query outputs:
+- `market_hygiene_before_pr4.json`
+- `market_hygiene_after_pr4.json`
+- `market_hygiene_mismatch_summary_pr4.json`
+- `market_hygiene_db_query_outputs_pr4.md`
+
+## PR6.1 validation/canary query outputs
+
+DB-backed supporting queries (event-count and freeze-state checks) are captured in:
+- `pr6_1_db_query_outputs.md`
+
+Includes:
+1. EPL current `match_winner` event counts by bookmaker
+2. Boxing current `match_winner` event counts by bookmaker
+3. NBL current `match_winner` event counts for out-of-scope policy candidates
+4. Unibet freeze status check (`bookmakers.is_active = false`)
+
+## PR7 validation/canary query outputs
+
+DB-backed supporting queries for PR7 remediation and gate rerun are captured in:
+- `pr7_db_query_outputs.md`
+
+Includes:
+1. EPL current `match_winner` event counts by bookmaker after Punterstech EPL hardening
+2. Boxing current `match_winner` event counts by bookmaker for in-scope/out-of-scope policy review
+3. Unibet freeze status check (`bookmakers.is_active = false`)

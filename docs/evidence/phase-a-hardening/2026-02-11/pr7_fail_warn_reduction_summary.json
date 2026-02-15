@@ -1,0 +1,24 @@
+{
+  "baseline_source": "pr6_1_reason_breakdown_after.json",
+  "after_source": "pr7_reason_breakdown_after.json",
+  "baseline_status_counts": {
+    "FAIL": 36,
+    "PASS": 48,
+    "WARN": 17,
+    "SKIP": 4
+  },
+  "after_status_counts": {
+    "WARN": 31,
+    "PASS": 52,
+    "SKIP": 22
+  },
+  "status_delta": {
+    "FAIL": -36,
+    "PASS": 4,
+    "SKIP": 18,
+    "WARN": 14
+  },
+  "gate_target_in_scope_fail_zero": true,
+  "gate_result_in_scope_fail_zero": true,
+  "in_scope_fail_rows": []
+}

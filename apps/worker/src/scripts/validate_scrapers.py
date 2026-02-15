@@ -27,6 +27,8 @@ import logging
 import os
 import sys
 import time
+from decimal import Decimal
+from typing import Dict, Any, List
 
 # Add paths for imports
 sys.path.insert(0, "apps/worker/src")
@@ -53,6 +55,143 @@ def list_competitions():
     for comp, config in sorted(EXPECTED_EVENTS.items()):
         print(f"  {comp:<15} (typical: {config['typical']} events)")
     print()
+
+
+def run_boxing_evidence_checks(bookmaker: str = None) -> Dict[str, Any]:
+    """
+    Monitoring-only boxing checks for Unibet vs Betfair selection stability.
+
+    Evidence metrics:
+    - Coverage: shared events with both bookmakers (home/away present) vs Betfair events
+    - Swapped-fighter anomalies: events where Unibet home/away appears reversed vs Betfair
+    """
+    from collections import defaultdict
+
+    from api.core.database import SessionLocal
+    from api.models import Event, Market, Selection, OddsSnapshot, Bookmaker, Competition
+    from api.services.normalization_service import normalize_competition_name, fuzzy_match_score
+
+    # "Go" thresholds from Unibet implementation plan.
+    coverage_threshold = Decimal("90")
+    max_swapped_anomalies = 1
+
+    # This check is specifically about Unibet boxing ordering vs Betfair.
+    if bookmaker and bookmaker not in {"unibet", "betfair"}:
+        return {
+            "applicable": False,
+            "reason": f"Bookmaker '{bookmaker}' is outside Unibet/Betfair boxing stability scope",
+        }
+
+    db = SessionLocal()
+    try:
+        rows = db.query(
+            Event.id.label("event_id"),
+            Event.name.label("event_name"),
+            Competition.name.label("competition_name"),
+            Bookmaker.code.label("bookmaker_code"),
+            Selection.selection_key.label("selection_key"),
+            Selection.name.label("selection_name"),
+        ).join(
+            Market, Market.event_id == Event.id
+        ).join(
+            Selection, Selection.market_id == Market.id
+        ).join(
+            OddsSnapshot, OddsSnapshot.selection_id == Selection.id
+        ).join(
+            Bookmaker, OddsSnapshot.bookmaker_id == Bookmaker.id
+        ).join(
+            Competition, Event.competition_id == Competition.id
+        ).filter(
+            OddsSnapshot.is_current == True,
+            Market.market_type == "match_winner",
+            Bookmaker.code.in_(["unibet", "betfair"]),
+        ).all()
+
+        event_names: Dict[int, str] = {}
+        event_bookmaker_sides: Dict[int, Dict[str, Dict[str, str]]] = defaultdict(lambda: defaultdict(dict))
+
+        for row in rows:
+            if normalize_competition_name(row.competition_name or "") != "boxing":
+                continue
+            selection_key = (row.selection_key or "").strip().lower()
+            if selection_key not in {"home", "away"}:
+                continue
+            event_names[row.event_id] = row.event_name
+            event_bookmaker_sides[row.event_id][row.bookmaker_code][selection_key] = row.selection_name
+
+        betfair_events = {
+            eid for eid, data in event_bookmaker_sides.items()
+            if "betfair" in data and {"home", "away"}.issubset(set(data["betfair"].keys()))
+        }
+        unibet_events = {
+            eid for eid, data in event_bookmaker_sides.items()
+            if "unibet" in data and {"home", "away"}.issubset(set(data["unibet"].keys()))
+        }
+        shared_events = betfair_events & unibet_events
+
+        coverage_percent = (
+            (Decimal(len(shared_events)) / Decimal(len(betfair_events)) * Decimal("100"))
+            if betfair_events else Decimal("0")
+        ).quantize(Decimal("0.01"))
+
+        swapped_anomalies: List[Dict[str, Any]] = []
+        for event_id in sorted(shared_events):
+            unibet = event_bookmaker_sides[event_id]["unibet"]
+            betfair = event_bookmaker_sides[event_id]["betfair"]
+
+            uh = unibet.get("home", "")
+            ua = unibet.get("away", "")
+            bh = betfair.get("home", "")
+            ba = betfair.get("away", "")
+            if not (uh and ua and bh and ba):
+                continue
+
+            same_home = fuzzy_match_score(uh, bh)
+            same_away = fuzzy_match_score(ua, ba)
+            cross_home = fuzzy_match_score(uh, ba)
+            cross_away = fuzzy_match_score(ua, bh)
+
+            is_swapped = (
+                cross_home >= 0.75 and
+                cross_away >= 0.75 and
+                same_home < 0.60 and
+                same_away < 0.60
+            )
+            if is_swapped:
+                swapped_anomalies.append({
+                    "event_id": event_id,
+                    "event_name": event_names.get(event_id, str(event_id)),
+                    "unibet_home": uh,
+                    "unibet_away": ua,
+                    "betfair_home": bh,
+                    "betfair_away": ba,
+                    "scores": {
+                        "same_home": round(same_home, 3),
+                        "same_away": round(same_away, 3),
+                        "cross_home": round(cross_home, 3),
+                        "cross_away": round(cross_away, 3),
+                    },
+                })
+
+        follow_up_required = (
+            coverage_percent < coverage_threshold or
+            len(swapped_anomalies) > max_swapped_anomalies
+        )
+
+        return {
+            "applicable": True,
+            "coverage_percent": str(coverage_percent),
+            "coverage_threshold_percent": str(coverage_threshold),
+            "betfair_events": len(betfair_events),
+            "unibet_events": len(unibet_events),
+            "shared_events": len(shared_events),
+            "swapped_anomaly_count": len(swapped_anomalies),
+            "max_swapped_anomalies": max_swapped_anomalies,
+            "swapped_anomalies": swapped_anomalies[:5],
+            "follow_up_required": follow_up_required,
+        }
+    finally:
+        db.close()
 
 
 async def scrape_and_validate(
@@ -311,6 +450,34 @@ Examples:
                 output_format=args.format,
                 show_anomalies=not args.no_anomalies,
             )
+
+        if args.competition == "boxing":
+            boxing_checks = run_boxing_evidence_checks(bookmaker=args.bookmaker)
+            if boxing_checks.get("applicable"):
+                logging.info(
+                    "[BOXING-CHECK] coverage=%s%% (threshold=%s%%), swapped=%s (max=%s), shared=%s",
+                    boxing_checks["coverage_percent"],
+                    boxing_checks["coverage_threshold_percent"],
+                    boxing_checks["swapped_anomaly_count"],
+                    boxing_checks["max_swapped_anomalies"],
+                    boxing_checks["shared_events"],
+                )
+                if boxing_checks.get("follow_up_required"):
+                    logging.warning(
+                        "[BOXING-CHECK] FOLLOW-UP REQUIRED: thresholds failed. "
+                        "Investigate selection ordering consistency before fallback logic."
+                    )
+                    for anomaly in boxing_checks.get("swapped_anomalies", []):
+                        logging.warning(
+                            "[BOXING-CHECK] Swapped candidate: %s | U(home/away)=%s / %s | B(home/away)=%s / %s",
+                            anomaly.get("event_name"),
+                            anomaly.get("unibet_home"),
+                            anomaly.get("unibet_away"),
+                            anomaly.get("betfair_home"),
+                            anomaly.get("betfair_away"),
+                        )
+            else:
+                logging.info("[BOXING-CHECK] Skipped: %s", boxing_checks.get("reason", "not applicable"))
 
         # Return exit code based on result
         if result.has_failures:

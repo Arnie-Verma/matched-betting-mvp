@@ -225,7 +225,7 @@ class TestStructuralValidator:
         result = structural_validator.validate(
             events=many_events,
             bookmaker_code="testbook",
-            competition="epl",
+            competition="laliga",
             scraped_at=datetime.now(timezone.utc),
         )
 
@@ -558,7 +558,7 @@ class TestScoreCalculator:
             odds_compared=10,
             odds_matched=5,
             odds_warn=2,
-            odds_critical=5,  # More than MAX_CRITICAL_ANOMALIES (2)
+            odds_critical=6,  # More than epl critical anomaly threshold (5)
         )
 
         score = score_calculator.calculate(
@@ -566,7 +566,7 @@ class TestScoreCalculator:
             probability=probability,
             golden=None,
             bookmaker_code="testbook",
-            competition="epl",
+            competition="laliga",
         )
 
         assert score.status == "FAIL"
@@ -597,7 +597,7 @@ class TestScoreCalculator:
 
         probability = ProbabilityValidation(
             bookmaker_code="testbook",
-            competition="epl",
+            competition="laliga",
             odds_compared=10,
             odds_matched=4,
             odds_warn=6,
@@ -610,7 +610,7 @@ class TestScoreCalculator:
             probability=probability,
             golden=None,
             bookmaker_code="testbook",
-            competition="epl",
+            competition="laliga",
         )
 
         assert score.status == "WARN"
@@ -619,7 +619,7 @@ class TestScoreCalculator:
         """Test FAIL score when event coverage is below threshold."""
         structural = StructuralValidation(
             bookmaker_code="testbook",
-            competition="epl",
+            competition="laliga",
             event_count=5,
             expected_min=3,
             expected_max=20,
@@ -632,7 +632,7 @@ class TestScoreCalculator:
             probability=None,
             golden=None,
             bookmaker_code="testbook",
-            competition="epl",
+            competition="laliga",
         )
 
         assert score.status == "FAIL"
@@ -641,7 +641,7 @@ class TestScoreCalculator:
         """Test WARN score when event coverage is below warn threshold."""
         structural = StructuralValidation(
             bookmaker_code="testbook",
-            competition="epl",
+            competition="laliga",
             event_count=5,
             expected_min=3,
             expected_max=20,
@@ -654,7 +654,7 @@ class TestScoreCalculator:
             probability=None,
             golden=None,
             bookmaker_code="testbook",
-            competition="epl",
+            competition="laliga",
         )
 
         assert score.status == "WARN"
@@ -698,6 +698,102 @@ class TestScoreCalculator:
 
         assert score.status == "N_A"
         assert score.no_eligible_reference_window is True
+
+    def test_out_of_scope_zero_event_is_skip(self, score_calculator):
+        """Out-of-scope bookmaker with zero events is SKIP (not FAIL)."""
+        structural = StructuralValidation(
+            bookmaker_code="betblitz",
+            competition="nbl",
+            event_count=0,
+            expected_min=0,
+            expected_max=20,
+            event_count_valid=True,
+            matching_rate=Decimal("0.00"),
+        )
+        probability = ProbabilityValidation(
+            bookmaker_code="betblitz",
+            competition="nbl",
+            odds_compared=0,
+            odds_matched=0,
+            odds_warn=0,
+            odds_critical=0,
+        )
+
+        score = score_calculator.calculate(
+            structural=structural,
+            probability=probability,
+            golden=None,
+            bookmaker_code="betblitz",
+            competition="nbl",
+            eligible_reference_events=10,
+        )
+
+        assert score.status == "SKIP"
+        assert "Out-of-scope competition coverage policy" in score.warning_reasons[0]
+
+    def test_out_of_scope_non_zero_event_is_skip(self, score_calculator):
+        """Out-of-scope bookmaker remains SKIP even when it returns some events."""
+        structural = StructuralValidation(
+            bookmaker_code="betblitz",
+            competition="boxing",
+            event_count=3,
+            expected_min=0,
+            expected_max=20,
+            event_count_valid=True,
+            matching_rate=Decimal("0.00"),
+        )
+        probability = ProbabilityValidation(
+            bookmaker_code="betblitz",
+            competition="boxing",
+            odds_compared=0,
+            odds_matched=0,
+            odds_warn=0,
+            odds_critical=0,
+        )
+
+        score = score_calculator.calculate(
+            structural=structural,
+            probability=probability,
+            golden=None,
+            bookmaker_code="betblitz",
+            competition="boxing",
+            eligible_reference_events=20,
+        )
+
+        assert score.status == "SKIP"
+        assert "Out-of-scope competition coverage policy" in score.warning_reasons[0]
+
+    def test_in_scope_zero_event_remains_fail(self, score_calculator):
+        """In-scope bookmaker with zero events still FAILs."""
+        structural = StructuralValidation(
+            bookmaker_code="mintbet",
+            competition="nbl",
+            event_count=0,
+            expected_min=0,
+            expected_max=20,
+            event_count_valid=True,
+            matching_rate=Decimal("0.00"),
+        )
+        probability = ProbabilityValidation(
+            bookmaker_code="mintbet",
+            competition="nbl",
+            odds_compared=0,
+            odds_matched=0,
+            odds_warn=0,
+            odds_critical=0,
+        )
+
+        score = score_calculator.calculate(
+            structural=structural,
+            probability=probability,
+            golden=None,
+            bookmaker_code="mintbet",
+            competition="nbl",
+            eligible_reference_events=10,
+        )
+
+        assert score.status == "FAIL"
+        assert any("Coverage 0% < 70%" in reason for reason in score.failure_reasons)
 
 
 # =============================================================================
@@ -801,6 +897,14 @@ class TestValidationConfig:
         assert len(config.get_golden_fixtures("epl")) > 0
         assert len(config.get_golden_fixtures("laliga")) > 0
 
+    def test_bookmaker_competition_scope_policy(self, config):
+        """NBL out-of-scope list is applied explicitly."""
+        assert config.get_bookmaker_competition_scope("ladbrokes", "boxing") == "in_scope"
+        assert config.get_bookmaker_competition_scope("betblitz", "boxing") == "out_of_scope"
+        assert config.get_bookmaker_competition_scope("betblitz", "nbl") == "out_of_scope"
+        assert config.get_bookmaker_competition_scope("starsports", "nbl") == "out_of_scope"
+        assert config.get_bookmaker_competition_scope("mintbet", "nbl") == "in_scope"
+
 
 class TestNormalizationRegression:
     """Focused cross-platform normalization regression tests (Entain + Punterstech)."""
@@ -839,6 +943,104 @@ class TestNormalizationRegression:
     def test_priority_event_aliases(self, event_a, event_b, expected):
         assert normalize_event_name(event_a) == expected
         assert normalize_event_name(event_b) == expected
+
+
+class TestEntainMarketHygieneRegression:
+    """Market hygiene regression checks for Entain matcher path."""
+
+    @pytest.fixture
+    def scraper(self):
+        pytest.importorskip("playwright.async_api")
+        from scrapers.entain_scraper import EntainScraper
+        return EntainScraper("ladbrokes", "https://www.ladbrokes.com.au")
+
+    def test_market_allow_deny_by_sport(self, scraper):
+        assert scraper._is_matcher_market("Match Result", "soccer") is True
+        assert scraper._is_matcher_market("1st Half Match Result", "soccer") is False
+        assert scraper._is_matcher_market("Money Line", "basketball") is True
+        assert scraper._is_matcher_market("2nd Quarter Money Line", "basketball") is False
+        assert scraper._is_matcher_market("Fight Result", "boxing") is True
+        assert scraper._is_matcher_market("Fight Winner By Decision", "boxing") is False
+
+    def test_market_shape_soccer_requires_three_way(self, scraper):
+        data = {
+            "events": {
+                "evt1": {
+                    "name": "Arsenal v Chelsea",
+                    "competition": {"name": "Premier League"},
+                    "advertised_start": "2026-02-15T10:00:00Z",
+                }
+            },
+            "markets": {
+                "m1": {"name": "Match Result", "event_id": "evt1", "entrant_ids": ["e1", "e2"]},
+            },
+            "entrants": {
+                "e1": {"name": "Arsenal"},
+                "e2": {"name": "Chelsea"},
+            },
+            "prices": {
+                "e1:m1": {"odds": {"numerator": 11, "denominator": 10}},
+                "e2:m1": {"odds": {"numerator": 23, "denominator": 10}},
+            },
+        }
+
+        events = scraper._parse_entain_response(data, "soccer")
+        assert events == []
+
+    def test_market_shape_two_way_for_basketball(self, scraper):
+        data = {
+            "events": {
+                "evt2": {
+                    "name": "Los Angeles Lakers v Boston Celtics",
+                    "competition": {"name": "NBA"},
+                    "advertised_start": "2026-02-15T10:00:00Z",
+                }
+            },
+            "markets": {
+                "m_good": {"name": "Money Line", "event_id": "evt2", "entrant_ids": ["e1", "e2"]},
+                "m_partial": {"name": "1st Half Money Line", "event_id": "evt2", "entrant_ids": ["e1", "e2"]},
+                "m_future": {"name": "NBA Championship Winner", "event_id": "evt2", "entrant_ids": ["e1", "e2"]},
+            },
+            "entrants": {
+                "e1": {"name": "Los Angeles Lakers"},
+                "e2": {"name": "Boston Celtics"},
+            },
+            "prices": {
+                "e1:m_good": {"odds": {"numerator": 5, "denominator": 4}},
+                "e2:m_good": {"odds": {"numerator": 4, "denominator": 5}},
+                "e1:m_partial": {"odds": {"numerator": 5, "denominator": 4}},
+                "e2:m_partial": {"odds": {"numerator": 4, "denominator": 5}},
+                "e1:m_future": {"odds": {"numerator": 5, "denominator": 4}},
+                "e2:m_future": {"odds": {"numerator": 4, "denominator": 5}},
+            },
+        }
+
+        events = scraper._parse_entain_response(data, "basketball")
+        assert len(events) == 1
+        assert {odds.market_name for odds in events[0].odds} == {"Money Line"}
+        assert {odds.selection_key for odds in events[0].odds} == {"home", "away"}
+
+    @pytest.mark.parametrize(
+        "selection_name,event_name,expected_key",
+        [
+            ("Tottenham", "Tottenham Hotspur v Manchester Utd", "home"),
+            ("Man United", "Tottenham Hotspur v Manchester Utd", "away"),
+            ("The Draw", "Arsenal v Chelsea", "draw"),
+        ],
+    )
+    def test_selection_key_stability(self, scraper, selection_name, event_name, expected_key):
+        home_team, away_team = scraper._extract_teams_from_name(event_name)
+        event = ScrapedEvent(
+            external_id="evt",
+            name=event_name,
+            sport="soccer",
+            competition="test",
+            start_time=datetime.now(timezone.utc) + timedelta(hours=24),
+            home_team=home_team,
+            away_team=away_team,
+            odds=[],
+        )
+        assert scraper._get_selection_key(selection_name, event) == expected_key
 
 
 # =============================================================================
@@ -987,6 +1189,114 @@ class TestValidationIntegration:
         assert result.bookmaker_results["mintbet"].status == "SKIP"
         assert result.report.skip_count == 1
         assert result.report.na_count == 1
+
+    def test_pipeline_out_of_scope_zero_event_is_skip_and_not_failure(self):
+        """Out-of-scope zero-event books should SKIP and not trigger fail alerts."""
+        config = ValidationConfig(
+            expected_events={"nbl": {"min": 0, "max": 20, "typical": 8}}
+        )
+        pipeline = ValidationPipeline(config)
+
+        scrape_results = {
+            "ladbrokes": build_scrape_result(
+                "ladbrokes",
+                "nbl",
+                [
+                    {
+                        "name": "Sydney Kings v Tasmania JackJumpers",
+                        "sport": "basketball",
+                        "selections": [
+                            {"selection_key": "home", "selection_name": "Sydney Kings", "decimal_odds": "1.80"},
+                            {"selection_key": "away", "selection_name": "Tasmania JackJumpers", "decimal_odds": "2.05"},
+                        ],
+                    },
+                ],
+            ),
+            "betblitz": build_scrape_result("betblitz", "nbl", []),
+        }
+
+        result = pipeline.validate_scrape_results(scrape_results=scrape_results, competition="nbl")
+
+        assert result.bookmaker_results["betblitz"].status == "SKIP"
+        assert result.report.fail_count == 0
+        assert result.report.skip_count == 1
+        assert result.has_failures is False
+
+    def test_pipeline_out_of_scope_non_zero_boxing_is_skip(self):
+        """Out-of-scope boxing books should SKIP even with non-zero events."""
+        config = ValidationConfig(
+            expected_events={"boxing": {"min": 0, "max": 20, "typical": 5}}
+        )
+        pipeline = ValidationPipeline(config)
+
+        scrape_results = {
+            "ladbrokes": build_scrape_result(
+                "ladbrokes",
+                "boxing",
+                [
+                    {
+                        "name": "Ryan Garcia v Mario Barrios",
+                        "sport": "boxing",
+                        "selections": [
+                            {"selection_key": "home", "selection_name": "Ryan Garcia", "decimal_odds": "1.80"},
+                            {"selection_key": "away", "selection_name": "Mario Barrios", "decimal_odds": "2.05"},
+                        ],
+                    },
+                ],
+            ),
+            "betblitz": build_scrape_result(
+                "betblitz",
+                "boxing",
+                [
+                    {
+                        "name": "Regional Fighter A v Regional Fighter B",
+                        "sport": "boxing",
+                        "selections": [
+                            {"selection_key": "home", "selection_name": "Regional Fighter A", "decimal_odds": "1.90"},
+                            {"selection_key": "away", "selection_name": "Regional Fighter B", "decimal_odds": "1.95"},
+                        ],
+                    },
+                ],
+            ),
+        }
+
+        result = pipeline.validate_scrape_results(scrape_results=scrape_results, competition="boxing")
+
+        assert result.bookmaker_results["betblitz"].status == "SKIP"
+        assert result.report.fail_count == 0
+        assert result.report.skip_count == 1
+        assert result.has_failures is False
+
+    def test_pipeline_in_scope_zero_event_is_failure(self):
+        """In-scope zero-event books remain FAIL and set failure signal for alerts."""
+        config = ValidationConfig(
+            expected_events={"nbl": {"min": 0, "max": 20, "typical": 8}}
+        )
+        pipeline = ValidationPipeline(config)
+
+        scrape_results = {
+            "ladbrokes": build_scrape_result(
+                "ladbrokes",
+                "nbl",
+                [
+                    {
+                        "name": "Sydney Kings v Tasmania JackJumpers",
+                        "sport": "basketball",
+                        "selections": [
+                            {"selection_key": "home", "selection_name": "Sydney Kings", "decimal_odds": "1.80"},
+                            {"selection_key": "away", "selection_name": "Tasmania JackJumpers", "decimal_odds": "2.05"},
+                        ],
+                    },
+                ],
+            ),
+            "mintbet": build_scrape_result("mintbet", "nbl", []),
+        }
+
+        result = pipeline.validate_scrape_results(scrape_results=scrape_results, competition="nbl")
+
+        assert result.bookmaker_results["mintbet"].status == "FAIL"
+        assert result.report.fail_count == 1
+        assert result.has_failures is True
 
 
 if __name__ == "__main__":

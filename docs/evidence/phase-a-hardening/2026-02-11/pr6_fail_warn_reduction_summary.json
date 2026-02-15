@@ -1,0 +1,90 @@
+{
+  "status_delta": {
+    "FAIL": -68,
+    "N_A": 0,
+    "PASS": 47,
+    "SKIP": 0,
+    "WARN": 21
+  },
+  "category_delta": {
+    "eligible_coverage": -1,
+    "eligible_window_empty": 0,
+    "none": 47,
+    "probability_anomalies": -37,
+    "structural_event_count": -79
+  },
+  "competition_status_delta": {
+    "epl": {
+      "FAIL": -18,
+      "N_A": 0,
+      "PASS": 2,
+      "SKIP": 0,
+      "WARN": 16
+    },
+    "nba": {
+      "FAIL": -18,
+      "N_A": 0,
+      "PASS": 21,
+      "SKIP": 0,
+      "WARN": -3
+    },
+    "nhl": {
+      "FAIL": -18,
+      "N_A": 0,
+      "PASS": 21,
+      "SKIP": 0,
+      "WARN": -3
+    },
+    "boxing": {
+      "FAIL": 0,
+      "N_A": 0,
+      "PASS": 0,
+      "SKIP": 0,
+      "WARN": 0
+    },
+    "nbl": {
+      "FAIL": -14,
+      "N_A": 0,
+      "PASS": 3,
+      "SKIP": 0,
+      "WARN": 11
+    }
+  },
+  "competition_category_delta": {
+    "epl": {
+      "eligible_coverage": 0,
+      "eligible_window_empty": 0,
+      "none": 2,
+      "probability_anomalies": 0,
+      "structural_event_count": -20
+    },
+    "nba": {
+      "eligible_coverage": 0,
+      "eligible_window_empty": 0,
+      "none": 21,
+      "probability_anomalies": -19,
+      "structural_event_count": -21
+    },
+    "nhl": {
+      "eligible_coverage": -1,
+      "eligible_window_empty": 0,
+      "none": 21,
+      "probability_anomalies": -18,
+      "structural_event_count": -21
+    },
+    "boxing": {
+      "eligible_coverage": 0,
+      "eligible_window_empty": 0,
+      "none": 0,
+      "probability_anomalies": 0,
+      "structural_event_count": 0
+    },
+    "nbl": {
+      "eligible_coverage": 0,
+      "eligible_window_empty": 0,
+      "none": 3,
+      "probability_anomalies": 0,
+      "structural_event_count": -17
+    }
+  }
+}

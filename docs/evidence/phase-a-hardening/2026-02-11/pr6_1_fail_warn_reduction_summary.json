@@ -1,0 +1,352 @@
+{
+  "baseline_source": "pr6_reason_breakdown_after.json",
+  "after_source": "pr6_1_reason_breakdown_after.json",
+  "baseline_status_counts": {
+    "PASS": 48,
+    "WARN": 33,
+    "SKIP": 19,
+    "N_A": 1,
+    "FAIL": 4
+  },
+  "after_status_counts": {
+    "FAIL": 36,
+    "PASS": 48,
+    "WARN": 17,
+    "SKIP": 4
+  },
+  "status_delta": {
+    "FAIL": 32,
+    "N_A": -1,
+    "PASS": 0,
+    "SKIP": -15,
+    "WARN": -16
+  },
+  "gate_target_in_scope_fail_zero": true,
+  "gate_result_in_scope_fail_zero": false,
+  "in_scope_fail_rows": [
+    {
+      "competition": "epl",
+      "bookmaker": "betblitz",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betbuzz",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betchamps",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betfocus",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betreal",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betvista",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "blondebet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "cashcage",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "lightningbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "millennialbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "mintbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ripperbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "starsports",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "teambet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "topbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "tradiebet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "truebet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "wizbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Event coverage 53.19% < 55%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betblitz",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betbuzz",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betchamps",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betfocus",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betreal",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betvista",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "blondebet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "cashcage",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "lightningbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "millennialbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "mintbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "ripperbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "starsports",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "teambet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "topbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "tradiebet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "truebet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "wizbet",
+      "status": "FAIL",
+      "coverage_scope": "in_scope",
+      "failure_reasons": [
+        "Coverage 0% < 70%"
+      ]
+    }
+  ]
+}

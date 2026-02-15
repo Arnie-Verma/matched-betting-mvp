@@ -21,6 +21,10 @@ Create or update an ADR when any of the following changes:
 - `ADR-0007-phase-a-unibet-freeze-enforcement.md`
 - `ADR-0008-validation-eligibility-window-semantics.md`
 - `ADR-0009-priority-normalization-alias-hardening.md`
+- `ADR-0010-market-hygiene-selection-key-enforcement.md`
+- `ADR-0011-validation-stabilization-threshold-calibration.md`
+- `ADR-0012-bookmaker-competition-coverage-scope-policy.md`
+- `ADR-0013-pr7-epl-boxing-fail-remediation.md`
 
 ## ADR Template
 Use this structure:

@@ -5,6 +5,14 @@ Run from inside the mb_api container:
     docker exec -it mb_api python test_betfair_scraper.py
 """
 import sys
+
+# This file is a manual smoke-test script (see __main__). Skip under pytest so
+# it doesn't run as part of the automated test suite.
+if "pytest" in sys.modules:
+    import pytest
+
+    pytest.skip("Manual Betfair smoke-test script (run directly).", allow_module_level=True)
+
 sys.path.insert(0, "apps/worker/src")
 
 import asyncio

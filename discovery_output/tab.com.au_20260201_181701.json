@@ -1,0 +1,14 @@
+{
+  "bookmaker": "tab.com.au",
+  "base_url": "https://www.tab.com.au",
+  "sport_paths": [
+    "/sports/Soccer/competitions/English%20Premier%20League"
+  ],
+  "timestamp": "2026-02-01T18:17:01.168499",
+  "endpoints_captured": 0,
+  "unique_endpoints": 0,
+  "endpoints": {},
+  "odds_endpoints": [],
+  "endpoints_by_sport": {},
+  "sample_responses": []
+}

@@ -1,0 +1,497 @@
+{
+  "bookmaker": "pointsbet.com.au",
+  "base_url": "https://www.pointsbet.com.au",
+  "sport_paths": [
+    "/sports/soccer"
+  ],
+  "timestamp": "2026-02-01T18:11:37.466051",
+  "endpoints_captured": 22,
+  "unique_endpoints": 18,
+  "endpoints": {
+    "/api/v2/sports/list/02May2018": {
+      "full_url": "https://api.au.pointsbet.com/api/v2/sports/list/02May2018",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "sports"
+      ],
+      "response_size": 27034,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/v2/sports/sports-inplay-streaming": {
+      "full_url": "https://api.au.pointsbet.com/api/v2/sports/sports-inplay-streaming",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "sports",
+        "numberOfInPlayEvents"
+      ],
+      "response_size": 41,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/v2/sports/soccer/competitions": {
+      "full_url": "https://api.au.pointsbet.com/api/v2/sports/soccer/competitions",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "key",
+        "name",
+        "locales"
+      ],
+      "response_size": 37929,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/v2/events/nextup": {
+      "full_url": "https://api.au.pointsbet.com/api/v2/events/nextup?v2Limit=10",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "events",
+        "isEndOfIteration"
+      ],
+      "response_size": 32380,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/racing/v2/races/nextup": {
+      "full_url": "https://api.au.pointsbet.com/api/racing/v2/races/nextup?racingType=7&region=3&count=10",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": null,
+      "response_size": 3781,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/signalr/negotiate": {
+      "full_url": "https://api.au.pointsbet.com/signalr/negotiate",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "url",
+        "accessToken",
+        "version",
+        "useStatefulReconnect"
+      ],
+      "response_size": 469,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/gpp/v3/client/promotions": {
+      "full_url": "https://api.au.pointsbet.com/api/gpp/v3/client/promotions?displayTarget=carousel&lang=en",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": null,
+      "response_size": 24248,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/v2/sports/soccer/events/all-featured": {
+      "full_url": "https://api.au.pointsbet.com/api/v2/sports/soccer/events/all-featured",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "key",
+        "name",
+        "events"
+      ],
+      "response_size": 66667,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/api/v2/sports/inplay": {
+      "full_url": "https://api.au.pointsbet.com/api/v2/sports/inplay",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "sports",
+        "numberOfInPlayEvents"
+      ],
+      "response_size": 531,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/v1alpha/projects/-/apps/1:191141183884:web:3767716e5563c803d2d6a9/webConfig": {
+      "full_url": "https://firebase.googleapis.com/v1alpha/projects/-/apps/1:191141183884:web:3767716e5563c803d2d6a9/webConfig",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=UTF-8",
+      "sample_keys": [
+        "projectId",
+        "appId",
+        "databaseURL",
+        "storageBucket",
+        "authDomain",
+        "messagingSenderId",
+        "measurementId"
+      ],
+      "response_size": 350,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/client/negotiate": {
+      "full_url": "https://push.au.pointsbet.com/client/negotiate?hub=signalrhub&negotiateVersion=1",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "negotiateVersion",
+        "connectionId",
+        "connectionToken",
+        "availableTransports"
+      ],
+      "response_size": 354,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/v1/projects/FmLOPqiRrdlWDaqm5NGfXJZBH9QzCH5G/settings": {
+      "full_url": "https://cdn.segment.com/v1/projects/FmLOPqiRrdlWDaqm5NGfXJZBH9QzCH5G/settings",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "_lastModified",
+        "integrations",
+        "plan",
+        "edgeFunction",
+        "analyticsNextEnabled",
+        "middlewareSettings",
+        "enabledMiddleware",
+        "metrics",
+        "legacyVideoPluginsEnabled",
+        "remotePlugins",
+        "autoInstrumentationSettings"
+      ],
+      "response_size": 1889,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/signalr/CEHiZ4jPZyFG09tJYhalaAR6VA3gp02/batch-subscribe": {
+      "full_url": "https://api.au.pointsbet.com/signalr/CEHiZ4jPZyFG09tJYhalaAR6VA3gp02/batch-subscribe",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "statusCode",
+        "value"
+      ],
+      "response_size": 79,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/pixels/t2_cg9ini3h/config": {
+      "full_url": "https://pixel-config.reddit.com/pixels/t2_cg9ini3h/config",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "aam"
+      ],
+      "response_size": 11,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/v1/projects/pointsbet-au-production/installations": {
+      "full_url": "https://firebaseinstallations.googleapis.com/v1/projects/pointsbet-au-production/installations",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=UTF-8",
+      "sample_keys": [
+        "name",
+        "fid",
+        "refreshToken",
+        "authToken"
+      ],
+      "response_size": 602,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/v1/p": {
+      "full_url": "https://api.segment.io/v1/p",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "success"
+      ],
+      "response_size": 17,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/v1/t": {
+      "full_url": "https://api.segment.io/v1/t",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "success"
+      ],
+      "response_size": 17,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/track/realtimeconversion": {
+      "full_url": "https://insight.adsrvr.org/track/realtimeconversion",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Message",
+        "EventResponses"
+      ],
+      "response_size": 39,
+      "sports_where_found": [
+        "soccer"
+      ]
+    }
+  },
+  "odds_endpoints": [
+    "/api/v2/sports/list/02May2018",
+    "/api/v2/sports/sports-inplay-streaming",
+    "/api/v2/sports/soccer/competitions",
+    "/api/v2/events/nextup",
+    "/api/v2/sports/soccer/events/all-featured",
+    "/api/v2/sports/inplay"
+  ],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/api/v2/sports/list/02May2018",
+      "/api/v2/sports/sports-inplay-streaming",
+      "/api/v2/sports/soccer/competitions",
+      "/api/v2/events/nextup",
+      "/api/racing/v2/races/nextup",
+      "/signalr/negotiate",
+      "/api/gpp/v3/client/promotions",
+      "/api/v2/sports/soccer/events/all-featured",
+      "/api/v2/sports/inplay",
+      "/v1alpha/projects/-/apps/1:191141183884:web:3767716e5563c803d2d6a9/webConfig",
+      "/client/negotiate",
+      "/v1/projects/FmLOPqiRrdlWDaqm5NGfXJZBH9QzCH5G/settings",
+      "/signalr/CEHiZ4jPZyFG09tJYhalaAR6VA3gp02/batch-subscribe",
+      "/pixels/t2_cg9ini3h/config",
+      "/v1/projects/pointsbet-au-production/installations",
+      "/v1/p",
+      "/v1/t",
+      "/track/realtimeconversion"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://api.au.pointsbet.com/api/v2/sports/list/02May2018",
+      "endpoint": "/api/v2/sports/list/02May2018",
+      "sport": "soccer",
+      "status": 200,
+      "size": 27034,
+      "sample": {
+        "sports": [
+          "...",
+          "...",
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://api.au.pointsbet.com/api/v2/sports/list/02May2018",
+      "endpoint": "/api/v2/sports/list/02May2018",
+      "sport": "soccer",
+      "status": 200,
+      "size": 27034,
+      "sample": {
+        "sports": [
+          "...",
+          "...",
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://api.au.pointsbet.com/api/v2/sports/sports-inplay-streaming",
+      "endpoint": "/api/v2/sports/sports-inplay-streaming",
+      "sport": "soccer",
+      "status": 200,
+      "size": 41,
+      "sample": {
+        "sports": [],
+        "numberOfInPlayEvents": 0
+      }
+    },
+    {
+      "url": "https://api.au.pointsbet.com/api/v2/sports/soccer/competitions",
+      "endpoint": "/api/v2/sports/soccer/competitions",
+      "sport": "soccer",
+      "status": 200,
+      "size": 37929,
+      "sample": {
+        "key": "soccer",
+        "name": "Soccer",
+        "locales": [
+          "...",
+          "...",
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://api.au.pointsbet.com/api/v2/sports/soccer/competitions",
+      "endpoint": "/api/v2/sports/soccer/competitions",
+      "sport": "soccer",
+      "status": 200,
+      "size": 37929,
+      "sample": {
+        "key": "soccer",
+        "name": "Soccer",
+        "locales": [
+          "...",
+          "...",
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://api.au.pointsbet.com/api/v2/events/nextup?v2Limit=10",
+      "endpoint": "/api/v2/events/nextup",
+      "sport": "soccer",
+      "status": 200,
+      "size": 32380,
+      "sample": {
+        "events": [
+          "...",
+          "...",
+          "..."
+        ],
+        "isEndOfIteration": false
+      }
+    },
+    {
+      "url": "https://api.au.pointsbet.com/api/racing/v2/races/nextup?racingType=7&region=3&count=10",
+      "endpoint": "/api/racing/v2/races/nextup",
+      "sport": "soccer",
+      "status": 200,
+      "size": 3781,
+      "sample": [
+        {
+          "eventId": "...",
+          "name": "...",
+          "sourceId": "...",
+          "countryCode": "...",
+          "countryName": "..."
+        },
+        {
+          "eventId": "...",
+          "name": "...",
+          "sourceId": "...",
+          "countryCode": "...",
+          "countryName": "..."
+        },
+        {
+          "eventId": "...",
+          "name": "...",
+          "sourceId": "...",
+          "countryCode": "...",
+          "countryName": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://api.au.pointsbet.com/signalr/negotiate",
+      "endpoint": "/signalr/negotiate",
+      "sport": "soccer",
+      "status": 200,
+      "size": 469,
+      "sample": {
+        "url": "https://push.au.pointsbet.com/client/?hub=signalrhub",
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjE3MDQxMzkxMzQifQ.eyJhc3JzLnMudWlkIjoiIiwibmJmIjoxNzY5OTI5ODg5LCJleHAiOjE3Njk5MzM0ODksImlhdCI6MTc2OTkyOTg4OSwiaXNzIjoiYXp1cmUtc2lnbmFsciIsImF1ZCI6Imh0dHBzOi8vcGItc2lnbmFsci1hdS1wcm9kLW9wdGltdXMuc2VydmljZS5zaWduYWxyLm5ldC9jbGllbnQvP2h1Yj1zaWduYWxyaHViIn0.s2vU-vETankzl1FlFbGR5dcmUXkRiWcK_cnCDAyunQo",
+        "version": 0,
+        "useStatefulReconnect": false
+      }
+    },
+    {
+      "url": "https://api.au.pointsbet.com/api/gpp/v3/client/promotions?displayTarget=carousel&lang=en",
+      "endpoint": "/api/gpp/v3/client/promotions",
+      "sport": "soccer",
+      "status": 200,
+      "size": 24248,
+      "sample": [
+        {
+          "id": "...",
+          "type": "...",
+          "title": "...",
+          "description": "...",
+          "termsAndConditions": "..."
+        },
+        {
+          "id": "...",
+          "type": "...",
+          "title": "...",
+          "description": "...",
+          "termsAndConditions": "..."
+        },
+        {
+          "id": "...",
+          "type": "...",
+          "title": "...",
+          "description": "...",
+          "termsAndConditions": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://api.au.pointsbet.com/api/gpp/v3/client/promotions?displayTarget=global&lang=en",
+      "endpoint": "/api/gpp/v3/client/promotions",
+      "sport": "soccer",
+      "status": 200,
+      "size": 137851,
+      "sample": [
+        {
+          "id": "...",
+          "type": "...",
+          "title": "...",
+          "description": "...",
+          "termsAndConditions": "..."
+        },
+        {
+          "id": "...",
+          "type": "...",
+          "title": "...",
+          "description": "...",
+          "termsAndConditions": "..."
+        },
+        {
+          "id": "...",
+          "type": "...",
+          "title": "...",
+          "description": "...",
+          "termsAndConditions": "..."
+        }
+      ]
+    }
+  ]
+}

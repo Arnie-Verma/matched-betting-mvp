@@ -1,0 +1,3493 @@
+{
+  "generated_at": "2026-02-12T10:08:48.124219+00:00",
+  "scope": {
+    "platforms": [
+      "entain",
+      "punterstech"
+    ],
+    "competitions": [
+      "boxing",
+      "epl",
+      "nba",
+      "nbl",
+      "nhl"
+    ],
+    "is_current_only": true,
+    "market_type": "match_winner"
+  },
+  "summary_by_competition": [
+    {
+      "competition": "boxing",
+      "odds_rows": 1899,
+      "market_groups": 639,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 18
+    },
+    {
+      "competition": "epl",
+      "odds_rows": 1974,
+      "market_groups": 682,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 2,
+      "shape_mismatch_groups": 70
+    },
+    {
+      "competition": "nba",
+      "odds_rows": 2926,
+      "market_groups": 1473,
+      "disallowed_market_groups": 2,
+      "invalid_selection_key_rows": 2,
+      "shape_mismatch_groups": 20
+    },
+    {
+      "competition": "nbl",
+      "odds_rows": 515,
+      "market_groups": 276,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 37
+    },
+    {
+      "competition": "nhl",
+      "odds_rows": 2514,
+      "market_groups": 1272,
+      "disallowed_market_groups": 10,
+      "invalid_selection_key_rows": 12,
+      "shape_mismatch_groups": 30
+    }
+  ],
+  "summary_by_bookmaker": [
+    {
+      "competition": "boxing",
+      "bookmaker": "betblitz",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betbuzz",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betchamps",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betfocus",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betreal",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betvista",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "blondebet",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "cashcage",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "ladbrokes",
+      "odds_rows": 153,
+      "market_groups": 51,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "lightningbet",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "millennialbet",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "mintbet",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "neds",
+      "odds_rows": 147,
+      "market_groups": 49,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "ripperbet",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "starsports",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "teambet",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "topbet",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "tradiebet",
+      "odds_rows": 86,
+      "market_groups": 29,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "truebet",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "wizbet",
+      "odds_rows": 89,
+      "market_groups": 30,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betblitz",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betbuzz",
+      "odds_rows": 75,
+      "market_groups": 25,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betchamps",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betfocus",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betreal",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betvista",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "blondebet",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "cashcage",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ladbrokes",
+      "odds_rows": 91,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 1,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "lightningbet",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "millennialbet",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "mintbet",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "neds",
+      "odds_rows": 91,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 1,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ripperbet",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "starsports",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "teambet",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "topbet",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "tradiebet",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "truebet",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "wizbet",
+      "odds_rows": 101,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 4
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betblitz",
+      "odds_rows": 149,
+      "market_groups": 75,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betbuzz",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betchamps",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betfocus",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betreal",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betvista",
+      "odds_rows": 145,
+      "market_groups": 73,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "blondebet",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "cashcage",
+      "odds_rows": 145,
+      "market_groups": 73,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "ladbrokes",
+      "odds_rows": 117,
+      "market_groups": 59,
+      "disallowed_market_groups": 1,
+      "invalid_selection_key_rows": 1,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "lightningbet",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "millennialbet",
+      "odds_rows": 147,
+      "market_groups": 74,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "mintbet",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "neds",
+      "odds_rows": 111,
+      "market_groups": 56,
+      "disallowed_market_groups": 1,
+      "invalid_selection_key_rows": 1,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "ripperbet",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "starsports",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "teambet",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "topbet",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "tradiebet",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "truebet",
+      "odds_rows": 149,
+      "market_groups": 75,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "wizbet",
+      "odds_rows": 151,
+      "market_groups": 76,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betbuzz",
+      "odds_rows": 35,
+      "market_groups": 19,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betchamps",
+      "odds_rows": 35,
+      "market_groups": 19,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betfocus",
+      "odds_rows": 35,
+      "market_groups": 19,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betreal",
+      "odds_rows": 33,
+      "market_groups": 18,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betvista",
+      "odds_rows": 34,
+      "market_groups": 18,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 2
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "blondebet",
+      "odds_rows": 35,
+      "market_groups": 19,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "cashcage",
+      "odds_rows": 36,
+      "market_groups": 19,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 2
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "ladbrokes",
+      "odds_rows": 24,
+      "market_groups": 12,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "lightningbet",
+      "odds_rows": 16,
+      "market_groups": 8,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "millennialbet",
+      "odds_rows": 35,
+      "market_groups": 19,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "mintbet",
+      "odds_rows": 35,
+      "market_groups": 19,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "neds",
+      "odds_rows": 24,
+      "market_groups": 12,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "ripperbet",
+      "odds_rows": 35,
+      "market_groups": 19,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "teambet",
+      "odds_rows": 35,
+      "market_groups": 19,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "topbet",
+      "odds_rows": 33,
+      "market_groups": 18,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "tradiebet",
+      "odds_rows": 35,
+      "market_groups": 19,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 3
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betblitz",
+      "odds_rows": 131,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betbuzz",
+      "odds_rows": 131,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betchamps",
+      "odds_rows": 133,
+      "market_groups": 67,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betfocus",
+      "odds_rows": 131,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betreal",
+      "odds_rows": 131,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betvista",
+      "odds_rows": 129,
+      "market_groups": 65,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "blondebet",
+      "odds_rows": 133,
+      "market_groups": 67,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "cashcage",
+      "odds_rows": 129,
+      "market_groups": 65,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ladbrokes",
+      "odds_rows": 68,
+      "market_groups": 37,
+      "disallowed_market_groups": 5,
+      "invalid_selection_key_rows": 6,
+      "shape_mismatch_groups": 6
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "lightningbet",
+      "odds_rows": 133,
+      "market_groups": 67,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "millennialbet",
+      "odds_rows": 133,
+      "market_groups": 67,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "mintbet",
+      "odds_rows": 131,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "neds",
+      "odds_rows": 76,
+      "market_groups": 41,
+      "disallowed_market_groups": 5,
+      "invalid_selection_key_rows": 6,
+      "shape_mismatch_groups": 6
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ripperbet",
+      "odds_rows": 133,
+      "market_groups": 67,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "starsports",
+      "odds_rows": 131,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "teambet",
+      "odds_rows": 133,
+      "market_groups": 67,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "topbet",
+      "odds_rows": 133,
+      "market_groups": 67,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "tradiebet",
+      "odds_rows": 133,
+      "market_groups": 67,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "truebet",
+      "odds_rows": 131,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "wizbet",
+      "odds_rows": 131,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 1
+    }
+  ],
+  "critical_anomalies": [
+    {
+      "competition": "epl",
+      "bookmaker": "betvista",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "mintbet",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "lightningbet",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ripperbet",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "teambet",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betreal",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "wizbet",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "tradiebet",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betchamps",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betfocus",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "starsports",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betblitz",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "blondebet",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "cashcage",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "topbet",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "truebet",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "millennialbet",
+      "event_id": 65,
+      "event_name": "Wolverhampton Wanderers v AFC Bournemouth",
+      "market_id": 90,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "wizbet",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betchamps",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betfocus",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "cashcage",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betreal",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betblitz",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "tradiebet",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "starsports",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "blondebet",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "topbet",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "truebet",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "millennialbet",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "lightningbet",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "teambet",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "mintbet",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ripperbet",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betvista",
+      "event_id": 81,
+      "event_name": "Manchester United v Fulham",
+      "market_id": 122,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "wizbet",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betchamps",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betfocus",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "cashcage",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betreal",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betblitz",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "tradiebet",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "starsports",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "blondebet",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "topbet",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "truebet",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "millennialbet",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "lightningbet",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "teambet",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "mintbet",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ripperbet",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betvista",
+      "event_id": 82,
+      "event_name": "Nottingham Forest v Crystal Palace",
+      "market_id": 124,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "wizbet",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betchamps",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betfocus",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "cashcage",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betreal",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betblitz",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "tradiebet",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "starsports",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "blondebet",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "topbet",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "truebet",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "millennialbet",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "lightningbet",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "teambet",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "mintbet",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ripperbet",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betvista",
+      "event_id": 90,
+      "event_name": "Tottenham Hotspur v Manchester City",
+      "market_id": 140,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "draw",
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ladbrokes",
+      "event_id": 186,
+      "event_name": "Premier League 2025/26",
+      "market_id": 299,
+      "market_name": "Winner",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "neds",
+      "event_id": 186,
+      "event_name": "Premier League 2025/26",
+      "market_id": 299,
+      "market_name": "Winner",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "ladbrokes",
+      "event_id": 282,
+      "event_name": "Division Of NBA Championship Winner 2025/26",
+      "market_id": 395,
+      "market_name": "Division Of NBA Championship Winner 2025/26",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "neds",
+      "event_id": 282,
+      "event_name": "Division Of NBA Championship Winner 2025/26",
+      "market_id": 395,
+      "market_name": "Division Of NBA Championship Winner 2025/26",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ladbrokes",
+      "event_id": 291,
+      "event_name": "NHL Western Conference 2025/26",
+      "market_id": 404,
+      "market_name": "Western Conference Winner",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "neds",
+      "event_id": 291,
+      "event_name": "NHL Western Conference 2025/26",
+      "market_id": 404,
+      "market_name": "Western Conference Winner",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ladbrokes",
+      "event_id": 291,
+      "event_name": "NHL Western Conference 2025/26",
+      "market_id": 406,
+      "market_name": "Eastern Conference Winner",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "neds",
+      "event_id": 291,
+      "event_name": "NHL Western Conference 2025/26",
+      "market_id": 406,
+      "market_name": "Eastern Conference Winner",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ladbrokes",
+      "event_id": 293,
+      "event_name": "NHL Atlantic Division 2025/26",
+      "market_id": 407,
+      "market_name": "NHL Atlantic Division Winner 2025/26",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "neds",
+      "event_id": 293,
+      "event_name": "NHL Atlantic Division 2025/26",
+      "market_id": 407,
+      "market_name": "NHL Atlantic Division Winner 2025/26",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ladbrokes",
+      "event_id": 293,
+      "event_name": "NHL Atlantic Division 2025/26",
+      "market_id": 408,
+      "market_name": "NHL Pacific Division Winner 2025/26",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "neds",
+      "event_id": 293,
+      "event_name": "NHL Atlantic Division 2025/26",
+      "market_id": 408,
+      "market_name": "NHL Pacific Division Winner 2025/26",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ladbrokes",
+      "event_id": 298,
+      "event_name": "Stanley Cup Winner 2025/26",
+      "market_id": 413,
+      "market_name": "Stanley Cup Winner 2025/26",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "neds",
+      "event_id": 298,
+      "event_name": "Stanley Cup Winner 2025/26",
+      "market_id": 413,
+      "market_name": "Stanley Cup Winner 2025/26",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ladbrokes",
+      "event_id": 293,
+      "event_name": "NHL Atlantic Division 2025/26",
+      "market_id": 416,
+      "market_name": "NHL Metropolitan Division Winner 2025/26",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "neds",
+      "event_id": 293,
+      "event_name": "NHL Atlantic Division 2025/26",
+      "market_id": 416,
+      "market_name": "NHL Metropolitan Division Winner 2025/26",
+      "selection_keys": [
+        "other"
+      ],
+      "issues": [
+        "disallowed_market",
+        "shape_mismatch",
+        "invalid_selection_key"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betchamps",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "starsports",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "truebet",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "wizbet",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "tradiebet",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "lightningbet",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betblitz",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "topbet",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betfocus",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "cashcage",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "mintbet",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "ripperbet",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "blondebet",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betbuzz",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "teambet",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betvista",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "millennialbet",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betreal",
+      "event_id": 824,
+      "event_name": "Portland Trail Blazers v Cleveland Cavaliers",
+      "market_id": 1119,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betchamps",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betfocus",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "cashcage",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betreal",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "tradiebet",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "topbet",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "blondebet",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "millennialbet",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "teambet",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "mintbet",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "ripperbet",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betbuzz",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betvista",
+      "event_id": 559,
+      "event_name": "Tasmania JackJumpers v New Zealand Breakers",
+      "market_id": 789,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betvista",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "mintbet",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "lightningbet",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betbuzz",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ripperbet",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "teambet",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betreal",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "wizbet",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "tradiebet",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betchamps",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betfocus",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "starsports",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betblitz",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "blondebet",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "cashcage",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "topbet",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "truebet",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "millennialbet",
+      "event_id": 562,
+      "event_name": "Pittsburgh Penguins v New York Rangers",
+      "market_id": 792,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "home"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betvista",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "blondebet",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "millennialbet",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "topbet",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betbuzz",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "tradiebet",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betreal",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "teambet",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betfocus",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "cashcage",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betchamps",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "ripperbet",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "mintbet",
+      "event_id": 989,
+      "event_name": "New Zealand Breakers v S.E. Melbourne Phoenix",
+      "market_id": 1355,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betblitz",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "truebet",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "starsports",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "cashcage",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "teambet",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "tradiebet",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "mintbet",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betchamps",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betfocus",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "wizbet",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "blondebet",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "topbet",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "ripperbet",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betvista",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "lightningbet",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betreal",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "millennialbet",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "boxing",
+      "bookmaker": "betbuzz",
+      "event_id": 1161,
+      "event_name": "Christian Medina Jimenez v Adrian Curiel",
+      "market_id": 1633,
+      "market_name": "Fight Result",
+      "selection_keys": [
+        "away",
+        "draw"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "teambet",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betchamps",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "ripperbet",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "tradiebet",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "mintbet",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betfocus",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "blondebet",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "topbet",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betreal",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "millennialbet",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betbuzz",
+      "event_id": 1157,
+      "event_name": "New Zealand Breakers v Illawarra Hawks",
+      "market_id": 1713,
+      "market_name": "Match Winner",
+      "selection_keys": [
+        "away"
+      ],
+      "issues": [
+        "shape_mismatch"
+      ]
+    }
+  ],
+  "critical_anomaly_count": 175
+}

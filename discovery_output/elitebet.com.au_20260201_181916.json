@@ -1,0 +1,132 @@
+{
+  "bookmaker": "elitebet.com.au",
+  "base_url": "https://www.elitebet.com.au",
+  "sport_paths": [
+    "/sports/soccer"
+  ],
+  "timestamp": "2026-02-01T18:19:16.868713",
+  "endpoints_captured": 6,
+  "unique_endpoints": 3,
+  "endpoints": {
+    "/api/auth/session": {
+      "full_url": "https://www.elitebet.com.au/api/auth/session",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [],
+      "response_size": 2,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/sportutility2/getSportHighlights": {
+      "full_url": "https://betapi.elitebet.com.au/sportutility2/getSportHighlights",
+      "method": "POST",
+      "status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "sample_keys": [
+        "hotevents",
+        "ERROBJ"
+      ],
+      "response_size": 2335,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/sportutility/getSportAZ": {
+      "full_url": "https://betapi.elitebet.com.au/sportutility/getSportAZ",
+      "method": "POST",
+      "status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "sample_keys": [
+        "sportAZ",
+        "ERROBJ"
+      ],
+      "response_size": 1043,
+      "sports_where_found": [
+        "soccer"
+      ]
+    }
+  },
+  "odds_endpoints": [
+    "/sportutility2/getSportHighlights",
+    "/sportutility/getSportAZ"
+  ],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/api/auth/session",
+      "/sportutility2/getSportHighlights",
+      "/sportutility/getSportAZ"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://www.elitebet.com.au/api/auth/session",
+      "endpoint": "/api/auth/session",
+      "sport": "soccer",
+      "status": 200,
+      "size": 2,
+      "sample": {}
+    },
+    {
+      "url": "https://www.elitebet.com.au/api/auth/session",
+      "endpoint": "/api/auth/session",
+      "sport": "soccer",
+      "status": 200,
+      "size": 2,
+      "sample": {}
+    },
+    {
+      "url": "https://betapi.elitebet.com.au/sportutility2/getSportHighlights",
+      "endpoint": "/sportutility2/getSportHighlights",
+      "sport": "soccer",
+      "status": 200,
+      "size": 2335,
+      "sample": {
+        "hotevents": [
+          "...",
+          "...",
+          "..."
+        ],
+        "ERROBJ": {
+          "ERRORCODE": "...",
+          "ERRORDESC": "..."
+        }
+      }
+    },
+    {
+      "url": "https://betapi.elitebet.com.au/sportutility/getSportAZ",
+      "endpoint": "/sportutility/getSportAZ",
+      "sport": "soccer",
+      "status": 200,
+      "size": 1043,
+      "sample": {
+        "sportAZ": [
+          "...",
+          "...",
+          "..."
+        ],
+        "ERROBJ": {
+          "ERRORCODE": "...",
+          "ERRORDESC": "..."
+        }
+      }
+    },
+    {
+      "url": "https://www.elitebet.com.au/api/auth/session",
+      "endpoint": "/api/auth/session",
+      "sport": "soccer",
+      "status": 200,
+      "size": 2,
+      "sample": {}
+    },
+    {
+      "url": "https://www.elitebet.com.au/api/auth/session",
+      "endpoint": "/api/auth/session",
+      "sport": "soccer",
+      "status": 200,
+      "size": 2,
+      "sample": {}
+    }
+  ]
+}

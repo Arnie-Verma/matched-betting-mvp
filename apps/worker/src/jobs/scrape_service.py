@@ -9,7 +9,7 @@ PRODUCTION OPTIMIZATION (Phase 1):
 
 DYNAMIC SCRAPER REGISTRY (Phase 1.2):
 - Config-driven scraper selection from database
-- Platform scrapers cover multiple bookmakers (e.g., Entain covers Ladbrokes, Neds, Unibet)
+- Platform scrapers cover multiple bookmakers (e.g., Entain covers Ladbrokes/Neds; Kindred covers Unibet AU)
 - New bookmakers added by updating database config, not code
 
 Architecture:
@@ -35,9 +35,11 @@ from scrapers.betfair_scraper import BetfairScraper
 from scrapers.ladbrokes_scraper import LadbrokesScraper
 from scrapers.entain_scraper import EntainScraper
 from scrapers.punterstech_scraper import PunterstechScraper
+from scrapers.kindred_scraper import KindredScraper
 from scrapers.base import BaseScraper, ScrapeResult, ScraperStatus
 from jobs.save_odds import save_scrape_result_to_db
 from jobs.cleanup_service import CleanupService
+from api.core.bookmaker_freeze import is_bookmaker_frozen
 
 # Optional validation integration
 try:
@@ -78,6 +80,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 SCRAPER_CLASSES: Dict[str, Type[BaseScraper]] = {
     "entain": EntainScraper,            # Ladbrokes, Neds
+    "kindred": KindredScraper,          # Unibet (AU)
     "betfair": BetfairScraper,          # Betfair Exchange
     "tab": TABScraper,                  # TAB (needs proxy)
     "punterstech": PunterstechScraper,  # 21 bookmakers (TradieBET, MintBet, etc.)
@@ -182,6 +185,7 @@ class ScrapeService:
         Get list of active bookmakers from database.
 
         Returns list of dicts with bookmaker config (code, base_url, scraping_config).
+        Applies onboarding freeze policy (for example Unibet during Phase A).
         Falls back to static list if database unavailable.
         """
         try:
@@ -196,6 +200,10 @@ class ScrapeService:
 
                 result = []
                 for bm in active:
+                    if is_bookmaker_frozen(bm.code):
+                        logger.info(f"[{bm.code}] Skipped: onboarding freeze active")
+                        continue
+
                     config = bm.scraping_config or {}
                     scraper_class = config.get("scraper_class")
 

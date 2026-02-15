@@ -1,0 +1,416 @@
+{
+  "bookmaker": "betright.com.au",
+  "base_url": "https://www.betright.com.au",
+  "sport_paths": [
+    "/sports/soccer"
+  ],
+  "timestamp": "2026-02-01T18:14:09.774901",
+  "endpoints_captured": 22,
+  "unique_endpoints": 13,
+  "endpoints": {
+    "/event/negotiate": {
+      "full_url": "https://hubs-api.betright.com.au/event/negotiate?negotiateVersion=1",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "negotiateVersion",
+        "url",
+        "accessToken",
+        "availableTransports"
+      ],
+      "response_size": 480,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/config/2d0b283828c58d1fabd6b95831af23d1": {
+      "full_url": "https://sr-client-cfg.amplitude.com/config/2d0b283828c58d1fabd6b95831af23d1?config_group=browser",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "configs"
+      ],
+      "response_size": 73,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/client/negotiate": {
+      "full_url": "https://betright-prod.service.signalr.net/client/negotiate?hub=eventhub&asrs.op=%2Fevent&negotiateVersion=1&asrs_request_id=CWKrPP0FAAA%3D",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "negotiateVersion",
+        "connectionId",
+        "connectionToken",
+        "availableTransports"
+      ],
+      "response_size": 354,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/umbraco/api/Umbraco/List": {
+      "full_url": "https://cms-api.betright.com.au/umbraco/api/Umbraco/List?docType=configurationParameters",
+      "method": "GET",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "sample_keys": null,
+      "response_size": 18573,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "//v2/track": {
+      "full_url": "https://australiaeast-1.in.applicationinsights.azure.com//v2/track",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "itemsReceived",
+        "itemsAccepted",
+        "appId",
+        "errors"
+      ],
+      "response_size": 69,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/umbraco/api/Umbraco/Dictionary": {
+      "full_url": "https://cms-api.betright.com.au/umbraco/api/Umbraco/Dictionary",
+      "method": "GET",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "sample_keys": null,
+      "response_size": 298226,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/Lookup/AppInfo": {
+      "full_url": "https://next-api.betright.com.au/Lookup/AppInfo?clientId=y4L7tZ86DCKULi8CO7haQt",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "appVersion",
+        "settings",
+        "multiBetSetting",
+        "groupedSportLayoutSetting",
+        "sportStatLayoutSetting"
+      ],
+      "response_size": 8223,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/rpc/1.3.0/channel/ec09f4c5-c433-4490-800e-178a0d73d114": {
+      "full_url": "https://rpc.screeb.app/rpc/1.3.0/channel/ec09f4c5-c433-4490-800e-178a0d73d114",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": [
+        "id",
+        "org_id",
+        "type",
+        "targeting",
+        "record_targeting",
+        "settings",
+        "quota"
+      ],
+      "response_size": 10538,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/2/httpapi": {
+      "full_url": "https://amplitude.betright.com.au/2/httpapi",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "code",
+        "server_upload_time",
+        "payload_size_bytes",
+        "events_ingested"
+      ],
+      "response_size": 100,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/Racing/Next": {
+      "full_url": "https://next-api.betright.com.au/Racing/Next?eventTypeFilter=7",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": null,
+      "response_size": 2489,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/track/realtimeconversion": {
+      "full_url": "https://insight.adsrvr.org/track/realtimeconversion",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "Message",
+        "EventResponses"
+      ],
+      "response_size": 39,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/Sports/Next": {
+      "full_url": "https://next-api.betright.com.au/Sports/Next?eventTypeId=-1",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": null,
+      "response_size": 7245,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/PopularMarket/List": {
+      "full_url": "https://next-api.betright.com.au/PopularMarket/List",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "sample_keys": null,
+      "response_size": 5924,
+      "sports_where_found": [
+        "soccer"
+      ]
+    }
+  },
+  "odds_endpoints": [
+    "/event/negotiate",
+    "/Sports/Next",
+    "/PopularMarket/List"
+  ],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/event/negotiate",
+      "/config/2d0b283828c58d1fabd6b95831af23d1",
+      "/client/negotiate",
+      "/umbraco/api/Umbraco/List",
+      "//v2/track",
+      "/umbraco/api/Umbraco/Dictionary",
+      "/Lookup/AppInfo",
+      "/rpc/1.3.0/channel/ec09f4c5-c433-4490-800e-178a0d73d114",
+      "/2/httpapi",
+      "/Racing/Next",
+      "/track/realtimeconversion",
+      "/Sports/Next",
+      "/PopularMarket/List"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://hubs-api.betright.com.au/event/negotiate?negotiateVersion=1",
+      "endpoint": "/event/negotiate",
+      "sport": "soccer",
+      "status": 200,
+      "size": 480,
+      "sample": {
+        "negotiateVersion": 0,
+        "url": "https://betright-prod.service.signalr.net/client/?hub=eventhub&asrs.op=%2Fevent&negotiateVersion=1&asrs_request_id=CWKrPP0FAAA%3D",
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjE2MjkwNDE3NzkifQ.eyJuYmYiOjE3Njk5MzAwMzksImV4cCI6MTc2OTkzMzYzOSwiaWF0IjoxNzY5OTMwMDM5LCJhdWQiOiJodHRwczovL2JldHJpZ2h0LXByb2Quc2VydmljZS5zaWduYWxyLm5ldC9jbGllbnQvP2h1Yj1ldmVudGh1YiJ9.N4w9usJmToGlsdJz8mcgkgHF3EAd3dTTl2nlI64v-MM",
+        "availableTransports": []
+      }
+    },
+    {
+      "url": "https://sr-client-cfg.amplitude.com/config/2d0b283828c58d1fabd6b95831af23d1?config_group=browser",
+      "endpoint": "/config/2d0b283828c58d1fabd6b95831af23d1",
+      "sport": "soccer",
+      "status": 200,
+      "size": 73,
+      "sample": {
+        "configs": {
+          "diagnostics": "...",
+          "sessionReplay": "...",
+          "analyticsSDK": "..."
+        }
+      }
+    },
+    {
+      "url": "https://betright-prod.service.signalr.net/client/negotiate?hub=eventhub&asrs.op=%2Fevent&negotiateVersion=1&asrs_request_id=CWKrPP0FAAA%3D",
+      "endpoint": "/client/negotiate",
+      "sport": "soccer",
+      "status": 200,
+      "size": 354,
+      "sample": {
+        "negotiateVersion": 1,
+        "connectionId": "WvD9noFymfU0or1AiP-8qwwGRyNwp02",
+        "connectionToken": "fv6s931hu9Vrghg88mnPYgwGRyNwp02",
+        "availableTransports": [
+          "...",
+          "...",
+          "..."
+        ]
+      }
+    },
+    {
+      "url": "https://sr-client-cfg.amplitude.com/config/2d0b283828c58d1fabd6b95831af23d1?config_group=browser",
+      "endpoint": "/config/2d0b283828c58d1fabd6b95831af23d1",
+      "sport": "soccer",
+      "status": 200,
+      "size": 73,
+      "sample": {
+        "configs": {
+          "diagnostics": "...",
+          "sessionReplay": "...",
+          "analyticsSDK": "..."
+        }
+      }
+    },
+    {
+      "url": "https://cms-api.betright.com.au/umbraco/api/Umbraco/List?docType=configurationParameters",
+      "endpoint": "/umbraco/api/Umbraco/List",
+      "sport": "soccer",
+      "status": 200,
+      "size": 18573,
+      "sample": [
+        {
+          "parameters": "...",
+          "contentType": "...",
+          "key": "...",
+          "id": "...",
+          "name": "..."
+        },
+        {
+          "parameters": "...",
+          "contentType": "...",
+          "key": "...",
+          "id": "...",
+          "name": "..."
+        },
+        {
+          "parameters": "...",
+          "contentType": "...",
+          "key": "...",
+          "id": "...",
+          "name": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://cms-api.betright.com.au/umbraco/api/Umbraco/List?docType=menu&name=Routes",
+      "endpoint": "/umbraco/api/Umbraco/List",
+      "sport": "soccer",
+      "status": 200,
+      "size": 124923,
+      "sample": [
+        {
+          "menuItems": "...",
+          "contentType": "...",
+          "key": "...",
+          "id": "...",
+          "name": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://australiaeast-1.in.applicationinsights.azure.com//v2/track",
+      "endpoint": "//v2/track",
+      "sport": "soccer",
+      "status": 200,
+      "size": 69,
+      "sample": {
+        "itemsReceived": 7,
+        "itemsAccepted": 7,
+        "appId": null,
+        "errors": []
+      }
+    },
+    {
+      "url": "https://australiaeast-1.in.applicationinsights.azure.com//v2/track",
+      "endpoint": "//v2/track",
+      "sport": "soccer",
+      "status": 200,
+      "size": 69,
+      "sample": {
+        "itemsReceived": 6,
+        "itemsAccepted": 6,
+        "appId": null,
+        "errors": []
+      }
+    },
+    {
+      "url": "https://cms-api.betright.com.au/umbraco/api/Umbraco/Dictionary",
+      "endpoint": "/umbraco/api/Umbraco/Dictionary",
+      "sport": "soccer",
+      "status": 200,
+      "size": 298226,
+      "sample": [
+        {
+          "id": "...",
+          "key": "...",
+          "parentId": "...",
+          "itemKey": "...",
+          "translations": "..."
+        },
+        {
+          "id": "...",
+          "key": "...",
+          "parentId": "...",
+          "itemKey": "...",
+          "translations": "..."
+        },
+        {
+          "id": "...",
+          "key": "...",
+          "parentId": "...",
+          "itemKey": "...",
+          "translations": "..."
+        }
+      ]
+    },
+    {
+      "url": "https://next-api.betright.com.au/Lookup/AppInfo?clientId=y4L7tZ86DCKULi8CO7haQt",
+      "endpoint": "/Lookup/AppInfo",
+      "sport": "soccer",
+      "status": 200,
+      "size": 8223,
+      "sample": {
+        "appVersion": {
+          "platform": "...",
+          "currentVersion": "...",
+          "minRequiredVersion": "...",
+          "whatsNew": "...",
+          "updatedDateUtc": "..."
+        },
+        "settings": {
+          "chatTokenUrl": "...",
+          "chatAccountSid": "...",
+          "chatFlexFlowSid": "...",
+          "chatEnquiryTypes": "...",
+          "chatAllowImage": "..."
+        },
+        "multiBetSetting": {
+          "multiMaxRacingLegs": "...",
+          "multiMaxSportsLegs": "...",
+          "multiMaxCombinedLegs": "...",
+          "multiMaxSGMLegs": "...",
+          "multiMaxPrice": "..."
+        },
+        "groupedSportLayoutSetting": {
+          "categoryIds": "...",
+          "eventClasses": "..."
+        },
+        "sportStatLayoutSetting": {
+          "eventClassToStatNameMaps": "...",
+          "eventClasses": "..."
+        }
+      }
+    }
+  ]
+}

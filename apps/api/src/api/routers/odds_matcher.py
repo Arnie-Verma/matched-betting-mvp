@@ -698,8 +698,16 @@ async def get_matcher_opportunities(
                 market_name = sel.market.name if sel and sel.market else ""
                 return _market_preference_rank(sport_code, market_name)
 
-            # Find best lay odds: prefer the correct market first, then lowest odds.
-            best_lay = min(lay_odds, key=lambda x: (market_rank_for_snapshot(x), x.decimal_odds))
+            # Find best lay odds PER market rank so we can keep back+lay markets aligned
+            # for each bookmaker (prevents mismatched markets like NHL Match Odds vs Moneyline).
+            lay_by_rank: dict[int, list[OddsSnapshot]] = {}
+            for lo in lay_odds:
+                rank = market_rank_for_snapshot(lo)
+                lay_by_rank.setdefault(rank, []).append(lo)
+
+            best_lay_by_rank: dict[int, OddsSnapshot] = {}
+            for rank, items in lay_by_rank.items():
+                best_lay_by_rank[rank] = min(items, key=lambda x: x.decimal_odds)
 
             # Group back odds by bookmaker and find best odds per bookmaker
             # (in case same bookmaker has multiple odds entries for same selection)
@@ -724,6 +732,12 @@ async def get_matcher_opportunities(
 
             # Create one opportunity per bookmaker
             for bm_code, best_back in bookmaker_best_odds.items():
+                back_rank = market_rank_for_snapshot(best_back)
+                best_lay = best_lay_by_rank.get(back_rank)
+                if not best_lay:
+                    print(f"      SKIP {bm_code}: no Betfair lay market matching rank={back_rank}")
+                    continue
+
                 back_selection = selection_by_id.get(best_back.selection_id, selection)
                 lay_selection = selection_by_id.get(best_lay.selection_id)
 

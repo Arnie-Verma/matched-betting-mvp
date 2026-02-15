@@ -1,13 +1,15 @@
 """
-Entain Platform Scraper - Covers Ladbrokes, Neds, Unibet (AU)
+Entain Platform Scraper - Covers Ladbrokes, Neds (AU)
 
-All three bookmakers run on the same Entain platform with identical API structure.
+Both bookmakers run on the same Entain platform with identical API structure.
 The only difference is the base URL:
 - Ladbrokes: https://www.ladbrokes.com.au
 - Neds: https://www.neds.com.au
-- Unibet: https://www.unibet.com.au
 
 This scraper is config-driven - pass different base_url to scrape different bookmakers.
+
+NOTE:
+- Unibet AU is Kindred/FDJ and uses a different API (see KindredScraper).
 
 API Endpoint Patterns (as of Jan 2026):
   GraphQL: {api_base}/graphql or {api_base}/gql/router
@@ -30,7 +32,9 @@ PRODUCTION NOTES:
 - Dynamic waits to minimize scrape time
 """
 import asyncio
+import re
 import time
+import unicodedata
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from typing import List, Optional, Dict, Any
@@ -44,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 class EntainScraper(BaseScraper):
     """
-    Scraper for Entain platform bookmakers (Ladbrokes, Neds, Unibet AU).
+    Scraper for Entain platform bookmakers (Ladbrokes, Neds).
 
     Config-driven: Pass bookmaker_code and base_url to target different bookmakers.
     All use identical API structure - only domain differs.
@@ -55,9 +59,6 @@ class EntainScraper(BaseScraper):
 
         # Neds
         scraper = EntainScraper("neds", "https://www.neds.com.au")
-
-        # Unibet
-        scraper = EntainScraper("unibet", "https://www.unibet.com.au")
     """
 
     # Class-level browser instance (shared across ALL Entain scrapers)
@@ -129,6 +130,155 @@ class EntainScraper(BaseScraper):
     }
 
     ALL_SPORTS = ["soccer", "basketball", "ice_hockey", "boxing", "afl", "nrl"]
+
+    # Outrights/futures often appear inside sport landing pages and can pollute
+    # per-competition validation (e.g. "Division Of NBA Championship Winner").
+    # These are not matchup fixtures and should be excluded from match_winner
+    # pipelines for team sports.
+    OUTRIGHT_NAME_TOKENS = (
+        "winner",
+        "championship",
+        "division",
+        "conference",
+        "outright",
+        "to win",
+        "season",
+        "playoff",
+        "playoffs",
+        "series",
+    )
+
+    # Any of these tokens indicate we should not treat a market as fixture
+    # match-winner for matcher/validation paths.
+    DISALLOWED_MARKET_TOKENS = (
+        "futures",
+        "outright",
+        "championship",
+        "conference",
+        "division",
+        "season",
+        "series winner",
+        "to make",
+        "to qualify",
+        "qualify",
+        "group winner",
+        "winner without",
+        "top scorer",
+        "points leader",
+        "player performance",
+        "method of victory",
+        "win by",
+        "by ko",
+        "by tko",
+        "by decision",
+        "exact score",
+        "draw no bet",
+        "double chance",
+        "both teams to score",
+        "corners",
+        "cards",
+        "first to",
+        "race to",
+        "half time",
+        "halftime",
+        "1st half",
+        "first half",
+        "2nd half",
+        "second half",
+        "quarter",
+        "period",
+        "set",
+        "innings",
+        "map",
+    )
+
+    ALLOWED_MARKET_TOKENS_BY_SPORT = {
+        "soccer": (
+            "match result",
+            "match winner",
+            "head to head",
+            "head-to-head",
+            "h2h",
+            "1x2",
+            "full time result",
+            "full-time result",
+        ),
+        "basketball": (
+            "money line",
+            "moneyline",
+            "head to head",
+            "head-to-head",
+            "h2h",
+            "match winner",
+            "to win",
+        ),
+        "ice_hockey": (
+            "money line",
+            "moneyline",
+            "head to head",
+            "head-to-head",
+            "h2h",
+            "match winner",
+            "to win",
+        ),
+        "boxing": (
+            "fight betting",
+            "fight result",
+            "money line",
+            "moneyline",
+            "match winner",
+            "to win",
+        ),
+    }
+
+    def _is_matchup_event_name(self, name: str) -> bool:
+        if not name:
+            return False
+        lower = name.lower()
+        # Common matchup separators across bookmakers
+        return any(sep in lower for sep in (" v ", " vs ", " @ ", " - "))
+
+    def _is_outright_event_name(self, name: str) -> bool:
+        if not name:
+            return False
+        lower = name.lower()
+        return any(tok in lower for tok in self.OUTRIGHT_NAME_TOKENS)
+
+    def _expected_selection_keys(self, sport: str) -> tuple:
+        if sport == "soccer":
+            return ("home", "draw", "away")
+        return ("home", "away")
+
+    def _is_matcher_market(self, market_name: str, sport: str) -> bool:
+        if not market_name:
+            return False
+
+        market_lower = market_name.lower().strip()
+        if any(token in market_lower for token in self.DISALLOWED_MARKET_TOKENS):
+            return False
+
+        allowed_tokens = self.ALLOWED_MARKET_TOKENS_BY_SPORT.get(sport, ())
+        return any(token in market_lower for token in allowed_tokens)
+
+    def _sanitize_market_odds(
+        self,
+        market_odds: List[ScrapedOdds],
+        sport: str,
+    ) -> List[ScrapedOdds]:
+        expected_keys = self._expected_selection_keys(sport)
+        allowed_keys = set(expected_keys)
+        by_key: Dict[str, ScrapedOdds] = {}
+
+        for odds in market_odds:
+            if odds.selection_key not in allowed_keys:
+                continue
+            if odds.selection_key not in by_key:
+                by_key[odds.selection_key] = odds
+
+        if not all(key in by_key for key in expected_keys):
+            return []
+
+        return [by_key[key] for key in expected_keys]
 
     def __init__(
         self,
@@ -624,6 +774,18 @@ class EntainScraper(BaseScraper):
                         home_team = home_team or home_participant.get("name")
                         away_team = away_team or away_participant.get("name")
 
+                # Boxing has no true home/away. Different sources can flip fighter
+                # order, which causes odds swaps during cross-bookmaker validation.
+                # Enforce deterministic ordering so "home"/"away" selection keys
+                # refer to the same fighter across bookmakers.
+                if sport == "boxing" and home_team and away_team:
+                    left = str(home_team).strip()
+                    right = str(away_team).strip()
+                    if self._participant_sort_key(right) < self._participant_sort_key(left):
+                        left, right = right, left
+                    home_team, away_team = left, right
+                    event_name = f"{home_team} v {away_team}"
+
                 event = ScrapedEvent(
                     external_id=event_id,
                     name=event_name,
@@ -641,13 +803,12 @@ class EntainScraper(BaseScraper):
 
                 for market in event_markets:
                     market_name = market.get("name", "Unknown Market")
-                    market_type = self.normalize_market_type(market_name)
-
-                    if market_type != "match_winner":
+                    if not self._is_matcher_market(market_name, sport):
                         continue
 
                     has_match_winner = True
                     entrant_ids = market.get("entrant_ids", [])
+                    market_odds: List[ScrapedOdds] = []
 
                     for entrant_id in entrant_ids:
                         entrant = entrants_data.get(entrant_id, {})
@@ -669,6 +830,8 @@ class EntainScraper(BaseScraper):
                                     continue
 
                                 selection_key = self._get_selection_key(entrant_name, event)
+                                if selection_key not in {"home", "away", "draw"}:
+                                    continue
 
                                 odds = ScrapedOdds(
                                     event_external_id=event_id,
@@ -676,7 +839,7 @@ class EntainScraper(BaseScraper):
                                     sport=sport,
                                     competition=competition,
                                     start_time=start_time,
-                                    market_type=market_type,
+                                    market_type="match_winner",
                                     market_name=market_name,
                                     selection_name=entrant_name,
                                     selection_key=selection_key,
@@ -686,8 +849,10 @@ class EntainScraper(BaseScraper):
                                     scraped_at=datetime.now(timezone.utc)
                                 )
 
-                                event.odds.append(odds)
+                                market_odds.append(odds)
                                 break
+
+                    event.odds.extend(self._sanitize_market_odds(market_odds, sport))
 
                 if has_match_winner:
                     events_with_match_winner += 1
@@ -699,6 +864,19 @@ class EntainScraper(BaseScraper):
             except Exception as e:
                 self.logger.error(f"[{self.bookmaker_code}] Failed to parse event {event_id}: {e}")
                 continue
+
+        # Remove outright/futures "events" for team sports. These are not matchups
+        # and they distort validation/event coverage calculations.
+        if sport in ("basketball", "ice_hockey") and events:
+            before = len(events)
+            events = [
+                e
+                for e in events
+                if self._is_matchup_event_name(e.name) and not self._is_outright_event_name(e.name)
+            ]
+            removed = before - len(events)
+            if removed > 0:
+                self.logger.info(f"[{self.bookmaker_code}] Filtered out {removed} outright/non-match events ({sport})")
 
         self.logger.info(
             f"[{self.bookmaker_code}] Parsing: parsed={events_parsed}, "
@@ -791,6 +969,14 @@ class EntainScraper(BaseScraper):
                 # Extract teams from event name
                 home_team, away_team = self._extract_teams_from_name(event_name)
 
+                if sport == "boxing" and home_team and away_team:
+                    left = str(home_team).strip()
+                    right = str(away_team).strip()
+                    if self._participant_sort_key(right) < self._participant_sort_key(left):
+                        left, right = right, left
+                    home_team, away_team = left, right
+                    event_name = f"{home_team} v {away_team}"
+
                 event = ScrapedEvent(
                     external_id=event_id,
                     name=event_name,
@@ -809,13 +995,12 @@ class EntainScraper(BaseScraper):
                     # Handle both direct list and edges pattern
                     market = market_item.get("node", market_item) if isinstance(market_item, dict) else {}
                     market_name = market.get("name", "")
-                    market_type = self.normalize_market_type(market_name)
-
-                    if market_type != "match_winner":
+                    if not self._is_matcher_market(market_name, sport):
                         continue
 
                     # Get selections/outcomes
                     selections = market.get("selections", []) or market.get("outcomes", [])
+                    market_odds: List[ScrapedOdds] = []
                     for sel_item in selections:
                         sel = sel_item.get("node", sel_item) if isinstance(sel_item, dict) else {}
                         sel_name = sel.get("name", "")
@@ -836,6 +1021,8 @@ class EntainScraper(BaseScraper):
                             continue
 
                         selection_key = self._get_selection_key(sel_name, event)
+                        if selection_key not in {"home", "away", "draw"}:
+                            continue
 
                         odds = ScrapedOdds(
                             event_external_id=event_id,
@@ -843,7 +1030,7 @@ class EntainScraper(BaseScraper):
                             sport=sport,
                             competition=competition,
                             start_time=start_time,
-                            market_type=market_type,
+                            market_type="match_winner",
                             market_name=market_name,
                             selection_name=sel_name,
                             selection_key=selection_key,
@@ -852,7 +1039,9 @@ class EntainScraper(BaseScraper):
                             source_url=f"{self.base_url}/sports/event/{event_id}",
                             scraped_at=datetime.now(timezone.utc)
                         )
-                        event.odds.append(odds)
+                        market_odds.append(odds)
+
+                    event.odds.extend(self._sanitize_market_odds(market_odds, sport))
 
                 if event.odds:
                     events.append(event)
@@ -860,6 +1049,17 @@ class EntainScraper(BaseScraper):
             except Exception as e:
                 self.logger.error(f"[{self.bookmaker_code}] Failed to parse GraphQL event: {e}")
                 continue
+
+        if sport in ("basketball", "ice_hockey") and events:
+            before = len(events)
+            events = [
+                e
+                for e in events
+                if self._is_matchup_event_name(e.name) and not self._is_outright_event_name(e.name)
+            ]
+            removed = before - len(events)
+            if removed > 0:
+                self.logger.info(f"[{self.bookmaker_code}] Filtered out {removed} outright/non-match GraphQL events ({sport})")
 
         self.logger.info(f"[{self.bookmaker_code}] Parsed {len(events)} events from GraphQL")
         return events
@@ -885,6 +1085,15 @@ class EntainScraper(BaseScraper):
                 home_team = parts[1].strip()
 
         return home_team, away_team
+
+    def _participant_sort_key(self, name: str) -> str:
+        """Stable cross-bookmaker sort key for participant names (used for boxing)."""
+        if not name:
+            return ""
+        norm = name.strip().lower()
+        norm = unicodedata.normalize("NFKD", norm).encode("ascii", "ignore").decode("ascii")
+        norm = re.sub(r"[^a-z0-9]+", "", norm)
+        return norm
 
     def _get_selection_key(self, selection_name: str, event: ScrapedEvent) -> str:
         """Determine selection key (home/away/draw) from selection name."""
@@ -945,7 +1154,7 @@ class EntainScraper(BaseScraper):
         raise NotImplementedError("Use _parse_entain_response instead")
 
 
-# Convenience factory functions for each Entain bookmaker
+# Convenience factory functions for each Entain bookmaker (AU)
 def create_ladbrokes_scraper(config: Optional[Dict[str, Any]] = None) -> EntainScraper:
     """Create Ladbrokes scraper (Entain platform)."""
     return EntainScraper("ladbrokes", "https://www.ladbrokes.com.au", config)
@@ -954,8 +1163,3 @@ def create_ladbrokes_scraper(config: Optional[Dict[str, Any]] = None) -> EntainS
 def create_neds_scraper(config: Optional[Dict[str, Any]] = None) -> EntainScraper:
     """Create Neds scraper (Entain platform)."""
     return EntainScraper("neds", "https://www.neds.com.au", config)
-
-
-def create_unibet_scraper(config: Optional[Dict[str, Any]] = None) -> EntainScraper:
-    """Create Unibet AU scraper (Entain platform)."""
-    return EntainScraper("unibet", "https://www.unibet.com.au", config)

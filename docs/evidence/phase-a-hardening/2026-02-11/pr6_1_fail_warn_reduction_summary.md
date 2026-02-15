@@ -1,0 +1,45 @@
+# PR6_1 FAIL/WARN Reduction Summary
+
+- Baseline status counts: {'PASS': 48, 'WARN': 33, 'SKIP': 19, 'N_A': 1, 'FAIL': 4}
+- After status counts: {'FAIL': 36, 'PASS': 48, 'WARN': 17, 'SKIP': 4}
+- Status delta: {'FAIL': 32, 'N_A': -1, 'PASS': 0, 'SKIP': -15, 'WARN': -16}
+- In-scope FAIL rows: 36
+- Gate (in-scope FAIL=0): FAIL
+
+## In-scope FAIL rows
+- epl / betblitz: ['Event coverage 53.19% < 55%']
+- epl / betbuzz: ['Event coverage 53.19% < 55%']
+- epl / betchamps: ['Event coverage 53.19% < 55%']
+- epl / betfocus: ['Event coverage 53.19% < 55%']
+- epl / betreal: ['Event coverage 53.19% < 55%']
+- epl / betvista: ['Event coverage 53.19% < 55%']
+- epl / blondebet: ['Event coverage 53.19% < 55%']
+- epl / cashcage: ['Event coverage 53.19% < 55%']
+- epl / lightningbet: ['Event coverage 53.19% < 55%']
+- epl / millennialbet: ['Event coverage 53.19% < 55%']
+- epl / mintbet: ['Event coverage 53.19% < 55%']
+- epl / ripperbet: ['Event coverage 53.19% < 55%']
+- epl / starsports: ['Event coverage 53.19% < 55%']
+- epl / teambet: ['Event coverage 53.19% < 55%']
+- epl / topbet: ['Event coverage 53.19% < 55%']
+- epl / tradiebet: ['Event coverage 53.19% < 55%']
+- epl / truebet: ['Event coverage 53.19% < 55%']
+- epl / wizbet: ['Event coverage 53.19% < 55%']
+- boxing / betblitz: ['Coverage 0% < 70%']
+- boxing / betbuzz: ['Coverage 0% < 70%']
+- boxing / betchamps: ['Coverage 0% < 70%']
+- boxing / betfocus: ['Coverage 0% < 70%']
+- boxing / betreal: ['Coverage 0% < 70%']
+- boxing / betvista: ['Coverage 0% < 70%']
+- boxing / blondebet: ['Coverage 0% < 70%']
+- boxing / cashcage: ['Coverage 0% < 70%']
+- boxing / lightningbet: ['Coverage 0% < 70%']
+- boxing / millennialbet: ['Coverage 0% < 70%']
+- boxing / mintbet: ['Coverage 0% < 70%']
+- boxing / ripperbet: ['Coverage 0% < 70%']
+- boxing / starsports: ['Coverage 0% < 70%']
+- boxing / teambet: ['Coverage 0% < 70%']
+- boxing / topbet: ['Coverage 0% < 70%']
+- boxing / tradiebet: ['Coverage 0% < 70%']
+- boxing / truebet: ['Coverage 0% < 70%']
+- boxing / wizbet: ['Coverage 0% < 70%']

@@ -17,6 +17,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from urllib.parse import urlparse
+import sys
+
+# Windows terminals often default to a legacy encoding (e.g. cp1252). Ensure we
+# never crash on unicode output from logging/prints.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 try:
     from playwright.async_api import async_playwright, Response
@@ -145,19 +153,56 @@ class PlatformDiscovery:
                         if status == 200 and (is_json or is_api or is_sports_betting_api):
                             try:
                                 body = await response.json()
+                                request = response.request
                                 endpoint = urlparse(url).path
+
+                                # Capture minimal request info (useful for POST/GraphQL discovery)
+                                request_headers = {}
+                                try:
+                                    allowed_header_keys = {
+                                        "accept",
+                                        "content-type",
+                                        "origin",
+                                        "referer",
+                                        "user-agent",
+                                        "x-requested-with",
+                                    }
+                                    request_headers = {
+                                        k: v
+                                        for k, v in request.headers.items()
+                                        if k.lower() in allowed_header_keys
+                                    }
+                                except Exception:
+                                    request_headers = {}
+
+                                request_post_data = None
+                                try:
+                                    # String (often JSON for GraphQL POSTs)
+                                    request_post_data = request.post_data
+                                    if request_post_data and len(request_post_data) > 4000:
+                                        request_post_data = request_post_data[:4000] + "...[truncated]"
+                                except Exception:
+                                    request_post_data = None
 
                                 # Track endpoint
                                 if endpoint not in api_endpoints:
                                     api_endpoints[endpoint] = {
                                         'full_url': url,
-                                        'method': response.request.method,
+                                        'method': request.method,
                                         'status': status,
                                         'content_type': content_type,
                                         'sample_keys': list(body.keys()) if isinstance(body, dict) else None,
                                         'response_size': len(json.dumps(body)),
-                                        'sports_where_found': []
+                                        'sports_where_found': [],
+                                        'example_request_headers': request_headers or None,
+                                        'example_request_post_data': request_post_data,
                                     }
+                                else:
+                                    # Populate request info if we didn't capture it for the first response
+                                    if not api_endpoints[endpoint].get("example_request_headers") and request_headers:
+                                        api_endpoints[endpoint]["example_request_headers"] = request_headers
+                                    if not api_endpoints[endpoint].get("example_request_post_data") and request_post_data:
+                                        api_endpoints[endpoint]["example_request_post_data"] = request_post_data
 
                                 # Track which sports this endpoint appears in
                                 if sport_name not in api_endpoints[endpoint]['sports_where_found']:
@@ -170,6 +215,11 @@ class PlatformDiscovery:
                                     'status': status,
                                     'size': len(json.dumps(body)),
                                     'sample': self._truncate(body, max_depth=2),
+                                    'request': {
+                                        'method': request.method,
+                                        'headers': request_headers or None,
+                                        'post_data': request_post_data,
+                                    },
                                 })
 
                                 print(f"    [{sport_name}] ✓ {endpoint[:50]:<50} ({len(json.dumps(body))} bytes)")
@@ -323,7 +373,7 @@ class PlatformDiscovery:
 
 async def main():
     parser = argparse.ArgumentParser(description='Discover bookmaker platform APIs')
-    parser.add_argument('--platform', type=str, help='Platform to research (punterstech, generation_web, betmakers, betcloud)')
+    parser.add_argument('--platform', type=str, help='Platform to research (punterstech, generation_web, betmakers, betcloud, kindred)')
     parser.add_argument('--site', type=str, help='Single site URL to research')
     parser.add_argument('--sport', type=str, default='/sports/soccer', help='Sport path (default: /sports/soccer)')
 

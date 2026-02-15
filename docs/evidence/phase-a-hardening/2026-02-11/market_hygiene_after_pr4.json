@@ -1,0 +1,757 @@
+{
+  "generated_at": "2026-02-12T10:18:26.631764+00:00",
+  "scope": {
+    "platforms": [
+      "entain",
+      "punterstech"
+    ],
+    "competitions": [
+      "boxing",
+      "epl",
+      "nba",
+      "nbl",
+      "nhl"
+    ],
+    "is_current_only": true,
+    "market_type": "match_winner"
+  },
+  "summary_by_competition": [
+    {
+      "competition": "boxing",
+      "odds_rows": 30,
+      "market_groups": 15,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "odds_rows": 1902,
+      "market_groups": 634,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "odds_rows": 3134,
+      "market_groups": 1567,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "odds_rows": 684,
+      "market_groups": 342,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "odds_rows": 2484,
+      "market_groups": 1242,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    }
+  ],
+  "summary_by_bookmaker": [
+    {
+      "competition": "boxing",
+      "bookmaker": "neds",
+      "odds_rows": 30,
+      "market_groups": 15,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betblitz",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betbuzz",
+      "odds_rows": 75,
+      "market_groups": 25,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betchamps",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betfocus",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betreal",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "betvista",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "blondebet",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "cashcage",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ladbrokes",
+      "odds_rows": 123,
+      "market_groups": 41,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "lightningbet",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "millennialbet",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "mintbet",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "neds",
+      "odds_rows": 123,
+      "market_groups": 41,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "ripperbet",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "starsports",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "teambet",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "topbet",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "tradiebet",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "truebet",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "epl",
+      "bookmaker": "wizbet",
+      "odds_rows": 93,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betblitz",
+      "odds_rows": 160,
+      "market_groups": 80,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betbuzz",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betchamps",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betfocus",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betreal",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "betvista",
+      "odds_rows": 156,
+      "market_groups": 78,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "blondebet",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "cashcage",
+      "odds_rows": 156,
+      "market_groups": 78,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "ladbrokes",
+      "odds_rows": 122,
+      "market_groups": 61,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "lightningbet",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "millennialbet",
+      "odds_rows": 158,
+      "market_groups": 79,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "mintbet",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "neds",
+      "odds_rows": 116,
+      "market_groups": 58,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "ripperbet",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "starsports",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "teambet",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "topbet",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "tradiebet",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "truebet",
+      "odds_rows": 160,
+      "market_groups": 80,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nba",
+      "bookmaker": "wizbet",
+      "odds_rows": 162,
+      "market_groups": 81,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betbuzz",
+      "odds_rows": 46,
+      "market_groups": 23,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betchamps",
+      "odds_rows": 46,
+      "market_groups": 23,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betfocus",
+      "odds_rows": 46,
+      "market_groups": 23,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betreal",
+      "odds_rows": 44,
+      "market_groups": 22,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "betvista",
+      "odds_rows": 46,
+      "market_groups": 23,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "blondebet",
+      "odds_rows": 46,
+      "market_groups": 23,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "cashcage",
+      "odds_rows": 48,
+      "market_groups": 24,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "ladbrokes",
+      "odds_rows": 32,
+      "market_groups": 16,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "lightningbet",
+      "odds_rows": 24,
+      "market_groups": 12,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "millennialbet",
+      "odds_rows": 46,
+      "market_groups": 23,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "mintbet",
+      "odds_rows": 46,
+      "market_groups": 23,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "neds",
+      "odds_rows": 32,
+      "market_groups": 16,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "ripperbet",
+      "odds_rows": 46,
+      "market_groups": 23,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "teambet",
+      "odds_rows": 46,
+      "market_groups": 23,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "topbet",
+      "odds_rows": 44,
+      "market_groups": 22,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nbl",
+      "bookmaker": "tradiebet",
+      "odds_rows": 46,
+      "market_groups": 23,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betblitz",
+      "odds_rows": 130,
+      "market_groups": 65,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betbuzz",
+      "odds_rows": 130,
+      "market_groups": 65,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betchamps",
+      "odds_rows": 132,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betfocus",
+      "odds_rows": 130,
+      "market_groups": 65,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betreal",
+      "odds_rows": 130,
+      "market_groups": 65,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "betvista",
+      "odds_rows": 128,
+      "market_groups": 64,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "blondebet",
+      "odds_rows": 132,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "cashcage",
+      "odds_rows": 128,
+      "market_groups": 64,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ladbrokes",
+      "odds_rows": 62,
+      "market_groups": 31,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "lightningbet",
+      "odds_rows": 132,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "millennialbet",
+      "odds_rows": 132,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "mintbet",
+      "odds_rows": 130,
+      "market_groups": 65,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "neds",
+      "odds_rows": 70,
+      "market_groups": 35,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "ripperbet",
+      "odds_rows": 132,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "starsports",
+      "odds_rows": 130,
+      "market_groups": 65,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "teambet",
+      "odds_rows": 132,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "topbet",
+      "odds_rows": 132,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "tradiebet",
+      "odds_rows": 132,
+      "market_groups": 66,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "truebet",
+      "odds_rows": 130,
+      "market_groups": 65,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    },
+    {
+      "competition": "nhl",
+      "bookmaker": "wizbet",
+      "odds_rows": 130,
+      "market_groups": 65,
+      "disallowed_market_groups": 0,
+      "invalid_selection_key_rows": 0,
+      "shape_mismatch_groups": 0
+    }
+  ],
+  "critical_anomalies": [],
+  "critical_anomaly_count": 0
+}

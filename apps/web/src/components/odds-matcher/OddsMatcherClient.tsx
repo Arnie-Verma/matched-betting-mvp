@@ -65,6 +65,11 @@ const createDefaultFilters = (): OddsFilters => ({
   search: ''
 })
 
+const isAbortError = (err: unknown): boolean =>
+  err instanceof DOMException && err.name === 'AbortError'
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
 export function OddsMatcherClient() {
   const [filters, setFilters] = useState<OddsFilters>(createDefaultFilters)
 
@@ -116,7 +121,7 @@ export function OddsMatcherClient() {
     hasInitialized.current = true
     // Trigger background refresh but don't wait for it to complete
     // The filter effect will load data independently
-    triggerBackgroundRefresh()
+    void triggerBackgroundRefresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -179,7 +184,28 @@ export function OddsMatcherClient() {
         params.append('search', debouncedSearch)
       }
 
-      const response = await fetch(`/api/proxy/odds/matcher?${params.toString()}`)
+      let response: Response | null = null
+      let lastFetchError: unknown = null
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          response = await fetch(`/api/proxy/odds/matcher?${params.toString()}`, {
+            cache: 'no-store',
+          })
+          break
+        } catch (err) {
+          if (isAbortError(err)) throw err
+          lastFetchError = err
+          if (attempt < 2) {
+            await sleep(400 * (attempt + 1))
+          }
+        }
+      }
+
+      if (!response) {
+        throw lastFetchError instanceof Error
+          ? lastFetchError
+          : new Error('Network error while fetching odds')
+      }
 
       if (!response.ok) {
         let message = `Failed to fetch odds (${response.status})`
@@ -215,6 +241,9 @@ export function OddsMatcherClient() {
       if (token !== requestToken.current) {
         return
       }
+      if (isAbortError(err)) {
+        return
+      }
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       // Only clear loading state for the latest in-flight request. Stale responses
@@ -246,13 +275,17 @@ export function OddsMatcherClient() {
     }
     lastFilterFetchKeyRef.current = fetchKey
 
-    fetchOpportunities(true)
+    void fetchOpportunities(true).catch((err) => {
+      console.error('[OddsMatcherClient] Filter fetch failed:', err)
+    })
   }, [debouncedStake, filters.betType, filters.bookmakers, filters.sports, debouncedSearch, fetchOpportunities])
 
   // Load more when scrolling near bottom
   const loadMore = useCallback(() => {
     if (!loadingMore && hasMore && !loading) {
-      fetchOpportunities(false)
+      void fetchOpportunities(false).catch((err) => {
+        console.error('[OddsMatcherClient] Load-more fetch failed:', err)
+      })
     }
   }, [loadingMore, hasMore, loading, fetchOpportunities])
 
@@ -308,6 +341,11 @@ export function OddsMatcherClient() {
             // Job completed and expired - treat as success
             return true
           }
+          if (response.status >= 500 || response.status === 429) {
+            console.warn(`[OddsMatcherClient] Job status transient error: ${response.status}`)
+            await sleep(1500)
+            continue
+          }
           console.warn(`[OddsMatcherClient] Job status check failed: ${response.status}`)
           return false
         }
@@ -351,9 +389,14 @@ export function OddsMatcherClient() {
         }
       } catch (err) {
         // Don't log abort errors as they're expected when user navigates away
-        if (err instanceof DOMException && err.name === 'AbortError') {
+        if (isAbortError(err)) {
           console.log('[OddsMatcherClient] Polling aborted by user')
           return false
+        }
+        if (err instanceof TypeError) {
+          console.warn('[OddsMatcherClient] Transient network error polling job status, retrying...', err)
+          await sleep(1500)
+          continue
         }
         console.error('[OddsMatcherClient] Error polling job status:', err)
         return false
@@ -419,7 +462,7 @@ export function OddsMatcherClient() {
         return
       }
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
+      if (isAbortError(err)) {
         console.log('[OddsMatcherClient] Background refresh aborted')
         return
       }
@@ -515,13 +558,17 @@ export function OddsMatcherClient() {
       }
     } catch (err) {
       // Don't show error for abort (user action)
-      if (err instanceof DOMException && err.name === 'AbortError') {
+      if (isAbortError(err)) {
         console.log('[OddsMatcherClient] Refresh aborted by user')
         return
       }
       setError(err instanceof Error ? err.message : 'An error occurred')
       setScrapeStatus(null)
-      await fetchOpportunities(true)  // This hides banner
+      try {
+        await fetchOpportunities(true)  // This hides banner
+      } catch (fetchErr) {
+        console.error('[OddsMatcherClient] Failed to recover after refresh error:', fetchErr)
+      }
     } finally {
       isRefreshing.current = false
       setRefreshing(false)

@@ -4,6 +4,123 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-02-15 (Sunday)
+
+### Completed
+- PR5 Entain parity suite completed:
+  - Added `apps/worker/tests/test_entain_scraper.py`
+  - Coverage mirrors Punterstech contract dimensions:
+    - parsing
+    - market allow/deny policy
+    - 2-way/3-way market shape enforcement
+    - `selection_key` stability
+    - error handling (`unsupported sport`, browser failure, failed result helper)
+  - Required test commands run:
+    - `pytest apps/worker/tests/test_entain_scraper.py -q` (24 passed)
+    - `pytest apps/worker/tests/test_punterstech_scraper.py -q` (44 passed)
+    - `pytest apps/worker/tests/test_validation.py -q` (55 passed)
+- PR6 validation stabilization started and executed with explicit root-cause breakdown:
+  - Baseline reason analysis from `validation_live_*_pr4.json`:
+    - `pr6_baseline_reason_breakdown.json`
+    - `pr6_baseline_reason_breakdown.md`
+  - Implemented competition-aware calibration in validation config/score classification:
+    - expected event-count ceiling tuning (`epl`, `nba`, `nhl`, `nbl`)
+    - event-coverage threshold overrides (`epl`, `nbl`, `nhl`)
+    - anomaly scoring threshold overrides (`epl`, `nba`, `nhl`)
+  - Regenerated live validation outputs:
+    - `validation_live_epl_pr6.json`
+    - `validation_live_nba_pr6.json`
+    - `validation_live_nhl_pr6.json`
+    - `validation_live_boxing_pr6.json`
+    - `validation_live_nbl_pr6.json`
+  - Generated PR6 after-state and reduction artifacts:
+    - `pr6_reason_breakdown_after.json`
+    - `pr6_reason_breakdown_after.md`
+    - `pr6_fail_warn_reduction_summary.json`
+    - `pr6_fail_warn_reduction_summary.md`
+    - `priority_competition_summary_table_live_pr6.json`
+    - `priority_competition_summary_table_live_pr6.md`
+- Added decision record `ADR-0011-validation-stabilization-threshold-calibration.md`
+- PR6.1 final pass completed:
+  - Added explicit bookmaker x competition coverage scope policy:
+    - out-of-scope zero-event => `SKIP`
+    - in-scope zero-event => `FAIL`
+  - Current explicit out-of-scope mapping:
+    - `nbl`: `betblitz`, `starsports`, `truebet`, `wizbet`
+  - Added validation tests for:
+    - in-scope zero-event => `FAIL`
+    - out-of-scope zero-event => `SKIP`
+    - report/summary/alert compatibility through pipeline (`has_failures` behavior)
+  - Regenerated live DB evidence artifacts:
+    - `validation_live_epl_pr6_1.json`
+    - `validation_live_nba_pr6_1.json`
+    - `validation_live_nhl_pr6_1.json`
+    - `validation_live_boxing_pr6_1.json`
+    - `validation_live_nbl_pr6_1.json`
+    - `priority_competition_summary_table_live_pr6_1.json`
+    - `priority_competition_summary_table_live_pr6_1.md`
+    - `pr6_1_reason_breakdown_after.json`
+    - `pr6_1_reason_breakdown_after.md`
+    - `pr6_1_fail_warn_reduction_summary.json`
+    - `pr6_1_fail_warn_reduction_summary.md`
+  - Added reusable evidence tooling:
+    - `apps/worker/src/scripts/generate_phase_a_validation_evidence.py`
+  - Added canary runner:
+    - `apps/worker/src/scripts/run_phase_a_canary.py`
+  - Ran Phase A local canary gate (30+ minutes):
+    - `phase_a_canary_pr6_1.json`
+    - `phase_a_canary_pr6_1.md`
+    - `phase_a_canary_pr6_1_interim.json`
+  - Added PR6.1 DB query output pack:
+    - `pr6_1_db_query_outputs.md`
+- Added decision record `ADR-0012-bookmaker-competition-coverage-scope-policy.md`
+- PR7 in-scope FAIL remediation completed (EPL + boxing only scope):
+  - Added failure decomposition matrix for PR6.1 FAIL baseline:
+    - `pr7_failure_decomposition_matrix.json`
+    - `pr7_failure_decomposition_matrix.md`
+  - EPL remediation:
+    - Hardened Punterstech competition filter normalization to match England/English EPL variants
+    - Increased Punterstech soccer `next-to-go` default result limit to avoid EPL truncation on high-volume brands
+    - Added targeted regression tests in `apps/worker/tests/test_punterstech_scraper.py`
+  - Boxing remediation:
+    - Added explicit boxing scope policy (`in_scope`: `ladbrokes`, `neds`, `betfair`)
+    - Updated scoring semantics so out-of-scope competition policy yields `SKIP` (not only zero-event windows)
+    - Added validation regression coverage for out-of-scope non-zero-event behavior
+    - Added Entain boxing participant-order regression test
+  - Re-ran required suites:
+    - `pytest apps/worker/tests/test_entain_scraper.py -q` (25 passed)
+    - `pytest apps/worker/tests/test_punterstech_scraper.py -q` (47 passed)
+    - `pytest apps/worker/tests/test_validation.py -q` (62 passed)
+  - Regenerated live validation artifacts:
+    - `validation_live_epl_pr7.json`
+    - `validation_live_nba_pr7.json`
+    - `validation_live_nhl_pr7.json`
+    - `validation_live_boxing_pr7.json`
+    - `validation_live_nbl_pr7.json`
+    - `priority_competition_summary_table_live_pr7.json`
+    - `priority_competition_summary_table_live_pr7.md`
+    - `pr7_reason_breakdown_after.json`
+    - `pr7_reason_breakdown_after.md`
+    - `pr7_fail_warn_reduction_summary.json`
+    - `pr7_fail_warn_reduction_summary.md`
+  - Ran Phase A local canary gate (PR7):
+    - `phase_a_canary_pr7.json`
+    - `phase_a_canary_pr7.md`
+    - Result: 13 cycles, ~30.9 minutes, in-scope FAIL cycles = 0, gate pass = true
+- Added decision record `ADR-0013-pr7-epl-boxing-fail-remediation.md`
+
+### Decisions
+- `ADR-0011`: apply competition-aware validation scoring calibration to reduce false FAIL/WARN noise while preserving hard FAIL for structural zero-event conditions.
+- `ADR-0012`: add explicit bookmaker x competition scope policy so only in-scope zero-event outputs remain blocking failures.
+- `ADR-0013`: remediate EPL/boxing in-scope FAIL clusters via Punterstech EPL filter/feed-window hardening and explicit boxing scope policy.
+- Phase A Unibet onboarding remains frozen; no activation/unfreeze work performed.
+- Phase A gate decision after PR6.1 canary: NO-GO (in-scope FAILs persist in EPL and boxing during refresh-window canary).
+- Phase A gate decision after PR7 canary: GO (0 in-scope FAIL cycles; 0 persistent in-scope FAIL clusters in EPL/boxing).
+
+### Next Steps
+- Keep Unibet freeze unchanged until explicit activation decision.
+- If proceeding to onboarding after GO confirmation, start with tightly scoped enablement and keep canary evidence collection active.
+
 ## 2026-02-11 (Wednesday)
 
 ### Completed
@@ -49,9 +166,28 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - `normalization_mismatch_reduction_summary.json`
     - `normalization_mismatch_reduction_summary.md`
 - Added decision record `ADR-0009-priority-normalization-alias-hardening.md`
+- PR4 market hygiene hardening completed (strict Entain + Punterstech scope):
+  - Added sport-aware matcher market allow/deny policy in both platform scrapers
+  - Enforced deterministic market shapes:
+    - soccer: `home/draw/away`
+    - nba/nhl/boxing/nbl: `home/away`
+  - Enforced matcher `selection_key` hygiene (`home/away/draw` only; no `other`)
+  - Added focused regression tests for market allow/deny, market shape, and selection-key stability:
+    - `apps/worker/tests/test_punterstech_scraper.py`
+    - `apps/worker/tests/test_validation.py` (Entain-focused hygiene tests)
+  - Generated PR4 evidence artifacts:
+    - `market_hygiene_before_pr4.json`
+    - `market_hygiene_after_pr4.json`
+    - `market_hygiene_mismatch_summary_pr4.json`
+    - `market_hygiene_mismatch_summary_pr4.md`
+    - `market_hygiene_db_query_outputs_pr4.md`
+    - `validation_live_epl_pr4.json`, `validation_live_nba_pr4.json`, `validation_live_nhl_pr4.json`, `validation_live_boxing_pr4.json`, `validation_live_nbl_pr4.json`
+    - `priority_competition_summary_table_live_pr4.json`, `priority_competition_summary_table_live_pr4.md`
+  - Ran one-time stale-row cleanup for priority competitions to retire pre-hardening invalid current matcher rows
+- Added decision record `ADR-0010-market-hygiene-selection-key-enforcement.md`
 - Validation executed:
   - `pytest apps/worker/tests/test_punterstech_scraper.py -q` (pass)
-  - `pytest apps/worker/tests/test_validation.py -q` (pass, now 36 tests)
+  - `pytest apps/worker/tests/test_validation.py -q` (pass, now 55 tests)
   - `pytest apps/api/tests/test_bookmaker_freeze.py -q` with `PYTHONPATH=apps/api/src` (pass)
   - `pytest apps/worker/tests/test_entain_scraper.py -q` (expected fail; file not present yet, scheduled for PR5)
 
@@ -59,12 +195,13 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - `ADR-0007`: enforce Phase A Unibet freeze at runtime and plan exposure layers (not seed-only) to prevent accidental re-enable during hardening
 - `ADR-0008`: validation coverage/probability comparisons must use eligible reference fixture windows, with `SKIP`/`N_A` semantics when none are eligible
 - `ADR-0009`: priority competition normalization should be centralized and side-normalized to reduce cross-platform alias drift
+- `ADR-0010`: enforce fixture-market hygiene + deterministic selection-key policy in Entain/Punterstech scrapers and retire stale invalid current rows
 
 ### Blockers
 - Pre-existing dirty worktree with unrelated changes; PR1 work is being kept isolated to freeze-only files
 
 ### Next Steps
-- PR4: market hygiene hardening (Entain + Punterstech) + tests
+- PR5: Entain parity suite (`apps/worker/tests/test_entain_scraper.py`)
 
 ## 2026-02-01 (Sunday)
 

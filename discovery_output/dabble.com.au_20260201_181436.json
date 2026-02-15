@@ -1,0 +1,93 @@
+{
+  "bookmaker": "dabble.com.au",
+  "base_url": "https://www.dabble.com.au",
+  "sport_paths": [
+    "/sports/soccer"
+  ],
+  "timestamp": "2026-02-01T18:14:36.043627",
+  "endpoints_captured": 3,
+  "unique_endpoints": 3,
+  "endpoints": {
+    "/pixels/t2_gczvt0f8/config": {
+      "full_url": "https://pixel-config.reddit.com/pixels/t2_gczvt0f8/config",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "aam"
+      ],
+      "response_size": 11,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/v1/config/e039bb2aebfe456d8dc4de5ee90e95aa": {
+      "full_url": "https://pixels.spotify.com/v1/config/e039bb2aebfe456d8dc4de5ee90e95aa",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "pixelId",
+        "aamFields"
+      ],
+      "response_size": 64,
+      "sports_where_found": [
+        "soccer"
+      ]
+    },
+    "/v1/ingest": {
+      "full_url": "https://pixels.spotify.com/v1/ingest",
+      "method": "POST",
+      "status": 200,
+      "content_type": "application/json",
+      "sample_keys": [
+        "response"
+      ],
+      "response_size": 48,
+      "sports_where_found": [
+        "soccer"
+      ]
+    }
+  },
+  "odds_endpoints": [],
+  "endpoints_by_sport": {
+    "soccer": [
+      "/pixels/t2_gczvt0f8/config",
+      "/v1/config/e039bb2aebfe456d8dc4de5ee90e95aa",
+      "/v1/ingest"
+    ]
+  },
+  "sample_responses": [
+    {
+      "url": "https://pixel-config.reddit.com/pixels/t2_gczvt0f8/config",
+      "endpoint": "/pixels/t2_gczvt0f8/config",
+      "sport": "soccer",
+      "status": 200,
+      "size": 11,
+      "sample": {
+        "aam": {}
+      }
+    },
+    {
+      "url": "https://pixels.spotify.com/v1/config/e039bb2aebfe456d8dc4de5ee90e95aa",
+      "endpoint": "/v1/config/e039bb2aebfe456d8dc4de5ee90e95aa",
+      "sport": "soccer",
+      "status": 200,
+      "size": 64,
+      "sample": {
+        "pixelId": "e039bb2aebfe456d8dc4de5ee90e95aa",
+        "aamFields": []
+      }
+    },
+    {
+      "url": "https://pixels.spotify.com/v1/ingest",
+      "endpoint": "/v1/ingest",
+      "sport": "soccer",
+      "status": 200,
+      "size": 48,
+      "sample": {
+        "response": "e039bb2aebfe456d8dc4de5ee90e95aa"
+      }
+    }
+  ]
+}

@@ -61,7 +61,7 @@ class OddsPersistence:
             events_start = time.time()
 
             # OPTIMIZATION: Batch process all events together instead of one-by-one
-            all_selection_ids = []
+            affected_event_ids: Set[int] = set()
             all_odds_to_upsert = []
 
             # Calculate timestamp_bucket (floor to nearest 5 minutes for deduplication)
@@ -79,6 +79,7 @@ class OddsPersistence:
                     # Save event and get database ID
                     event_save_start = time.time()
                     event = self._save_event(scraped_event)
+                    affected_event_ids.add(event.id)
                     stats["events_saved"] += 1
 
                     # Prepare odds for batch upsert (don't insert yet)
@@ -87,7 +88,6 @@ class OddsPersistence:
                             market = self._get_or_create_market(event, scraped_odds)
                             selection = self._get_or_create_selection(market, scraped_odds)
 
-                            all_selection_ids.append(selection.id)
                             all_odds_to_upsert.append({
                                 "selection_id": selection.id,
                                 "bookmaker_id": bookmaker.id,
@@ -117,11 +117,18 @@ class OddsPersistence:
                 from sqlalchemy.dialects.postgresql import insert
                 upsert_start = time.time()
 
-                # First, mark old odds as not current (for same bookmaker/selection)
-                if all_selection_ids:
+                # First, clear stale current odds for this bookmaker across all
+                # affected events (event-level hygiene for market shape changes).
+                if affected_event_ids:
+                    selection_ids_for_events = select(Selection.id).join(
+                        Market, Selection.market_id == Market.id
+                    ).where(
+                        Market.event_id.in_(list(affected_event_ids))
+                    )
+
                     self.db.execute(
                         delete(OddsSnapshot).where(
-                            OddsSnapshot.selection_id.in_(all_selection_ids),
+                            OddsSnapshot.selection_id.in_(selection_ids_for_events),
                             OddsSnapshot.bookmaker_id == bookmaker.id,
                             OddsSnapshot.is_current == True
                         )

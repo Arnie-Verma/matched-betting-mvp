@@ -189,6 +189,7 @@ async def seed_bookmakers():
             "name": "Unibet",
             "display_name": "Unibet",
             "website_url": "https://www.unibet.com.au",
+            "is_active": False,  # Phase A freeze: keep disabled until hardening GO
             "default_source_type": SourceType.SCRAPE,
             "base_url": "https://www.unibet.com.au",
             "rate_limit_seconds": 5,
@@ -196,7 +197,8 @@ async def seed_bookmakers():
             "scraping_config": {
                 "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15",
                 "headers": {"Accept": "application/json, text/html"},
-                "requires_js": True
+                "requires_js": True,
+                "onboarding_frozen": True,
             }
         }
     ]

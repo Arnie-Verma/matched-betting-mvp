@@ -30,3 +30,155 @@
 
 Note:
 - `scripts/generate_live_validation_evidence.py` was used as a temporary helper and removed after artifact generation.
+
+# PR4 commands run (2026-02-12)
+
+1. Required regression suite runs:
+   - `pytest apps/worker/tests/test_punterstech_scraper.py -q` (PASS; 44 passed)
+   - `pytest apps/worker/tests/test_validation.py -q` (PASS; 55 passed)
+   - `pytest apps/worker/tests/test_entain_scraper.py -q` (expected fail; file not present yet, scheduled for PR5)
+
+2. Live refresh runs in Docker (priority sports):
+   - `docker exec mb_api sh -lc "cd /workspace/apps/api && PYTHONPATH=/workspace/apps/api/src:/workspace/apps/worker/src python ../worker/src/manual_scrape.py soccer"`
+   - `docker exec mb_api sh -lc "cd /workspace/apps/api && PYTHONPATH=/workspace/apps/api/src:/workspace/apps/worker/src python ../worker/src/manual_scrape.py basketball"`
+   - `docker exec mb_api sh -lc "cd /workspace/apps/api && PYTHONPATH=/workspace/apps/api/src:/workspace/apps/worker/src python ../worker/src/manual_scrape.py ice_hockey"`
+   - `docker exec mb_api sh -lc "cd /workspace/apps/api && PYTHONPATH=/workspace/apps/api/src:/workspace/apps/worker/src python ../worker/src/manual_scrape.py boxing"`
+
+3. Market-hygiene evidence generation:
+   - baseline snapshot (pre-refresh):
+     - `docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/api/src python - <<'PY' ... -> market_hygiene_before_pr4.json"`
+   - post-refresh snapshot:
+     - `docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/api/src python - <<'PY' ... -> market_hygiene_after_pr4.json"`
+   - comparison summary:
+     - local python script to write:
+       - `market_hygiene_mismatch_summary_pr4.json`
+       - `market_hygiene_mismatch_summary_pr4.md`
+
+4. One-time stale-row hygiene cleanup (Entain/Punterstech, priority comps, matcher markets):
+   - `docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/api/src python - <<'PY' ... UPDATE odds_snapshots SET is_current = FALSE WHERE id = ANY(:ids) ..."`
+   - result: disabled 2106 stale `is_current=true` rows that violated market policy/selection-key/shape.
+
+5. Live validation outputs regenerated (priority competitions):
+   - `validation_live_epl_pr4.json`
+   - `validation_live_nba_pr4.json`
+   - `validation_live_nhl_pr4.json`
+   - `validation_live_boxing_pr4.json`
+   - `validation_live_nbl_pr4.json`
+   - summary table artifacts:
+     - `priority_competition_summary_table_live_pr4.json`
+     - `priority_competition_summary_table_live_pr4.md`
+
+# PR5 commands run (2026-02-15)
+
+1. Entain parity suite command:
+   - `pytest apps/worker/tests/test_entain_scraper.py -q` (PASS; 24 passed)
+
+2. Required regression commands:
+   - `pytest apps/worker/tests/test_punterstech_scraper.py -q` (PASS; 44 passed)
+   - `pytest apps/worker/tests/test_validation.py -q` (PASS; 55 passed)
+
+# PR6 commands run (2026-02-15)
+
+1. Re-run required regression suite after validation stabilization changes:
+   - `pytest apps/worker/tests/test_entain_scraper.py -q` (PASS; 24 passed)
+   - `pytest apps/worker/tests/test_punterstech_scraper.py -q` (PASS; 44 passed)
+   - `pytest apps/worker/tests/test_validation.py -q` (PASS; 55 passed)
+
+2. Regenerated live validation outputs (priority competitions):
+   - `validation_live_epl_pr6.json`
+   - `validation_live_nba_pr6.json`
+   - `validation_live_nhl_pr6.json`
+   - `validation_live_boxing_pr6.json`
+   - `validation_live_nbl_pr6.json`
+
+3. Generated PR6 reason breakdown + reduction summaries:
+   - `pr6_baseline_reason_breakdown.json`
+   - `pr6_baseline_reason_breakdown.md`
+   - `pr6_reason_breakdown_after.json`
+   - `pr6_reason_breakdown_after.md`
+   - `pr6_fail_warn_reduction_summary.json`
+   - `pr6_fail_warn_reduction_summary.md`
+   - `priority_competition_summary_table_live_pr6.json`
+   - `priority_competition_summary_table_live_pr6.md`
+
+# PR6.1 commands run (2026-02-15)
+
+1. Re-run required regression suite after NBL scope policy changes:
+   - `pytest apps/worker/tests/test_entain_scraper.py -q` (PASS; 24 passed)
+   - `pytest apps/worker/tests/test_punterstech_scraper.py -q` (PASS; 44 passed)
+   - `pytest apps/worker/tests/test_validation.py -q` (PASS; 60 passed)
+
+2. Generate live validation evidence (Docker DB-backed):
+   - `docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/worker/src:/workspace/apps/api/src python -m scripts.generate_phase_a_validation_evidence --suffix pr6_1"`
+   - Output artifacts:
+     - `validation_live_epl_pr6_1.json`
+     - `validation_live_nba_pr6_1.json`
+     - `validation_live_nhl_pr6_1.json`
+     - `validation_live_boxing_pr6_1.json`
+     - `validation_live_nbl_pr6_1.json`
+     - `priority_competition_summary_table_live_pr6_1.json`
+     - `priority_competition_summary_table_live_pr6_1.md`
+     - `pr6_1_reason_breakdown_after.json`
+     - `pr6_1_reason_breakdown_after.md`
+     - `pr6_1_fail_warn_reduction_summary.json`
+     - `pr6_1_fail_warn_reduction_summary.md`
+
+3. Local canary gate run (30+ minutes, 10-20 cycles):
+   - `docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/worker/src:/workspace/apps/api/src python -m scripts.run_phase_a_canary --min-duration-seconds 1800 --min-cycles 10 --max-cycles 20 --sleep-seconds 0 --sports-cycle soccer basketball ice_hockey boxing --output-prefix phase_a_canary_pr6_1"`
+   - Output artifacts:
+     - `phase_a_canary_pr6_1.json`
+     - `phase_a_canary_pr6_1.md`
+     - `phase_a_canary_pr6_1_interim.json`
+
+4. DB evidence query outputs:
+   - `docs/evidence/phase-a-hardening/2026-02-11/pr6_1_db_query_outputs.md`
+
+5. Final phase gate report:
+   - `docs/evidence/phase-a-hardening/2026-02-11/phase_a_go_no_go_pr6_1.md`
+
+# PR7 commands run (2026-02-15)
+
+1. Required regression suite runs after PR7 code changes:
+   - `pytest apps/worker/tests/test_entain_scraper.py -q` (PASS; 25 passed)
+   - `pytest apps/worker/tests/test_punterstech_scraper.py -q` (PASS; 47 passed)
+   - `pytest apps/worker/tests/test_validation.py -q` (PASS; 62 passed)
+
+2. Live refresh runs in Docker for PR7 remediation verification:
+   - `docker exec mb_api sh -lc "cd /workspace/apps/api && PYTHONPATH=/workspace/apps/api/src:/workspace/apps/worker/src python ../worker/src/manual_scrape.py soccer"`
+   - `docker exec mb_api sh -lc "cd /workspace/apps/api && PYTHONPATH=/workspace/apps/api/src:/workspace/apps/worker/src python ../worker/src/manual_scrape.py boxing"`
+
+3. Failure decomposition matrix generation (PR6.1 fail baseline):
+   - `docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/worker/src:/workspace/apps/api/src python -m scripts.generate_pr7_failure_matrix --source-json pr6_1_reason_breakdown_after.json --output-prefix pr7_failure_decomposition_matrix"`
+   - Output:
+     - `pr7_failure_decomposition_matrix.json`
+     - `pr7_failure_decomposition_matrix.md`
+
+4. Live validation evidence generation for PR7:
+   - `docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/worker/src:/workspace/apps/api/src python -m scripts.generate_phase_a_validation_evidence --suffix pr7 --baseline-file pr6_1_reason_breakdown_after.json"`
+   - Output:
+     - `validation_live_epl_pr7.json`
+     - `validation_live_nba_pr7.json`
+     - `validation_live_nhl_pr7.json`
+     - `validation_live_boxing_pr7.json`
+     - `validation_live_nbl_pr7.json`
+     - `priority_competition_summary_table_live_pr7.json`
+     - `priority_competition_summary_table_live_pr7.md`
+     - `pr7_reason_breakdown_after.json`
+     - `pr7_reason_breakdown_after.md`
+     - `pr7_fail_warn_reduction_summary.json`
+     - `pr7_fail_warn_reduction_summary.md`
+
+5. Local canary gate rerun for PR7:
+   - `docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/worker/src:/workspace/apps/api/src python -m scripts.run_phase_a_canary --min-duration-seconds 1800 --min-cycles 10 --max-cycles 20 --sleep-seconds 0 --sports-cycle soccer basketball ice_hockey boxing --output-prefix phase_a_canary_pr7"`
+   - Output:
+     - `phase_a_canary_pr7.json`
+     - `phase_a_canary_pr7.md`
+
+6. PR7 DB evidence queries:
+   - `docs/evidence/phase-a-hardening/2026-02-11/pr7_db_query_outputs.md`
+
+7. PR7 phase gate report:
+   - `docs/evidence/phase-a-hardening/2026-02-11/phase_a_go_no_go_pr7.md`
+
+8. Final post-canary validation artifact refresh:
+   - `docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/worker/src:/workspace/apps/api/src python -m scripts.generate_phase_a_validation_evidence --suffix pr7 --baseline-file pr6_1_reason_breakdown_after.json"`
