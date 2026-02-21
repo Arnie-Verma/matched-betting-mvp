@@ -902,6 +902,7 @@ class TestValidationConfig:
         assert config.get_bookmaker_competition_scope("ladbrokes", "boxing") == "in_scope"
         assert config.get_bookmaker_competition_scope("betblitz", "boxing") == "out_of_scope"
         assert config.get_bookmaker_competition_scope("betblitz", "nbl") == "out_of_scope"
+        assert config.get_bookmaker_competition_scope("betreal", "nbl") == "out_of_scope"
         assert config.get_bookmaker_competition_scope("starsports", "nbl") == "out_of_scope"
         assert config.get_bookmaker_competition_scope("mintbet", "nbl") == "in_scope"
 
@@ -1218,6 +1219,38 @@ class TestValidationIntegration:
         result = pipeline.validate_scrape_results(scrape_results=scrape_results, competition="nbl")
 
         assert result.bookmaker_results["betblitz"].status == "SKIP"
+        assert result.report.fail_count == 0
+        assert result.report.skip_count == 1
+        assert result.has_failures is False
+
+    def test_pipeline_betreal_nbl_zero_event_is_skip_and_not_failure(self):
+        """Betreal NBL zero-event windows are out-of-scope SKIP (policy drift guard)."""
+        config = ValidationConfig(
+            expected_events={"nbl": {"min": 0, "max": 20, "typical": 8}}
+        )
+        pipeline = ValidationPipeline(config)
+
+        scrape_results = {
+            "ladbrokes": build_scrape_result(
+                "ladbrokes",
+                "nbl",
+                [
+                    {
+                        "name": "Sydney Kings v Tasmania JackJumpers",
+                        "sport": "basketball",
+                        "selections": [
+                            {"selection_key": "home", "selection_name": "Sydney Kings", "decimal_odds": "1.80"},
+                            {"selection_key": "away", "selection_name": "Tasmania JackJumpers", "decimal_odds": "2.05"},
+                        ],
+                    },
+                ],
+            ),
+            "betreal": build_scrape_result("betreal", "nbl", []),
+        }
+
+        result = pipeline.validate_scrape_results(scrape_results=scrape_results, competition="nbl")
+
+        assert result.bookmaker_results["betreal"].status == "SKIP"
         assert result.report.fail_count == 0
         assert result.report.skip_count == 1
         assert result.has_failures is False

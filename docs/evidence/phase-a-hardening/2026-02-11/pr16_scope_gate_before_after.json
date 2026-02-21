@@ -1,0 +1,27 @@
+{
+  "issue": "nbl_betreal_in_scope_fail_drift",
+  "classification": "policy_drift",
+  "before": {
+    "artifact": "docs/evidence/phase-a-hardening/2026-02-11/pr15_live_canary_runtime.json",
+    "duration_seconds": 3886.73353433609,
+    "cycles_completed": 21,
+    "in_scope_fail_cycle_count": 21,
+    "nbl_betreal_in_scope_fail_rows": 21
+  },
+  "after": {
+    "artifact": "docs/evidence/phase-a-hardening/2026-02-11/pr16_scope_gate_canary.json",
+    "duration_seconds": 2157.831784248352,
+    "cycles_completed": 10,
+    "in_scope_fail_cycle_count": 0,
+    "nbl_betreal_in_scope_fail_rows": 0
+  },
+  "delta": {
+    "in_scope_fail_cycle_count": -21,
+    "nbl_betreal_in_scope_fail_rows": -21
+  },
+  "acceptance": {
+    "root_cause_classified": true,
+    "post_fix_issue_in_scope_fail_cycle_count_zero": true,
+    "note": "Overall canary gate may still fail on non-scope criteria (e.g., latency thresholds)."
+  }
+}

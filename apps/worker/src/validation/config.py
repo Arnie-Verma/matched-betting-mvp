@@ -243,7 +243,7 @@ BOOKMAKER_COMPETITION_COVERAGE_POLICY: Dict[str, Dict[str, Set[str]]] = {
     "nbl": {
         # Punterstech-derived books currently not in scope for NBL coverage.
         # Keep this explicit so 0-event windows are classified as SKIP, not FAIL.
-        "out_of_scope": {"betblitz", "starsports", "truebet", "wizbet"},
+        "out_of_scope": {"betblitz", "betreal", "starsports", "truebet", "wizbet"},
     },
 }
 
