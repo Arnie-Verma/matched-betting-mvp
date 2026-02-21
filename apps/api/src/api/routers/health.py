@@ -22,6 +22,11 @@ from sqlalchemy import func, text
 from api.core.auth import UserClaims, optional_user
 from api.core.database import get_db
 from api.models import OddsSnapshot, Bookmaker, Event
+from api.services.observability_service import (
+    ObservabilityThresholds,
+    build_observability_report,
+    emit_observability_event,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +61,25 @@ def require_scraper_health_access(
     internal_token = os.getenv("HEALTH_SCRAPERS_INTERNAL_TOKEN")
     provided_token = request.headers.get("x-internal-health-token")
     if internal_token and provided_token and secrets.compare_digest(provided_token, internal_token):
+        emit_observability_event(
+            category="security",
+            metric_name="access_decision",
+            source="api",
+            endpoint=request.url.path,
+            action_type="scraper_health_access_allowed",
+            payload={"mode": "internal_token"},
+        )
         return {"mode": "internal_token"}
 
     if not claims:
+        emit_observability_event(
+            category="security",
+            metric_name="access_decision",
+            source="api",
+            endpoint=request.url.path,
+            action_type="scraper_health_access_denied",
+            payload={"reason": "unauthenticated"},
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized: /health/scrapers requires auth or internal token",
@@ -74,11 +95,27 @@ def require_scraper_health_access(
         if allowed_roles:
             user_roles = _extract_roles(claims)
             if user_roles.isdisjoint(allowed_roles):
+                emit_observability_event(
+                    category="security",
+                    metric_name="access_decision",
+                    source="api",
+                    endpoint=request.url.path,
+                    action_type="scraper_health_access_denied",
+                    payload={"reason": "role_denied", "allowed_roles": sorted(allowed_roles)},
+                )
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Forbidden: insufficient role for /health/scrapers",
                 )
 
+    emit_observability_event(
+        category="security",
+        metric_name="access_decision",
+        source="api",
+        endpoint=request.url.path,
+        action_type="scraper_health_access_allowed",
+        payload={"mode": "authenticated", "sub": claims.sub},
+    )
     return {"mode": "authenticated", "sub": claims.sub}
 
 
@@ -319,3 +356,20 @@ async def detailed_health(
         database=database,
         environment=os.getenv("ENVIRONMENT", "development")
     )
+
+
+@router.get("/health/telemetry")
+async def telemetry_health(
+    hours: int = 24,
+    limit: int = 5000,
+    _access: dict = Depends(require_scraper_health_access),
+):
+    """
+    Return observability summary + threshold evaluation for a trailing window.
+    """
+    report = build_observability_report(
+        hours=max(1, int(hours)),
+        limit=max(100, int(limit)),
+        thresholds=ObservabilityThresholds.from_env(),
+    )
+    return report

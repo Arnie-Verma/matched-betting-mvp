@@ -237,3 +237,29 @@ def test_matcher_hot_path_query_count_is_bounded(matcher_fixture):
     assert payload["total"] > 0
     # With preloading we expect fixed query behavior, not per-event/per-market growth.
     assert len(statements) <= 12
+
+
+def test_matcher_emits_latency_and_query_signal_metrics(matcher_fixture, monkeypatch):
+    _seed_matcher_data(matcher_fixture["session_factory"], event_count=10)
+    emitted = []
+
+    def fake_emit(**kwargs):
+        emitted.append(kwargs)
+        return "1-1"
+
+    monkeypatch.setattr("api.routers.odds_matcher.emit_observability_event", fake_emit)
+
+    response = matcher_fixture["client"].get("/odds/matcher?limit=10&offset=0")
+    assert response.status_code == 200
+
+    matcher_events = [
+        event
+        for event in emitted
+        if event.get("metric_name") == "matcher_request"
+    ]
+    assert matcher_events, "Expected matcher_request observability event"
+    payload = matcher_events[-1]["payload"]
+    assert "latency_ms" in payload
+    assert payload["latency_ms"] >= 0
+    assert "query_round_trip_signal" in payload
+    assert payload["query_round_trip_signal"] >= 1

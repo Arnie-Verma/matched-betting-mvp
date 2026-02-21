@@ -53,6 +53,11 @@ def test_refresh_status_enforces_owner_or_explicit_shared_access(tmp_path, monke
     client, SessionLocal, engine = _build_client(tmp_path)
     fake_redis = _FakeRedis()
     monkeypatch.setattr("redis.from_url", lambda *_args, **_kwargs: fake_redis)
+    emitted = []
+    monkeypatch.setattr(
+        "api.routers.odds_matcher.emit_observability_event",
+        lambda **kwargs: emitted.append(kwargs) or "1-1",
+    )
 
     current_sub = {"value": "owner-user"}
 
@@ -96,6 +101,11 @@ def test_refresh_status_enforces_owner_or_explicit_shared_access(tmp_path, monke
         current_sub["value"] = "other-user"
         response = client.get("/odds/refresh/status?job_id=job-owner-only")
         assert response.status_code == 403
+        denied = [
+            event for event in emitted
+            if event.get("action_type") == "refresh_status_acl_denied"
+        ]
+        assert denied
 
         current_sub["value"] = "owner-user"
         response = client.get("/odds/refresh/status?job_id=job-owner-only")
@@ -124,10 +134,20 @@ def test_refresh_status_enforces_owner_or_explicit_shared_access(tmp_path, monke
 def test_health_scrapers_requires_authentication(tmp_path, monkeypatch):
     client, SessionLocal, engine = _build_client(tmp_path)
     monkeypatch.delenv("HEALTH_SCRAPERS_INTERNAL_TOKEN", raising=False)
+    emitted = []
+    monkeypatch.setattr(
+        "api.routers.health.emit_observability_event",
+        lambda **kwargs: emitted.append(kwargs) or "1-1",
+    )
 
     try:
         response = client.get("/health/scrapers")
         assert response.status_code in (401, 403)
+        denied = [
+            event for event in emitted
+            if event.get("action_type") == "scraper_health_access_denied"
+        ]
+        assert denied
     finally:
         app.dependency_overrides.clear()
         close_all_sessions()

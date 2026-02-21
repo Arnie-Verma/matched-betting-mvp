@@ -30,6 +30,7 @@ from scrapers.base import BaseScraper, ScrapeResult, ScraperStatus
 from jobs.save_odds import save_scrape_result_to_db
 from jobs.cleanup_service import CleanupService
 from api.core.bookmaker_freeze import is_bookmaker_frozen
+from api.services.observability_service import emit_observability_event
 
 # Optional validation integration
 try:
@@ -104,6 +105,7 @@ class ScrapeService:
 
         # Cache for dynamically created scrapers
         self._dynamic_scrapers: Dict[str, BaseScraper] = {}
+        self._bookmaker_platform_codes: Dict[str, str] = {}
 
         self.redis_client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
         self.breaker_threshold = int(os.getenv("BOOKMAKER_BREAKER_THRESHOLD", "5"))
@@ -124,6 +126,20 @@ class ScrapeService:
         # Validation settings
         self.validation_enabled = os.getenv("VALIDATION_ENABLED", "false").lower() == "true"
         self._validation_pipeline = None
+
+    @staticmethod
+    def _percentile(values: List[float], percentile: float) -> float:
+        if not values:
+            return 0.0
+        if len(values) == 1:
+            return float(values[0])
+        ordered = sorted(values)
+        percentile = min(max(percentile, 0.0), 1.0)
+        position = (len(ordered) - 1) * percentile
+        lower_index = int(position)
+        upper_index = min(lower_index + 1, len(ordered) - 1)
+        weight = position - lower_index
+        return float(ordered[lower_index] * (1.0 - weight) + ordered[upper_index] * weight)
 
     @staticmethod
     def _read_positive_int(env_name: str, fallback: int) -> int:
@@ -271,6 +287,7 @@ class ScrapeService:
 
                     # Only include if we have a scraper for this platform
                     if scraper_class in SCRAPER_CLASSES:
+                        self._bookmaker_platform_codes[bm.code] = str(scraper_class)
                         result.append({
                             "code": bm.code,
                             "name": bm.name,
@@ -290,6 +307,8 @@ class ScrapeService:
         except Exception as e:
             logger.warning(f"Could not load bookmakers from DB, using static list: {e}")
             # Fallback to static scrapers
+            self._bookmaker_platform_codes["betfair"] = "betfair"
+            self._bookmaker_platform_codes["ladbrokes"] = "entain"
             return [
                 {"code": "betfair", "base_url": "https://www.betfair.com.au", "scraping_config": {"scraper_class": "betfair"}},
                 {"code": "ladbrokes", "base_url": "https://www.ladbrokes.com.au", "scraping_config": {"scraper_class": "entain"}},
@@ -305,6 +324,7 @@ class ScrapeService:
 
     def _set_breaker_state(self, bookmaker_code: str, state: str, failures: int = 0):
         """Update circuit breaker state in Redis."""
+        previous_state = self._get_breaker_state(bookmaker_code).get("state", "closed")
         breaker_key = f"breaker:{bookmaker_code}"
         breaker_data = {
             "state": state,
@@ -313,6 +333,21 @@ class ScrapeService:
         }
         ttl = self.breaker_cooldown + 60  # Extra buffer for cooldown
         self.redis_client.setex(breaker_key, ttl, json.dumps(breaker_data))
+
+        if previous_state != state:
+            emit_observability_event(
+                category="scrape_reliability",
+                metric_name="breaker_transition",
+                source="worker",
+                bookmaker_code=bookmaker_code,
+                platform_code=self._bookmaker_platform_codes.get(bookmaker_code),
+                action_type="breaker_state_transition",
+                payload={
+                    "from_state": previous_state,
+                    "to_state": state,
+                    "failures": int(failures),
+                },
+            )
 
     def _record_success(self, bookmaker_code: str):
         """Record successful scrape - reset circuit breaker."""
@@ -912,21 +947,104 @@ class ScrapeService:
         all_errors = []
         success_count = 0
         bookmaker_results = []
+        scrape_durations: List[float] = []
+        platform_outcomes: Dict[str, Dict[str, int]] = {}
 
         for bookmaker, result in zip(active_bookmaker_codes, results):
             bookmaker_results.append(result)
+            platform_code = self._bookmaker_platform_codes.get(bookmaker, "unknown")
+            platform_bucket = platform_outcomes.setdefault(
+                platform_code,
+                {"success": 0, "failure": 0},
+            )
 
             if result.get("success"):
                 success_count += 1
+                platform_bucket["success"] += 1
+            else:
+                platform_bucket["failure"] += 1
 
             total_events += result.get("events_scraped", 0)
             total_odds += result.get("odds_scraped", 0)
             total_saved += result.get("odds_saved", 0)
+            duration_seconds = result.get("scrape_duration_seconds")
+            if duration_seconds is None:
+                duration_seconds = result.get("duration_seconds")
+            if duration_seconds is not None:
+                try:
+                    scrape_durations.append(float(duration_seconds))
+                except (TypeError, ValueError):
+                    pass
 
             # Collect errors
             result_errors = result.get("errors", [])
             if result_errors:
                 all_errors.extend([f"{bookmaker}: {e}" for e in result_errors])
+
+            emit_observability_event(
+                category="scrape_reliability",
+                metric_name="scrape_bookmaker_result",
+                source="worker",
+                bookmaker_code=bookmaker,
+                platform_code=platform_code,
+                action_type="bookmaker_scrape_result",
+                payload={
+                    "success": bool(result.get("success")),
+                    "events_scraped": int(result.get("events_scraped", 0) or 0),
+                    "odds_scraped": int(result.get("odds_scraped", 0) or 0),
+                    "odds_saved": int(result.get("odds_saved", 0) or 0),
+                    "scrape_duration_seconds": result.get("scrape_duration_seconds"),
+                    "duration_seconds": result.get("duration_seconds"),
+                    "error": result.get("error"),
+                },
+            )
+
+        total_bookmakers = len(active_bookmaker_codes)
+        failure_count = max(0, total_bookmakers - success_count)
+        scrape_success_rate = (success_count / total_bookmakers) if total_bookmakers else 0.0
+        open_breaker_count = sum(
+            1
+            for code in active_bookmaker_codes
+            if str(self._get_breaker_state(code).get("state", "closed")).lower() == "open"
+        )
+        scrape_duration_p95 = self._percentile(scrape_durations, 0.95) if scrape_durations else 0.0
+
+        emit_observability_event(
+            category="scheduler",
+            metric_name="scrape_scheduler_cycle",
+            source="worker",
+            action_type="bounded_scheduler_cycle",
+            payload={
+                "configured_global_cap": int(self.global_scrape_concurrency_cap),
+                "configured_platform_default_cap": int(self.platform_default_concurrency_cap),
+                "configured_platform_caps": dict(self.platform_concurrency_caps),
+                "observed_max_in_flight_global": int(
+                    scheduler_metrics.get("observed_max_in_flight_global", 0) or 0
+                ),
+                "observed_max_in_flight_by_platform": scheduler_metrics.get(
+                    "observed_max_in_flight_by_platform", {}
+                ),
+                "effective_global_cap": int(scheduler_metrics.get("global_cap", 0) or 0),
+                "effective_platform_caps": scheduler_metrics.get("platform_caps", {}),
+                "total_scheduled": int(scheduler_metrics.get("total_scheduled", 0) or 0),
+                "cycle_duration_seconds": float(parallel_duration),
+            },
+        )
+        emit_observability_event(
+            category="scrape_reliability",
+            metric_name="scrape_reliability_cycle",
+            source="worker",
+            action_type="scrape_cycle_summary",
+            payload={
+                "total_bookmakers": total_bookmakers,
+                "success_count": success_count,
+                "failure_count": failure_count,
+                "scrape_success_rate": scrape_success_rate,
+                "open_breaker_count": open_breaker_count,
+                "scrape_duration_p95_seconds": scrape_duration_p95,
+                "platform_outcomes": platform_outcomes,
+            },
+        )
 
         # Run cleanup after successful scrape (Phase 3 optimization)
         cleanup_result = None
@@ -966,7 +1084,7 @@ class ScrapeService:
         return {
             "success": success_count > 0,
             "bookmakers_scraped": success_count,
-            "total_bookmakers": len(active_bookmaker_codes),
+            "total_bookmakers": total_bookmakers,
             "events_scraped": total_events,
             "odds_scraped": total_odds,
             "odds_saved": total_saved,

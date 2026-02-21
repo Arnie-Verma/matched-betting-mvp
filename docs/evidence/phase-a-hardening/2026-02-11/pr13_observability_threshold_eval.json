@@ -1,0 +1,129 @@
+{
+  "slice": "PR-O1",
+  "generated_at": "2026-02-21T07:25:11.053894+00:00",
+  "threshold_settings": {
+    "scrape_success_rate_min": 0.75,
+    "scrape_p95_seconds_max": 360.0,
+    "open_breaker_cycle_count_max": 0,
+    "matcher_p95_ms_max": 400.0,
+    "acl_denied_rate_max": 0.1,
+    "enforce_acl_denied_rate": false
+  },
+  "baseline_evaluation": {
+    "schema_version": "observability.thresholds.v1",
+    "evaluated_at": "2026-02-21T07:25:11.053144+00:00",
+    "thresholds": {
+      "scrape_success_rate_min": 0.75,
+      "scrape_p95_seconds_max": 360.0,
+      "open_breaker_cycle_count_max": 0,
+      "matcher_p95_ms_max": 400.0,
+      "acl_denied_rate_max": 0.1,
+      "enforce_acl_denied_rate": false
+    },
+    "criteria": [
+      {
+        "name": "scrape_success_rate_min",
+        "description": "Minimum scrape success rate across bookmaker result events.",
+        "threshold": 0.75,
+        "observed": 0.9375,
+        "pass": true,
+        "enforced": true
+      },
+      {
+        "name": "scrape_p95_seconds_max",
+        "description": "Maximum p95 scrape duration from emitted scrape result durations.",
+        "threshold": 360.0,
+        "observed": 296.0,
+        "pass": true,
+        "enforced": true
+      },
+      {
+        "name": "open_breaker_cycle_count_max",
+        "description": "Maximum number of reliability cycles with open breakers.",
+        "threshold": 0,
+        "observed": 0,
+        "pass": true,
+        "enforced": true
+      },
+      {
+        "name": "matcher_p95_ms_max",
+        "description": "Maximum p95 matcher latency in milliseconds.",
+        "threshold": 400.0,
+        "observed": 280.0,
+        "pass": true,
+        "enforced": true
+      },
+      {
+        "name": "acl_denied_rate_max",
+        "description": "Maximum denied access rate for protected security endpoints.",
+        "threshold": 0.1,
+        "observed": 0.058823529411764705,
+        "pass": true,
+        "enforced": false
+      }
+    ],
+    "overall_pass": true,
+    "failure_reasons": []
+  },
+  "stressed_evaluation": {
+    "schema_version": "observability.thresholds.v1",
+    "evaluated_at": "2026-02-21T07:25:11.053825+00:00",
+    "thresholds": {
+      "scrape_success_rate_min": 0.75,
+      "scrape_p95_seconds_max": 360.0,
+      "open_breaker_cycle_count_max": 0,
+      "matcher_p95_ms_max": 400.0,
+      "acl_denied_rate_max": 0.1,
+      "enforce_acl_denied_rate": false
+    },
+    "criteria": [
+      {
+        "name": "scrape_success_rate_min",
+        "description": "Minimum scrape success rate across bookmaker result events.",
+        "threshold": 0.75,
+        "observed": 0.6,
+        "pass": false,
+        "enforced": true
+      },
+      {
+        "name": "scrape_p95_seconds_max",
+        "description": "Maximum p95 scrape duration from emitted scrape result durations.",
+        "threshold": 360.0,
+        "observed": 420.0,
+        "pass": false,
+        "enforced": true
+      },
+      {
+        "name": "open_breaker_cycle_count_max",
+        "description": "Maximum number of reliability cycles with open breakers.",
+        "threshold": 0,
+        "observed": 2,
+        "pass": false,
+        "enforced": true
+      },
+      {
+        "name": "matcher_p95_ms_max",
+        "description": "Maximum p95 matcher latency in milliseconds.",
+        "threshold": 400.0,
+        "observed": 520.0,
+        "pass": false,
+        "enforced": true
+      },
+      {
+        "name": "acl_denied_rate_max",
+        "description": "Maximum denied access rate for protected security endpoints.",
+        "threshold": 0.1,
+        "observed": 0.4,
+        "pass": false,
+        "enforced": false
+      }
+    ],
+    "overall_pass": false,
+    "failure_reasons": [
+      "scrape_success_rate_min failed (observed=0.6 threshold=0.75)",
+      "scrape_p95_seconds_max failed (observed=420.0 threshold=360.0)",
+      "open_breaker_cycle_count_max failed (observed=2 threshold=0)",
+      "matcher_p95_ms_max failed (observed=520.0 threshold=400.0)"
+    ]
+  }
+}

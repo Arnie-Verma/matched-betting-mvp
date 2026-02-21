@@ -18,6 +18,7 @@ from api.core.auth import get_current_user, UserClaims
 from api.models import User, Event, Market, Selection, OddsSnapshot, Bookmaker, Competition, Sport
 from api.services.matching_engine import MatchingEngine, BetType, BackBet, LayBet
 from api.services.subscription_service import SubscriptionService
+from api.services.observability_service import emit_observability_event
 from api.services.normalization_service import (
     normalize_event_name,
     normalize_competition_name,
@@ -100,10 +101,34 @@ def _authorize_refresh_status_access(job_status: Dict[str, Any], user_id: int) -
             allowed_ids.add(int(shared_id))
 
     if int(user_id) not in allowed_ids:
+        emit_observability_event(
+            category="security",
+            metric_name="access_decision",
+            source="api",
+            endpoint="/odds/refresh/status",
+            action_type="refresh_status_acl_denied",
+            payload={
+                "user_id": int(user_id),
+                "owner_user_id": int(requested_by) if requested_by is not None and str(requested_by).isdigit() else None,
+                "shared_user_count": len(shared_user_ids),
+            },
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden: refresh status is not accessible for this user",
         )
+    emit_observability_event(
+        category="security",
+        metric_name="access_decision",
+        source="api",
+        endpoint="/odds/refresh/status",
+        action_type="refresh_status_acl_allowed",
+        payload={
+            "user_id": int(user_id),
+            "owner_user_id": int(requested_by) if requested_by is not None and str(requested_by).isdigit() else None,
+            "shared_user_count": len(shared_user_ids),
+        },
+    )
 
 def _market_preference_rank(sport_code: str, market_name: str) -> int:
     """
@@ -194,8 +219,10 @@ def _load_precomputed_matcher_data(
             "selections_by_market_id": {},
             "selection_by_id": {},
             "odds_by_selection_id": {},
+            "query_round_trip_signal": 0,
         }
 
+    query_round_trip_signal = 0
     markets = (
         db.query(Market)
         .filter(
@@ -207,6 +234,7 @@ def _load_precomputed_matcher_data(
         )
         .all()
     )
+    query_round_trip_signal += 1
     market_ids = [market.id for market in markets]
     markets_by_event_id: Dict[int, List[Market]] = defaultdict(list)
     for market in markets:
@@ -218,6 +246,7 @@ def _load_precomputed_matcher_data(
             "selections_by_market_id": {},
             "selection_by_id": {},
             "odds_by_selection_id": {},
+            "query_round_trip_signal": query_round_trip_signal,
         }
 
     selections = (
@@ -226,6 +255,7 @@ def _load_precomputed_matcher_data(
         .filter(Selection.market_id.in_(market_ids))
         .all()
     )
+    query_round_trip_signal += 1
     selection_ids = [selection.id for selection in selections]
     selections_by_market_id: Dict[int, List[Selection]] = defaultdict(list)
     selection_by_id: Dict[int, Selection] = {}
@@ -239,6 +269,7 @@ def _load_precomputed_matcher_data(
             "selections_by_market_id": dict(selections_by_market_id),
             "selection_by_id": selection_by_id,
             "odds_by_selection_id": {},
+            "query_round_trip_signal": query_round_trip_signal,
         }
 
     bookmaker_codes = sorted(set((bookmaker_filter or []) + ["betfair"]))
@@ -255,6 +286,7 @@ def _load_precomputed_matcher_data(
         )
         .all()
     )
+    query_round_trip_signal += 1
     odds_by_selection_id: Dict[int, List[OddsSnapshot]] = defaultdict(list)
     for odds_row in odds_rows:
         odds_by_selection_id[odds_row.selection_id].append(odds_row)
@@ -264,6 +296,7 @@ def _load_precomputed_matcher_data(
         "selections_by_market_id": dict(selections_by_market_id),
         "selection_by_id": selection_by_id,
         "odds_by_selection_id": dict(odds_by_selection_id),
+        "query_round_trip_signal": query_round_trip_signal,
     }
 
 
@@ -611,6 +644,26 @@ async def get_matcher_opportunities(
 
     total_start = time.time()
     logger = logging.getLogger(__name__)
+    matcher_query_round_trip_signal = 0
+    total_count_for_metrics = 0
+    has_more_for_metrics = False
+
+    def _emit_matcher_metrics(status_code: int) -> None:
+        latency_ms = (time.time() - total_start) * 1000.0
+        emit_observability_event(
+            category="matcher_performance",
+            metric_name="matcher_request",
+            source="api",
+            endpoint="/odds/matcher",
+            action_type="matcher_request",
+            payload={
+                "status_code": int(status_code),
+                "latency_ms": round(latency_ms, 3),
+                "query_round_trip_signal": int(matcher_query_round_trip_signal),
+                "opportunities_total": int(total_count_for_metrics),
+                "has_more": bool(has_more_for_metrics),
+            },
+        )
 
     # Get or create user (auto-create on first access)
     user = db.query(User).filter(User.clerk_user_id == user_claims.sub).first()
@@ -686,6 +739,7 @@ async def get_matcher_opportunities(
 
     query_start = time.time()
     events = events_query.limit(500).all()
+    matcher_query_round_trip_signal += 1
     query_time = time.time() - query_start
     logger.info(f"[MATCHER] Events query took {query_time:.2f}s, found {len(events)} events")
 
@@ -707,6 +761,7 @@ async def get_matcher_opportunities(
             events = filtered_events
 
     if not events:
+        _emit_matcher_metrics(status_code=200)
         return PaginatedOddsResponse(
             items=[],
             total=0,
@@ -721,6 +776,7 @@ async def get_matcher_opportunities(
         event_ids=[event.id for event in events],
         bookmaker_filter=bookmaker_filter,
     )
+    matcher_query_round_trip_signal += int(preloaded.get("query_round_trip_signal", 0) or 0)
 
     markets_by_event_id: Dict[int, List[Market]] = preloaded["markets_by_event_id"]
     selections_by_market_id: Dict[int, List[Selection]] = preloaded["selections_by_market_id"]
@@ -927,6 +983,8 @@ async def get_matcher_opportunities(
     total_count = len(opportunities)
     paginated_opps = opportunities[offset:offset + limit]
     has_more = (offset + limit) < total_count
+    total_count_for_metrics = total_count
+    has_more_for_metrics = has_more
 
     # Compute caching headers
     last_modified_dt = None
@@ -943,6 +1001,7 @@ async def get_matcher_opportunities(
 
         if incoming_etag and incoming_etag == etag:
             response.status_code = 304
+            _emit_matcher_metrics(status_code=304)
             return PaginatedOddsResponse(
                 items=[],
                 total=total_count,
@@ -956,6 +1015,7 @@ async def get_matcher_opportunities(
                 if_last_mod_dt = parsedate_to_datetime(incoming_last_mod)
                 if last_modified_dt <= if_last_mod_dt:
                     response.status_code = 304
+                    _emit_matcher_metrics(status_code=304)
                     return PaginatedOddsResponse(
                         items=[],
                         total=total_count,
@@ -966,6 +1026,7 @@ async def get_matcher_opportunities(
             except Exception:
                 pass
 
+    _emit_matcher_metrics(status_code=200)
     return PaginatedOddsResponse(
         items=paginated_opps,
         total=total_count,

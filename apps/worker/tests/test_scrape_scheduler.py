@@ -185,6 +185,71 @@ async def test_scheduler_failure_isolation(monkeypatch, service):
     assert result["total_bookmakers"] == 3
 
 
+@pytest.mark.asyncio
+async def test_scheduler_emits_observability_metrics(monkeypatch, service):
+    service.global_scrape_concurrency_cap = 2
+    service.platform_default_concurrency_cap = 2
+    service.platform_concurrency_caps = {"entain": 1}
+    service._bookmaker_platform_codes = {
+        "ladbrokes": "entain",
+        "neds": "entain",
+    }
+
+    active = [
+        {"code": "ladbrokes", "scraping_config": {"scraper_class": "entain"}},
+        {"code": "neds", "scraping_config": {"scraper_class": "entain"}},
+    ]
+    monkeypatch.setattr(service, "get_active_bookmakers_from_db", lambda: active)
+    monkeypatch.setattr(
+        service,
+        "_get_breaker_state",
+        lambda _code: {"state": "closed", "failures": 0, "opened_at": None},
+    )
+
+    async def fake_scrape(bookmaker_code, sports=None, limit=None):
+        await asyncio.sleep(0.01)
+        return {
+            "bookmaker": bookmaker_code,
+            "success": bookmaker_code == "ladbrokes",
+            "events_scraped": 2,
+            "odds_scraped": 4,
+            "odds_saved": 4,
+            "scrape_duration_seconds": 0.5 if bookmaker_code == "ladbrokes" else 0.8,
+            "errors": [],
+        }
+
+    emitted = []
+
+    def fake_emit(**kwargs):
+        emitted.append(kwargs)
+        return "1-1"
+
+    monkeypatch.setattr(service, "scrape_bookmaker_all_sports", fake_scrape)
+    monkeypatch.setattr(scrape_service_module, "emit_observability_event", fake_emit)
+
+    await service.scrape_all_active_bookmakers(sport="all", limit=None)
+
+    by_metric = {}
+    for event in emitted:
+        by_metric.setdefault(event["metric_name"], []).append(event)
+
+    assert "scrape_scheduler_cycle" in by_metric
+    assert "scrape_reliability_cycle" in by_metric
+    assert "scrape_bookmaker_result" in by_metric
+
+    scheduler_payload = by_metric["scrape_scheduler_cycle"][0]["payload"]
+    assert "observed_max_in_flight_global" in scheduler_payload
+    assert "observed_max_in_flight_by_platform" in scheduler_payload
+    assert "configured_global_cap" in scheduler_payload
+    assert "configured_platform_caps" in scheduler_payload
+
+    reliability_payload = by_metric["scrape_reliability_cycle"][0]["payload"]
+    assert reliability_payload["total_bookmakers"] == 2
+    assert reliability_payload["success_count"] == 1
+    assert reliability_payload["failure_count"] == 1
+    assert reliability_payload["scrape_success_rate"] == 0.5
+
+
 def test_resolve_active_bookmakers_filters_frozen_codes(monkeypatch):
     class _FakeService:
         @staticmethod
