@@ -11,19 +11,75 @@ Provides:
 import os
 import json
 import logging
+import secrets
 from datetime import datetime, timezone
 from typing import Optional, List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
 
+from api.core.auth import UserClaims, optional_user
 from api.core.database import get_db
 from api.models import OddsSnapshot, Bookmaker, Event
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["health"])
+
+
+def _extract_roles(claims: UserClaims) -> set[str]:
+    raw = claims.raw_claims or {}
+    roles: set[str] = set()
+
+    for key in ("roles", "role"):
+        value = raw.get(key)
+        if isinstance(value, str) and value.strip():
+            roles.add(value.strip().lower())
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, str) and item.strip():
+                    roles.add(item.strip().lower())
+    return roles
+
+
+def require_scraper_health_access(
+    request: Request,
+    claims: Optional[UserClaims] = Depends(optional_user),
+) -> dict:
+    """
+    Access policy for /health/scrapers:
+    - allow authenticated users
+    - OR allow explicit internal token access (`X-Internal-Health-Token`)
+    - optional role restriction via `HEALTH_SCRAPERS_ALLOWED_ROLES`
+    """
+    internal_token = os.getenv("HEALTH_SCRAPERS_INTERNAL_TOKEN")
+    provided_token = request.headers.get("x-internal-health-token")
+    if internal_token and provided_token and secrets.compare_digest(provided_token, internal_token):
+        return {"mode": "internal_token"}
+
+    if not claims:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized: /health/scrapers requires auth or internal token",
+        )
+
+    allowed_roles_raw = os.getenv("HEALTH_SCRAPERS_ALLOWED_ROLES", "").strip()
+    if allowed_roles_raw:
+        allowed_roles = {
+            item.strip().lower()
+            for item in allowed_roles_raw.split(",")
+            if item.strip()
+        }
+        if allowed_roles:
+            user_roles = _extract_roles(claims)
+            if user_roles.isdisjoint(allowed_roles):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Forbidden: insufficient role for /health/scrapers",
+                )
+
+    return {"mode": "authenticated", "sub": claims.sub}
 
 
 class BookmakerHealth(BaseModel):
@@ -89,7 +145,10 @@ def health() -> dict[str, str]:
 
 
 @router.get("/health/scrapers", response_model=ScraperHealthResponse)
-async def scraper_health(db: Session = Depends(get_db)):
+async def scraper_health(
+    _access: dict = Depends(require_scraper_health_access),
+    db: Session = Depends(get_db),
+):
     """
     Get health status of all active scrapers.
 
@@ -237,9 +296,12 @@ async def database_health(db: Session = Depends(get_db)):
 
 
 @router.get("/health/detailed", response_model=DetailedHealthResponse)
-async def detailed_health(db: Session = Depends(get_db)):
+async def detailed_health(
+    _access: dict = Depends(require_scraper_health_access),
+    db: Session = Depends(get_db),
+):
     """Comprehensive health check combining all subsystems."""
-    scrapers = await scraper_health(db)
+    scrapers = await scraper_health(_access=_access, db=db)
     database = await database_health(db)
 
     # Determine overall status

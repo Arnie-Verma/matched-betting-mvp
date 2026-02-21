@@ -1,0 +1,30 @@
+{
+  "slice": "PR-S1",
+  "generated_at_utc": "2026-02-21T06:25:25.813255+00:00",
+  "checks": {
+    "refresh_status_cross_user": {
+      "status_code": 403,
+      "expected": 403,
+      "pass": true
+    },
+    "refresh_status_owner": {
+      "status_code": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "health_scrapers_unauthenticated": {
+      "status_code": 401,
+      "expected_any_of": [
+        401,
+        403
+      ],
+      "pass": true
+    },
+    "health_scrapers_authenticated": {
+      "status_code": 200,
+      "expected": 200,
+      "pass": true
+    }
+  },
+  "all_passed": true
+}

@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from collections import defaultdict
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_
@@ -28,6 +28,82 @@ from api.services.normalization_service import (
 
 
 router = APIRouter(prefix="/odds", tags=["odds-matcher"])
+
+
+def _get_or_create_user(db: Session, user_claims: UserClaims) -> User:
+    """Resolve authenticated user to local DB user row (create on first access)."""
+    user = db.query(User).filter(User.clerk_user_id == user_claims.sub).first()
+    if user:
+        return user
+
+    user = User(
+        clerk_user_id=user_claims.sub,
+        email=user_claims.email or f"{user_claims.sub}@temp.com",
+        email_verified=user_claims.email_verified or False,
+        current_plan="free",
+        plan_status="active",
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def _append_shared_job_user(
+    redis_client,
+    *,
+    job_id: str,
+    user_id: int,
+    job_prefix: str,
+    ttl_seconds: int,
+) -> None:
+    """
+    Persist explicit merged/shared read access for a refresh job.
+
+    Security semantics:
+    - owner (`payload.requested_by`) can always read
+    - merged callers get explicit shared access via `shared_user_ids`
+    """
+    from api.services.refresh_queue import get_job_status
+    import json
+
+    job = get_job_status(redis_client, job_id, job_prefix=job_prefix)
+    if not job:
+        return
+
+    payload = job.get("payload") or {}
+    shared_user_ids = payload.get("shared_user_ids") or []
+    if not isinstance(shared_user_ids, list):
+        shared_user_ids = []
+
+    normalized_shared = {int(item) for item in shared_user_ids if str(item).isdigit()}
+    if int(user_id) in normalized_shared:
+        return
+
+    normalized_shared.add(int(user_id))
+    payload["shared_user_ids"] = sorted(normalized_shared)
+    job["payload"] = payload
+    redis_client.setex(f"{job_prefix}{job_id}", ttl_seconds, json.dumps(job))
+
+
+def _authorize_refresh_status_access(job_status: Dict[str, Any], user_id: int) -> None:
+    """Enforce refresh job status visibility to owner or explicit merged/shared readers."""
+    payload = job_status.get("payload") or {}
+    requested_by = payload.get("requested_by")
+    shared_user_ids = payload.get("shared_user_ids") or []
+
+    allowed_ids = set()
+    if requested_by is not None and str(requested_by).isdigit():
+        allowed_ids.add(int(requested_by))
+    for shared_id in shared_user_ids:
+        if str(shared_id).isdigit():
+            allowed_ids.add(int(shared_id))
+
+    if int(user_id) not in allowed_ids:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: refresh status is not accessible for this user",
+        )
 
 def _market_preference_rank(sport_code: str, market_name: str) -> int:
     """
@@ -316,23 +392,8 @@ async def refresh_odds(
 
     # Get or create user (auto-create on first access)
     logger.info(f"Looking up user with clerk_user_id: {user_claims.sub}")
-    user = db.query(User).filter(User.clerk_user_id == user_claims.sub).first()
-
-    if not user:
-        logger.info(f"User not found, creating new user: {user_claims.sub}")
-        user = User(
-            clerk_user_id=user_claims.sub,
-            email=user_claims.email or f"{user_claims.sub}@temp.com",
-            email_verified=user_claims.email_verified or False,
-            current_plan="free",
-            plan_status="active"
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-        logger.info(f"Created new user with id: {user.id}")
-    else:
-        logger.info(f"User found: {user.id}")
+    user = _get_or_create_user(db, user_claims)
+    logger.info(f"Resolved user id: {user.id}")
 
     # Check plan entitlements
     subscription_service = SubscriptionService()
@@ -350,6 +411,13 @@ async def refresh_odds(
         job_id = existing_job_id.decode()
         # If the job pointer is stale, clear it and continue.
         if redis_client.get(f"{job_prefix}{job_id}"):
+            _append_shared_job_user(
+                redis_client,
+                job_id=job_id,
+                user_id=user.id,
+                job_prefix=job_prefix,
+                ttl_seconds=job_ttl_seconds,
+            )
             opportunities_count = db.query(OddsSnapshot).filter(
                 OddsSnapshot.is_current == True
             ).count()
@@ -431,6 +499,13 @@ async def refresh_odds(
     ).count()
 
     if enqueue_result.get("merged"):
+        _append_shared_job_user(
+            redis_client,
+            job_id=job_id,
+            user_id=user.id,
+            job_prefix=job_prefix,
+            ttl_seconds=job_ttl_seconds,
+        )
         return RefreshOddsResponse(
             success=True,
             message="Refresh already queued; merged request",
@@ -459,6 +534,7 @@ async def refresh_odds(
 async def refresh_status(
     job_id: str,
     user_claims: UserClaims = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get status for a queued refresh job.
@@ -474,6 +550,9 @@ async def refresh_status(
     status = get_job_status(redis_client, job_id, job_prefix=job_prefix)
     if not status:
         raise HTTPException(status_code=404, detail="Job not found or expired")
+
+    user = _get_or_create_user(db, user_claims)
+    _authorize_refresh_status_access(status, user.id)
 
     def parse_dt(value: Optional[str]) -> Optional[datetime]:
         if not value:

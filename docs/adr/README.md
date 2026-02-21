@@ -26,6 +26,7 @@ Create or update an ADR when any of the following changes:
 - `ADR-0012-bookmaker-competition-coverage-scope-policy.md`
 - `ADR-0013-pr7-epl-boxing-fail-remediation.md`
 - `ADR-0014-canary-gate-reliability-thresholds.md`
+- `ADR-0015-refresh-status-ownership-and-scraper-health-access-policy.md`
 
 ## ADR Template
 Use this structure:
