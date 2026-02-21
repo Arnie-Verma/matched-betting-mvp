@@ -155,8 +155,9 @@ This methodology is designed to be executed locally first to get as close to pro
    - allow owner (`payload.requested_by`) and explicitly shared merged readers (`payload.shared_user_ids`)
    - deny cross-user access with `403`
 2. Scraper health endpoints:
-   - `/health/scrapers` and `/health/detailed` require authenticated or internal-token access policy
-   - optional role gate can be applied via runtime config
+   - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access
+   - broad authenticated-by-default access is denied
+   - telemetry default response path is aggregate-only (no raw sample events)
 
 ## Unibet Scale-Proof Method (Repeatable Template)
 Use Unibet as the proof case for scaling from Entain/Punterstech to any new bookmaker.

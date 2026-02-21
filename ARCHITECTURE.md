@@ -233,8 +233,9 @@ Validation:
   - outputs under `docs/evidence/phase-a-hardening/2026-02-11/`
 
 Health:
-- `/health/scrapers` reports freshness, odds counts, breaker state and is protected by auth/internal-token policy
+- `/health/scrapers` reports freshness, odds counts, breaker state and is protected by ops-role/internal-token policy
 - `/health/detailed` shares the same access policy as `/health/scrapers`
+- `/health/telemetry` shares the same access policy and returns aggregate-only telemetry by default (no raw sample events)
 - `/health/database` remains readable runtime health data
 
 Key code:
@@ -257,7 +258,7 @@ Important runtime knobs:
 - `VALIDATION_ENABLED`
 - `BOOKMAKER_FREEZE_UNIBET` (default `true`; set `false` only after explicit GO)
 - `HEALTH_SCRAPERS_INTERNAL_TOKEN`
-- `HEALTH_SCRAPERS_ALLOWED_ROLES`
+- `HEALTH_OPERATIONS_ALLOWED_ROLES` (fallback `HEALTH_SCRAPERS_ALLOWED_ROLES`)
 
 Notes:
 - scraper code defaults `SCRAPER_BATCH_SIZE` to `1` if env is absent
@@ -276,7 +277,7 @@ Implemented now:
 2. Runtime active bookmaker derivation from DB plus freeze policy (no static active-list control path).
 3. Matcher set-based preloading strategy for events/markets/selections/odds.
 4. Security policy on `/odds/refresh/status` ownership/shared visibility.
-5. Security policy on `/health/scrapers` and `/health/detailed` auth/internal access.
+5. Security policy on `/health/scrapers`, `/health/detailed`, and `/health/telemetry` ops/internal access with consistent dependency.
 
 Still open:
 1. Lifecycle transition guards and activation-gate enforcement in code.

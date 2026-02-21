@@ -18,13 +18,26 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Updated `SCRAPER_HARDENING_PLAN.md` with Phase A progress sync and canary reliability-gate language.
 - Verified ADR index completeness (`docs/adr/README.md` includes all `ADR-*.md` files).
 - Verified command block hygiene in `docs/evidence/phase-a-hardening/2026-02-11/pr12_security_controls_contract.md`; no malformed lines found.
+- PR-O1 observability foundation completed:
+  - added `observability.v1` telemetry sink + threshold evaluator
+  - instrumented worker scheduler/reliability, matcher latency/query-signal, and security access-decision metrics
+  - added `GET /health/telemetry` and PR13 evidence artifacts
+- PR-S2 telemetry security hardening completed:
+  - tightened shared access policy for `/health/scrapers`, `/health/detailed`, `/health/telemetry` to ops-role/internal-token
+  - added strict telemetry query bounds (`hours: 1..24`, `limit: 100..2000`)
+  - removed raw sample event dumps from default telemetry response path
+  - added security regression tests for telemetry access/bounds/sanitization
+  - added ADR-0016 and PR14 evidence artifact
 
 ### Decisions
 - Keep Unibet freeze baseline unchanged (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
-- Keep this slice docs-only: no API/worker/web code path changes.
+- PR-D1 remained docs-only; later PR-O1/PR-S2 introduced scoped API/worker observability and security policy changes.
+- Keep telemetry ACL denied-rate as report-only threshold by default (`OBS_ENFORCE_ACL_DENIED_RATE=false`).
+- Enforce explicit ops/internal access for operational health telemetry endpoints.
 
 ### Next Steps
 - If approved, proceed to next requested slice with code changes only after docs baseline is accepted.
+- Monitor denied access volume after S2 tightening to validate role configuration in target environments.
 
 ## 2026-02-15 (Sunday)
 

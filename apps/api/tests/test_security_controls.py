@@ -159,7 +159,12 @@ def test_health_scrapers_allows_authenticated_access(tmp_path):
     client, SessionLocal, engine = _build_client(tmp_path)
 
     def override_optional_user():
-        return UserClaims(sub="ops-user", email="ops@test.local", email_verified=True, raw_claims={})
+        return UserClaims(
+            sub="ops-user",
+            email="ops@test.local",
+            email_verified=True,
+            raw_claims={"roles": ["ops"]},
+        )
 
     app.dependency_overrides[optional_user] = override_optional_user
 

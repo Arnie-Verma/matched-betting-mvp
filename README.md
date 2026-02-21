@@ -50,7 +50,7 @@ Implemented now:
 - Odds matcher hot path refactor to set-based preloading (events, markets, selections, odds) with no response schema changes.
 - Security controls:
   - `GET /odds/refresh/status` restricted to owner/shared users.
-  - `/health/scrapers` and `/health/detailed` require authenticated or internal-policy access.
+  - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access; telemetry defaults to aggregate-only response output.
 - Unibet remains frozen by baseline policy (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
 
 Still open:

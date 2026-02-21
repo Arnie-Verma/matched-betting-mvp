@@ -14,7 +14,7 @@ import logging
 import secrets
 from datetime import datetime, timezone
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
@@ -31,6 +31,9 @@ from api.services.observability_service import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["health"])
+DEFAULT_HEALTH_OPERATIONS_ALLOWED_ROLES = "ops,admin"
+MAX_TELEMETRY_HOURS = 24
+MAX_TELEMETRY_LIMIT = 2000
 
 
 def _extract_roles(claims: UserClaims) -> set[str]:
@@ -48,15 +51,28 @@ def _extract_roles(claims: UserClaims) -> set[str]:
     return roles
 
 
-def require_scraper_health_access(
+def _load_health_operations_allowed_roles() -> set[str]:
+    configured = (
+        os.getenv("HEALTH_OPERATIONS_ALLOWED_ROLES")
+        or os.getenv("HEALTH_SCRAPERS_ALLOWED_ROLES")
+        or DEFAULT_HEALTH_OPERATIONS_ALLOWED_ROLES
+    )
+    return {
+        role.strip().lower()
+        for role in configured.split(",")
+        if role and role.strip()
+    }
+
+
+def require_health_operations_access(
     request: Request,
     claims: Optional[UserClaims] = Depends(optional_user),
 ) -> dict:
     """
-    Access policy for /health/scrapers:
-    - allow authenticated users
-    - OR allow explicit internal token access (`X-Internal-Health-Token`)
-    - optional role restriction via `HEALTH_SCRAPERS_ALLOWED_ROLES`
+    Shared access policy for operational health endpoints:
+    - allow explicit internal token access (`X-Internal-Health-Token`)
+    - allow authenticated users only when roles intersect allowed ops roles
+    - deny broad authenticated-by-default access
     """
     internal_token = os.getenv("HEALTH_SCRAPERS_INTERNAL_TOKEN")
     provided_token = request.headers.get("x-internal-health-token")
@@ -82,31 +98,24 @@ def require_scraper_health_access(
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: /health/scrapers requires auth or internal token",
+            detail="Unauthorized: operational health endpoint requires ops auth or internal token",
         )
 
-    allowed_roles_raw = os.getenv("HEALTH_SCRAPERS_ALLOWED_ROLES", "").strip()
-    if allowed_roles_raw:
-        allowed_roles = {
-            item.strip().lower()
-            for item in allowed_roles_raw.split(",")
-            if item.strip()
-        }
-        if allowed_roles:
-            user_roles = _extract_roles(claims)
-            if user_roles.isdisjoint(allowed_roles):
-                emit_observability_event(
-                    category="security",
-                    metric_name="access_decision",
-                    source="api",
-                    endpoint=request.url.path,
-                    action_type="scraper_health_access_denied",
-                    payload={"reason": "role_denied", "allowed_roles": sorted(allowed_roles)},
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Forbidden: insufficient role for /health/scrapers",
-                )
+    allowed_roles = _load_health_operations_allowed_roles()
+    user_roles = _extract_roles(claims)
+    if user_roles.isdisjoint(allowed_roles):
+        emit_observability_event(
+            category="security",
+            metric_name="access_decision",
+            source="api",
+            endpoint=request.url.path,
+            action_type="scraper_health_access_denied",
+            payload={"reason": "role_denied", "allowed_roles": sorted(allowed_roles)},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: insufficient role for operational health endpoint",
+        )
 
     emit_observability_event(
         category="security",
@@ -114,9 +123,18 @@ def require_scraper_health_access(
         source="api",
         endpoint=request.url.path,
         action_type="scraper_health_access_allowed",
-        payload={"mode": "authenticated", "sub": claims.sub},
+        payload={"mode": "authenticated", "roles": sorted(user_roles)},
     )
-    return {"mode": "authenticated", "sub": claims.sub}
+    return {"mode": "authenticated", "roles": sorted(user_roles)}
+
+
+def _sanitize_telemetry_report_response(report: dict) -> dict:
+    sanitized = dict(report)
+    summary = dict(sanitized.get("summary") or {})
+    summary.pop("sample_events", None)
+    sanitized["summary"] = summary
+    sanitized.pop("sample_metric_records", None)
+    return sanitized
 
 
 class BookmakerHealth(BaseModel):
@@ -183,7 +201,7 @@ def health() -> dict[str, str]:
 
 @router.get("/health/scrapers", response_model=ScraperHealthResponse)
 async def scraper_health(
-    _access: dict = Depends(require_scraper_health_access),
+    _access: dict = Depends(require_health_operations_access),
     db: Session = Depends(get_db),
 ):
     """
@@ -334,7 +352,7 @@ async def database_health(db: Session = Depends(get_db)):
 
 @router.get("/health/detailed", response_model=DetailedHealthResponse)
 async def detailed_health(
-    _access: dict = Depends(require_scraper_health_access),
+    _access: dict = Depends(require_health_operations_access),
     db: Session = Depends(get_db),
 ):
     """Comprehensive health check combining all subsystems."""
@@ -360,16 +378,17 @@ async def detailed_health(
 
 @router.get("/health/telemetry")
 async def telemetry_health(
-    hours: int = 24,
-    limit: int = 5000,
-    _access: dict = Depends(require_scraper_health_access),
+    hours: int = Query(default=24, ge=1, le=MAX_TELEMETRY_HOURS),
+    limit: int = Query(default=1000, ge=100, le=MAX_TELEMETRY_LIMIT),
+    _access: dict = Depends(require_health_operations_access),
 ):
     """
     Return observability summary + threshold evaluation for a trailing window.
     """
     report = build_observability_report(
-        hours=max(1, int(hours)),
-        limit=max(100, int(limit)),
+        hours=int(hours),
+        limit=int(limit),
         thresholds=ObservabilityThresholds.from_env(),
+        include_sample_events=False,
     )
-    return report
+    return _sanitize_telemetry_report_response(report)

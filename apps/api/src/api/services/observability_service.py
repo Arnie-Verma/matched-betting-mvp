@@ -77,6 +77,16 @@ def _safe_json_loads(raw_value: str) -> Dict[str, Any]:
         return {"_unparsed": raw_value}
 
 
+def _redact_security_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {}
+    redacted = dict(payload)
+    for key in ("user_id", "owner_user_id", "sub", "email", "clerk_user_id", "shared_user_ids"):
+        if key in redacted:
+            redacted[key] = "[redacted]"
+    return redacted
+
+
 @dataclass(frozen=True)
 class ObservabilityThresholds:
     scrape_success_rate_min: float = 0.75
@@ -220,7 +230,11 @@ def read_observability_events(
     return events
 
 
-def summarize_observability_events(events: Iterable[Dict[str, Any]]) -> Dict[str, Any]:
+def summarize_observability_events(
+    events: Iterable[Dict[str, Any]],
+    *,
+    include_sample_events: bool = False,
+) -> Dict[str, Any]:
     event_list = list(events)
     scheduler_events = [e for e in event_list if e.get("metric_name") == "scrape_scheduler_cycle"]
     reliability_cycle_events = [e for e in event_list if e.get("metric_name") == "scrape_reliability_cycle"]
@@ -327,7 +341,7 @@ def summarize_observability_events(events: Iterable[Dict[str, Any]]) -> Dict[str
     security_total = len(denied_security_events) + len(allowed_security_events)
     acl_denied_rate = (len(denied_security_events) / security_total) if security_total else None
 
-    return {
+    summary = {
         "schema_version": OBSERVABILITY_SCHEMA_VERSION,
         "total_events": len(event_list),
         "scheduler": {
@@ -361,8 +375,17 @@ def summarize_observability_events(events: Iterable[Dict[str, Any]]) -> Dict[str
             "denied_counts_by_action": denied_counts_by_action,
             "acl_denied_rate": acl_denied_rate,
         },
-        "sample_events": event_list[:10],
     }
+    if include_sample_events:
+        sample_events: List[Dict[str, Any]] = []
+        for event in event_list[:10]:
+            event_copy = dict(event)
+            payload = event_copy.get("payload") or {}
+            if event_copy.get("category") == "security":
+                event_copy["payload"] = _redact_security_payload(payload if isinstance(payload, dict) else {})
+            sample_events.append(event_copy)
+        summary["sample_events"] = sample_events
+    return summary
 
 
 def evaluate_observability_thresholds(
@@ -473,9 +496,10 @@ def build_observability_report(
     limit: int = 5000,
     redis_client=None,
     thresholds: Optional[ObservabilityThresholds] = None,
+    include_sample_events: bool = False,
 ) -> Dict[str, Any]:
     events = read_observability_events(hours=hours, limit=limit, redis_client=redis_client)
-    summary = summarize_observability_events(events)
+    summary = summarize_observability_events(events, include_sample_events=include_sample_events)
     threshold_config = thresholds or ObservabilityThresholds.from_env()
     threshold_evaluation = evaluate_observability_thresholds(summary, threshold_config)
     return {
