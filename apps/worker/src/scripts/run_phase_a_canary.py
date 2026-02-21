@@ -33,6 +33,29 @@ from validation.pipeline import ValidationPipeline
 
 DEFAULT_COMPETITIONS = ["epl", "nba", "nhl", "boxing", "nbl"]
 DEFAULT_EVIDENCE_DIR = "docs/evidence/phase-a-hardening/2026-02-11"
+DEFAULT_MIN_SCRAPE_SUCCESS_RATE = 0.75
+DEFAULT_MAX_OPEN_BREAKER_CYCLES = 0
+DEFAULT_MAX_SCRAPE_P95_SECONDS = 360.0
+
+
+def build_gate_thresholds(
+    *,
+    min_cycles: int,
+    min_duration_seconds: int,
+    requires_in_scope_fail_zero: bool,
+    min_scrape_success_rate: float,
+    max_open_breaker_cycle_count: int,
+    max_scrape_p95_seconds: float,
+) -> Dict[str, Any]:
+    """Build a canonical thresholds payload for deterministic gate evaluation."""
+    return {
+        "min_cycles": int(min_cycles),
+        "min_duration_seconds": int(min_duration_seconds),
+        "requires_in_scope_fail_zero": bool(requires_in_scope_fail_zero),
+        "min_scrape_success_rate": float(min_scrape_success_rate),
+        "max_open_breaker_cycle_count": int(max_open_breaker_cycle_count),
+        "max_scrape_p95_seconds": float(max_scrape_p95_seconds),
+    }
 
 
 def _percentile(values: List[float], percentile: float) -> float:
@@ -46,6 +69,183 @@ def _percentile(values: List[float], percentile: float) -> float:
     high = min(low + 1, len(ordered) - 1)
     weight = rank - low
     return float(ordered[low] * (1 - weight) + ordered[high] * weight)
+
+
+def _compute_scrape_success_rate_from_cycles(cycles: List[Dict[str, Any]]) -> Dict[str, Any]:
+    considered = [
+        cycle
+        for cycle in cycles
+        if int((cycle.get("scrape", {}).get("total_bookmakers") or 0)) > 0
+    ]
+    total_bookmakers_considered = sum(
+        int((cycle.get("scrape", {}).get("total_bookmakers") or 0))
+        for cycle in considered
+    )
+    successful_bookmakers = sum(
+        int((cycle.get("scrape", {}).get("bookmakers_scraped") or 0))
+        for cycle in considered
+    )
+    scrape_success_rate = (
+        float(successful_bookmakers / total_bookmakers_considered)
+        if total_bookmakers_considered > 0
+        else 0.0
+    )
+    return {
+        "total_bookmakers_considered": total_bookmakers_considered,
+        "successful_bookmakers": successful_bookmakers,
+        "scrape_success_rate": scrape_success_rate,
+        "cycles_considered": len(considered),
+    }
+
+
+def _compute_open_breaker_cycle_count_from_cycles(cycles: List[Dict[str, Any]]) -> int:
+    return sum(
+        1
+        for cycle in cycles
+        if int((cycle.get("breaker", {}).get("open_count") or 0)) > 0
+    )
+
+
+def _compute_scrape_p95_from_cycles(cycles: List[Dict[str, Any]]) -> float:
+    scrape_latencies = [
+        float(cycle.get("scrape", {}).get("duration_seconds", 0.0))
+        for cycle in cycles
+    ]
+    return _percentile(scrape_latencies, 0.95)
+
+
+def evaluate_gate(summary: Dict[str, Any], thresholds: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Pure canary gate evaluator.
+
+    Takes a summary payload and threshold config, returns a deterministic gate
+    decision with explainable criterion-level pass/fail and failure reasons.
+    """
+    cycles = summary.get("cycles", []) or []
+    cycles_completed = int(summary.get("cycles_completed", len(cycles)))
+    duration_seconds = float(summary.get("duration_seconds", 0.0))
+    validation_metrics = summary.get("validation_gate_metrics", {}) or {}
+    in_scope_fail_cycle_count = int(validation_metrics.get("in_scope_fail_cycle_count", 0))
+
+    reliability = summary.get("reliability_metrics", {}) or {}
+    if "scrape_success_rate" in reliability:
+        scrape_success_rate = float(reliability.get("scrape_success_rate", 0.0))
+    else:
+        scrape_success_rate = _compute_scrape_success_rate_from_cycles(cycles)["scrape_success_rate"]
+
+    breaker_metrics = summary.get("breaker_metrics", {}) or {}
+    if "open_breaker_cycle_count" in breaker_metrics:
+        open_breaker_cycle_count = int(breaker_metrics.get("open_breaker_cycle_count", 0))
+    else:
+        open_breaker_cycle_count = _compute_open_breaker_cycle_count_from_cycles(cycles)
+
+    latency_metrics = summary.get("latency_metrics", {}) or {}
+    if "scrape_duration_p95_seconds" in latency_metrics:
+        scrape_p95_seconds = float(latency_metrics.get("scrape_duration_p95_seconds", 0.0))
+    else:
+        scrape_p95_seconds = _compute_scrape_p95_from_cycles(cycles)
+
+    checks: List[Dict[str, Any]] = []
+    failure_reasons: List[str] = []
+
+    def add_check(
+        *,
+        name: str,
+        description: str,
+        operator: str,
+        threshold: Any,
+        observed: Any,
+        passed: bool,
+    ) -> None:
+        checks.append(
+            {
+                "name": name,
+                "description": description,
+                "operator": operator,
+                "threshold": threshold,
+                "observed": observed,
+                "pass": passed,
+            }
+        )
+        if not passed:
+            failure_reasons.append(
+                f"{name} failed: expected {operator} {threshold}, observed {observed}"
+            )
+
+    min_cycles = int(thresholds["min_cycles"])
+    add_check(
+        name="min_cycles",
+        description="Minimum completed cycles",
+        operator=">=",
+        threshold=min_cycles,
+        observed=cycles_completed,
+        passed=cycles_completed >= min_cycles,
+    )
+
+    min_duration_seconds = float(thresholds["min_duration_seconds"])
+    add_check(
+        name="min_duration_seconds",
+        description="Minimum canary runtime (seconds)",
+        operator=">=",
+        threshold=min_duration_seconds,
+        observed=duration_seconds,
+        passed=duration_seconds >= min_duration_seconds,
+    )
+
+    requires_in_scope_fail_zero = bool(thresholds["requires_in_scope_fail_zero"])
+    in_scope_pass = (in_scope_fail_cycle_count == 0) if requires_in_scope_fail_zero else True
+    add_check(
+        name="in_scope_fail_cycle_count",
+        description="In-scope FAIL cycles must be zero",
+        operator="==" if requires_in_scope_fail_zero else "disabled",
+        threshold=0 if requires_in_scope_fail_zero else "n/a",
+        observed=in_scope_fail_cycle_count,
+        passed=in_scope_pass,
+    )
+
+    min_scrape_success_rate = float(thresholds["min_scrape_success_rate"])
+    add_check(
+        name="min_scrape_success_rate",
+        description="Minimum scrape success rate",
+        operator=">=",
+        threshold=min_scrape_success_rate,
+        observed=scrape_success_rate,
+        passed=scrape_success_rate >= min_scrape_success_rate,
+    )
+
+    max_open_breaker_cycle_count = int(thresholds["max_open_breaker_cycle_count"])
+    add_check(
+        name="max_open_breaker_cycle_count",
+        description="Maximum cycles with open breakers",
+        operator="<=",
+        threshold=max_open_breaker_cycle_count,
+        observed=open_breaker_cycle_count,
+        passed=open_breaker_cycle_count <= max_open_breaker_cycle_count,
+    )
+
+    max_scrape_p95_seconds = float(thresholds["max_scrape_p95_seconds"])
+    add_check(
+        name="max_scrape_p95_seconds",
+        description="Maximum scrape latency p95 (seconds)",
+        operator="<=",
+        threshold=max_scrape_p95_seconds,
+        observed=scrape_p95_seconds,
+        passed=scrape_p95_seconds <= max_scrape_p95_seconds,
+    )
+
+    gate_pass = all(check["pass"] for check in checks)
+    return {
+        "requires_min_cycles": True,
+        "requires_min_duration": True,
+        "requires_in_scope_fail_zero": requires_in_scope_fail_zero,
+        "requires_min_scrape_success_rate": True,
+        "requires_max_open_breaker_cycle_count": True,
+        "requires_max_scrape_p95_seconds": True,
+        "thresholds": thresholds,
+        "criteria": checks,
+        "failure_reasons": failure_reasons,
+        "pass": gate_pass,
+    }
 
 
 def _json_default(value: Any) -> Any:
@@ -142,6 +342,86 @@ def _validate_priority_competitions(
     }
 
 
+def build_canary_summary(
+    *,
+    cycles: List[Dict[str, Any]],
+    started_at: datetime,
+    ended_at: datetime,
+    total_duration: float,
+    min_duration_seconds: int,
+    min_cycles: int,
+    max_cycles: int,
+    sleep_seconds: int,
+    sports_cycle: List[str],
+    competitions: List[str],
+    thresholds: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Build final canary summary payload from collected cycle records."""
+    scrape_latencies = [float(c.get("scrape", {}).get("duration_seconds", 0.0)) for c in cycles]
+    validation_latencies = [float(c.get("validation_duration_seconds", 0.0)) for c in cycles]
+    cycle_latencies = [float(c.get("cycle_duration_seconds", 0.0)) for c in cycles]
+    breaker_open_counts = [int(c.get("breaker", {}).get("open_count", 0)) for c in cycles]
+    breaker_half_open_counts = [int(c.get("breaker", {}).get("half_open_count", 0)) for c in cycles]
+
+    in_scope_fail_rows = [
+        row
+        for cycle_record in cycles
+        for row in cycle_record.get("validation", {}).get("in_scope_fail_rows", [])
+    ]
+    cycles_with_in_scope_fails = sorted({
+        cycle_record.get("cycle")
+        for cycle_record in cycles
+        if cycle_record.get("validation", {}).get("in_scope_fail_rows")
+    })
+    cycles_with_open_breakers = sorted({
+        cycle_record.get("cycle")
+        for cycle_record in cycles
+        if int(cycle_record.get("breaker", {}).get("open_count", 0)) > 0
+    })
+
+    reliability = _compute_scrape_success_rate_from_cycles(cycles)
+
+    summary = {
+        "started_at": started_at.isoformat(),
+        "ended_at": ended_at.isoformat(),
+        "duration_seconds": total_duration,
+        "cycles_completed": len(cycles),
+        "min_duration_seconds": min_duration_seconds,
+        "min_cycles": min_cycles,
+        "max_cycles": max_cycles,
+        "sleep_seconds": sleep_seconds,
+        "sports_cycle": sports_cycle,
+        "latency_metrics": {
+            "scrape_duration_p50_seconds": _percentile(scrape_latencies, 0.50),
+            "scrape_duration_p95_seconds": _percentile(scrape_latencies, 0.95),
+            "scrape_duration_avg_seconds": float(statistics.mean(scrape_latencies)) if scrape_latencies else 0.0,
+            "validation_duration_p50_seconds": _percentile(validation_latencies, 0.50),
+            "validation_duration_p95_seconds": _percentile(validation_latencies, 0.95),
+            "cycle_duration_p50_seconds": _percentile(cycle_latencies, 0.50),
+            "cycle_duration_p95_seconds": _percentile(cycle_latencies, 0.95),
+        },
+        "reliability_metrics": {
+            **reliability,
+            "open_breaker_cycle_count": len(cycles_with_open_breakers),
+        },
+        "breaker_metrics": {
+            "cycles_with_open_breakers": cycles_with_open_breakers,
+            "open_breaker_cycle_count": len(cycles_with_open_breakers),
+            "max_open_breakers_in_cycle": max(breaker_open_counts) if breaker_open_counts else 0,
+            "max_half_open_breakers_in_cycle": max(breaker_half_open_counts) if breaker_half_open_counts else 0,
+        },
+        "validation_gate_metrics": {
+            "cycles_with_in_scope_fails": cycles_with_in_scope_fails,
+            "in_scope_fail_cycle_count": len(cycles_with_in_scope_fails),
+            "in_scope_fail_rows": in_scope_fail_rows,
+            "priority_competitions": competitions,
+        },
+        "cycles": cycles,
+    }
+    summary["gate"] = evaluate_gate(summary, thresholds)
+    return summary
+
+
 async def run_canary(
     evidence_dir: Path,
     competitions: List[str],
@@ -151,6 +431,9 @@ async def run_canary(
     max_cycles: int,
     sleep_seconds: int,
     output_prefix: str,
+    min_scrape_success_rate: float,
+    max_open_breaker_cycles: int,
+    max_scrape_p95_seconds: float,
 ) -> Dict[str, Any]:
     evidence_dir.mkdir(parents=True, exist_ok=True)
 
@@ -230,80 +513,34 @@ async def run_canary(
 
     ended_at = datetime.now(timezone.utc)
     total_duration = time.time() - start_monotonic
-
-    scrape_latencies = [float(c["scrape"]["duration_seconds"]) for c in cycles]
-    validation_latencies = [float(c["validation_duration_seconds"]) for c in cycles]
-    cycle_latencies = [float(c["cycle_duration_seconds"]) for c in cycles]
-    breaker_open_counts = [int(c["breaker"]["open_count"]) for c in cycles]
-    breaker_half_open_counts = [int(c["breaker"]["half_open_count"]) for c in cycles]
-
-    in_scope_fail_rows = [
-        row
-        for cycle_record in cycles
-        for row in cycle_record["validation"]["in_scope_fail_rows"]
-    ]
-    cycles_with_in_scope_fails = sorted({
-        cycle_record["cycle"]
-        for cycle_record in cycles
-        if cycle_record["validation"]["in_scope_fail_rows"]
-    })
-    cycles_with_open_breakers = sorted({
-        cycle_record["cycle"]
-        for cycle_record in cycles
-        if cycle_record["breaker"]["open_count"] > 0
-    })
-
-    pass_gate = (
-        len(cycles) >= min_cycles
-        and total_duration >= min_duration_seconds
-        and len(in_scope_fail_rows) == 0
+    thresholds = build_gate_thresholds(
+        min_cycles=min_cycles,
+        min_duration_seconds=min_duration_seconds,
+        requires_in_scope_fail_zero=True,
+        min_scrape_success_rate=min_scrape_success_rate,
+        max_open_breaker_cycle_count=max_open_breaker_cycles,
+        max_scrape_p95_seconds=max_scrape_p95_seconds,
     )
-
-    summary = {
-        "started_at": started_at.isoformat(),
-        "ended_at": ended_at.isoformat(),
-        "duration_seconds": total_duration,
-        "cycles_completed": len(cycles),
-        "min_duration_seconds": min_duration_seconds,
-        "min_cycles": min_cycles,
-        "max_cycles": max_cycles,
-        "sleep_seconds": sleep_seconds,
-        "sports_cycle": sports_cycle,
-        "latency_metrics": {
-            "scrape_duration_p50_seconds": _percentile(scrape_latencies, 0.50),
-            "scrape_duration_p95_seconds": _percentile(scrape_latencies, 0.95),
-            "scrape_duration_avg_seconds": float(statistics.mean(scrape_latencies)) if scrape_latencies else 0.0,
-            "validation_duration_p50_seconds": _percentile(validation_latencies, 0.50),
-            "validation_duration_p95_seconds": _percentile(validation_latencies, 0.95),
-            "cycle_duration_p50_seconds": _percentile(cycle_latencies, 0.50),
-            "cycle_duration_p95_seconds": _percentile(cycle_latencies, 0.95),
-        },
-        "breaker_metrics": {
-            "cycles_with_open_breakers": cycles_with_open_breakers,
-            "open_breaker_cycle_count": len(cycles_with_open_breakers),
-            "max_open_breakers_in_cycle": max(breaker_open_counts) if breaker_open_counts else 0,
-            "max_half_open_breakers_in_cycle": max(breaker_half_open_counts) if breaker_half_open_counts else 0,
-        },
-        "validation_gate_metrics": {
-            "cycles_with_in_scope_fails": cycles_with_in_scope_fails,
-            "in_scope_fail_cycle_count": len(cycles_with_in_scope_fails),
-            "in_scope_fail_rows": in_scope_fail_rows,
-            "priority_competitions": competitions,
-        },
-        "gate": {
-            "requires_min_cycles": True,
-            "requires_min_duration": True,
-            "requires_in_scope_fail_zero": True,
-            "pass": pass_gate,
-        },
-        "cycles": cycles,
-    }
+    summary = build_canary_summary(
+        cycles=cycles,
+        started_at=started_at,
+        ended_at=ended_at,
+        total_duration=total_duration,
+        min_duration_seconds=min_duration_seconds,
+        min_cycles=min_cycles,
+        max_cycles=max_cycles,
+        sleep_seconds=sleep_seconds,
+        sports_cycle=sports_cycle,
+        competitions=competitions,
+        thresholds=thresholds,
+    )
     return summary
 
 
 def build_markdown_report(payload: Dict[str, Any]) -> List[str]:
     latency = payload["latency_metrics"]
     breaker = payload["breaker_metrics"]
+    reliability = payload.get("reliability_metrics", {})
     gate = payload["gate"]
     validation = payload["validation_gate_metrics"]
 
@@ -332,6 +569,13 @@ def build_markdown_report(payload: Dict[str, Any]) -> List[str]:
         f"- Max open breakers in a cycle: {breaker['max_open_breakers_in_cycle']}",
         f"- Max half-open breakers in a cycle: {breaker['max_half_open_breakers_in_cycle']}",
         "",
+        "## Reliability Metrics",
+        "",
+        f"- Scrape success rate: {float(reliability.get('scrape_success_rate', 0.0)):.4f}",
+        f"- Successful bookmakers: {int(reliability.get('successful_bookmakers', 0))}",
+        f"- Total bookmakers considered: {int(reliability.get('total_bookmakers_considered', 0))}",
+        f"- Cycles considered for success rate: {int(reliability.get('cycles_considered', 0))}",
+        "",
         "## Validation Gate Metrics",
         "",
         f"- In-scope FAIL cycles: {validation['in_scope_fail_cycle_count']}",
@@ -340,11 +584,30 @@ def build_markdown_report(payload: Dict[str, Any]) -> List[str]:
         "",
         "## Gate Result",
         "",
-        f"- Requires min cycles: {gate['requires_min_cycles']}",
-        f"- Requires min duration: {gate['requires_min_duration']}",
-        f"- Requires in-scope FAIL=0: {gate['requires_in_scope_fail_zero']}",
         f"- PASS: {gate['pass']}",
+        "",
+        "| Criterion | Threshold | Observed | Pass |",
+        "|---|---:|---:|:---:|",
     ]
+    for criterion in gate.get("criteria", []):
+        threshold = criterion.get("threshold")
+        observed = criterion.get("observed")
+        if isinstance(threshold, float):
+            threshold = f"{threshold:.4f}"
+        if isinstance(observed, float):
+            observed = f"{observed:.4f}"
+        lines.append(
+            f"| {criterion.get('name')} | {threshold} | {observed} | "
+            f"{'PASS' if criterion.get('pass') else 'FAIL'} |"
+        )
+    if gate.get("failure_reasons"):
+        lines.extend(
+            [
+                "",
+                "### Failure Reasons",
+            ]
+        )
+        lines.extend([f"- {reason}" for reason in gate["failure_reasons"]])
     return lines
 
 
@@ -396,6 +659,24 @@ def main() -> int:
         default=60,
         help="Delay between cycles in seconds.",
     )
+    parser.add_argument(
+        "--min-scrape-success-rate",
+        type=float,
+        default=DEFAULT_MIN_SCRAPE_SUCCESS_RATE,
+        help="Minimum scrape success rate required for gate PASS.",
+    )
+    parser.add_argument(
+        "--max-open-breaker-cycles",
+        type=int,
+        default=DEFAULT_MAX_OPEN_BREAKER_CYCLES,
+        help="Maximum allowed cycles with open breakers.",
+    )
+    parser.add_argument(
+        "--max-scrape-p95-seconds",
+        type=float,
+        default=DEFAULT_MAX_SCRAPE_P95_SECONDS,
+        help="Maximum allowed scrape p95 latency in seconds.",
+    )
     args = parser.parse_args()
 
     # Reduce noisy scraper/validation logs in long-running canary output.
@@ -412,6 +693,9 @@ def main() -> int:
             max_cycles=args.max_cycles,
             sleep_seconds=args.sleep_seconds,
             output_prefix=args.output_prefix,
+            min_scrape_success_rate=args.min_scrape_success_rate,
+            max_open_breaker_cycles=args.max_open_breaker_cycles,
+            max_scrape_p95_seconds=args.max_scrape_p95_seconds,
         )
     )
 

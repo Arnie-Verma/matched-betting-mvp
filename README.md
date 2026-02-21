@@ -38,6 +38,7 @@ docker exec mb_api python ../worker/src/manual_scrape.py
 - `BOOKMAKER_IMPLEMENTATION_GUIDE.md` - scraper implementation playbook
 - `VALIDATION_FRAMEWORK.md` - validation model and thresholds
 - `Unibet.md` - bookmaker-specific runbook example
+- `apps/worker/src/scripts/run_phase_a_canary.py` - local canary gate script (validation + reliability thresholds)
 - `docs/adr/README.md` - architecture decision records index
 - `PRODUCTION_NOTES.md` - deployment/runtime notes
 - `ROADMAP.md` - current product roadmap

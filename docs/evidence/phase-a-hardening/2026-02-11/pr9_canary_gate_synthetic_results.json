@@ -1,0 +1,650 @@
+{
+  "generated_at": "2026-02-21T04:57:45.249226+00:00",
+  "thresholds": {
+    "min_cycles": 10,
+    "min_duration_seconds": 1800,
+    "requires_in_scope_fail_zero": true,
+    "min_scrape_success_rate": 0.75,
+    "max_open_breaker_cycle_count": 0,
+    "max_scrape_p95_seconds": 360.0
+  },
+  "real_canary_evaluations": {
+    "phase_a_canary_pr6_1": {
+      "file": "phase_a_canary_pr6_1.json",
+      "gate": {
+        "requires_min_cycles": true,
+        "requires_min_duration": true,
+        "requires_in_scope_fail_zero": true,
+        "requires_min_scrape_success_rate": true,
+        "requires_max_open_breaker_cycle_count": true,
+        "requires_max_scrape_p95_seconds": true,
+        "thresholds": {
+          "min_cycles": 10,
+          "min_duration_seconds": 1800,
+          "requires_in_scope_fail_zero": true,
+          "min_scrape_success_rate": 0.75,
+          "max_open_breaker_cycle_count": 0,
+          "max_scrape_p95_seconds": 360.0
+        },
+        "criteria": [
+          {
+            "name": "min_cycles",
+            "description": "Minimum completed cycles",
+            "operator": ">=",
+            "threshold": 10,
+            "observed": 14,
+            "pass": true
+          },
+          {
+            "name": "min_duration_seconds",
+            "description": "Minimum canary runtime (seconds)",
+            "operator": ">=",
+            "threshold": 1800.0,
+            "observed": 1815.2822360992432,
+            "pass": true
+          },
+          {
+            "name": "in_scope_fail_cycle_count",
+            "description": "In-scope FAIL cycles must be zero",
+            "operator": "==",
+            "threshold": 0,
+            "observed": 14,
+            "pass": false
+          },
+          {
+            "name": "min_scrape_success_rate",
+            "description": "Minimum scrape success rate",
+            "operator": ">=",
+            "threshold": 0.75,
+            "observed": 0.5986394557823129,
+            "pass": false
+          },
+          {
+            "name": "max_open_breaker_cycle_count",
+            "description": "Maximum cycles with open breakers",
+            "operator": "<=",
+            "threshold": 0,
+            "observed": 0,
+            "pass": true
+          },
+          {
+            "name": "max_scrape_p95_seconds",
+            "description": "Maximum scrape latency p95 (seconds)",
+            "operator": "<=",
+            "threshold": 360.0,
+            "observed": 356.43527380228045,
+            "pass": true
+          }
+        ],
+        "failure_reasons": [
+          "in_scope_fail_cycle_count failed: expected == 0, observed 14",
+          "min_scrape_success_rate failed: expected >= 0.75, observed 0.5986394557823129"
+        ],
+        "pass": false
+      }
+    },
+    "phase_a_canary_pr7": {
+      "file": "phase_a_canary_pr7.json",
+      "gate": {
+        "requires_min_cycles": true,
+        "requires_min_duration": true,
+        "requires_in_scope_fail_zero": true,
+        "requires_min_scrape_success_rate": true,
+        "requires_max_open_breaker_cycle_count": true,
+        "requires_max_scrape_p95_seconds": true,
+        "thresholds": {
+          "min_cycles": 10,
+          "min_duration_seconds": 1800,
+          "requires_in_scope_fail_zero": true,
+          "min_scrape_success_rate": 0.75,
+          "max_open_breaker_cycle_count": 0,
+          "max_scrape_p95_seconds": 360.0
+        },
+        "criteria": [
+          {
+            "name": "min_cycles",
+            "description": "Minimum completed cycles",
+            "operator": ">=",
+            "threshold": 10,
+            "observed": 13,
+            "pass": true
+          },
+          {
+            "name": "min_duration_seconds",
+            "description": "Minimum canary runtime (seconds)",
+            "operator": ">=",
+            "threshold": 1800.0,
+            "observed": 1852.8042047023773,
+            "pass": true
+          },
+          {
+            "name": "in_scope_fail_cycle_count",
+            "description": "In-scope FAIL cycles must be zero",
+            "operator": "==",
+            "threshold": 0,
+            "observed": 0,
+            "pass": true
+          },
+          {
+            "name": "min_scrape_success_rate",
+            "description": "Minimum scrape success rate",
+            "operator": ">=",
+            "threshold": 0.75,
+            "observed": 0.6043956043956044,
+            "pass": false
+          },
+          {
+            "name": "max_open_breaker_cycle_count",
+            "description": "Maximum cycles with open breakers",
+            "operator": "<=",
+            "threshold": 0,
+            "observed": 0,
+            "pass": true
+          },
+          {
+            "name": "max_scrape_p95_seconds",
+            "description": "Maximum scrape latency p95 (seconds)",
+            "operator": "<=",
+            "threshold": 360.0,
+            "observed": 352.9834587574003,
+            "pass": true
+          }
+        ],
+        "failure_reasons": [
+          "min_scrape_success_rate failed: expected >= 0.75, observed 0.6043956043956044"
+        ],
+        "pass": false
+      }
+    }
+  },
+  "synthetic_gate_evaluations": {
+    "pass_case": {
+      "requires_min_cycles": true,
+      "requires_min_duration": true,
+      "requires_in_scope_fail_zero": true,
+      "requires_min_scrape_success_rate": true,
+      "requires_max_open_breaker_cycle_count": true,
+      "requires_max_scrape_p95_seconds": true,
+      "thresholds": {
+        "min_cycles": 10,
+        "min_duration_seconds": 1800,
+        "requires_in_scope_fail_zero": true,
+        "min_scrape_success_rate": 0.75,
+        "max_open_breaker_cycle_count": 0,
+        "max_scrape_p95_seconds": 360.0
+      },
+      "criteria": [
+        {
+          "name": "min_cycles",
+          "description": "Minimum completed cycles",
+          "operator": ">=",
+          "threshold": 10,
+          "observed": 10,
+          "pass": true
+        },
+        {
+          "name": "min_duration_seconds",
+          "description": "Minimum canary runtime (seconds)",
+          "operator": ">=",
+          "threshold": 1800.0,
+          "observed": 1800.0,
+          "pass": true
+        },
+        {
+          "name": "in_scope_fail_cycle_count",
+          "description": "In-scope FAIL cycles must be zero",
+          "operator": "==",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "min_scrape_success_rate",
+          "description": "Minimum scrape success rate",
+          "operator": ">=",
+          "threshold": 0.75,
+          "observed": 0.8,
+          "pass": true
+        },
+        {
+          "name": "max_open_breaker_cycle_count",
+          "description": "Maximum cycles with open breakers",
+          "operator": "<=",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "max_scrape_p95_seconds",
+          "description": "Maximum scrape latency p95 (seconds)",
+          "operator": "<=",
+          "threshold": 360.0,
+          "observed": 300.0,
+          "pass": true
+        }
+      ],
+      "failure_reasons": [],
+      "pass": true
+    },
+    "fail_success_rate_case": {
+      "requires_min_cycles": true,
+      "requires_min_duration": true,
+      "requires_in_scope_fail_zero": true,
+      "requires_min_scrape_success_rate": true,
+      "requires_max_open_breaker_cycle_count": true,
+      "requires_max_scrape_p95_seconds": true,
+      "thresholds": {
+        "min_cycles": 10,
+        "min_duration_seconds": 1800,
+        "requires_in_scope_fail_zero": true,
+        "min_scrape_success_rate": 0.75,
+        "max_open_breaker_cycle_count": 0,
+        "max_scrape_p95_seconds": 360.0
+      },
+      "criteria": [
+        {
+          "name": "min_cycles",
+          "description": "Minimum completed cycles",
+          "operator": ">=",
+          "threshold": 10,
+          "observed": 10,
+          "pass": true
+        },
+        {
+          "name": "min_duration_seconds",
+          "description": "Minimum canary runtime (seconds)",
+          "operator": ">=",
+          "threshold": 1800.0,
+          "observed": 1800.0,
+          "pass": true
+        },
+        {
+          "name": "in_scope_fail_cycle_count",
+          "description": "In-scope FAIL cycles must be zero",
+          "operator": "==",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "min_scrape_success_rate",
+          "description": "Minimum scrape success rate",
+          "operator": ">=",
+          "threshold": 0.75,
+          "observed": 0.74,
+          "pass": false
+        },
+        {
+          "name": "max_open_breaker_cycle_count",
+          "description": "Maximum cycles with open breakers",
+          "operator": "<=",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "max_scrape_p95_seconds",
+          "description": "Maximum scrape latency p95 (seconds)",
+          "operator": "<=",
+          "threshold": 360.0,
+          "observed": 300.0,
+          "pass": true
+        }
+      ],
+      "failure_reasons": [
+        "min_scrape_success_rate failed: expected >= 0.75, observed 0.74"
+      ],
+      "pass": false
+    },
+    "fail_breaker_case": {
+      "requires_min_cycles": true,
+      "requires_min_duration": true,
+      "requires_in_scope_fail_zero": true,
+      "requires_min_scrape_success_rate": true,
+      "requires_max_open_breaker_cycle_count": true,
+      "requires_max_scrape_p95_seconds": true,
+      "thresholds": {
+        "min_cycles": 10,
+        "min_duration_seconds": 1800,
+        "requires_in_scope_fail_zero": true,
+        "min_scrape_success_rate": 0.75,
+        "max_open_breaker_cycle_count": 0,
+        "max_scrape_p95_seconds": 360.0
+      },
+      "criteria": [
+        {
+          "name": "min_cycles",
+          "description": "Minimum completed cycles",
+          "operator": ">=",
+          "threshold": 10,
+          "observed": 10,
+          "pass": true
+        },
+        {
+          "name": "min_duration_seconds",
+          "description": "Minimum canary runtime (seconds)",
+          "operator": ">=",
+          "threshold": 1800.0,
+          "observed": 1800.0,
+          "pass": true
+        },
+        {
+          "name": "in_scope_fail_cycle_count",
+          "description": "In-scope FAIL cycles must be zero",
+          "operator": "==",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "min_scrape_success_rate",
+          "description": "Minimum scrape success rate",
+          "operator": ">=",
+          "threshold": 0.75,
+          "observed": 0.8,
+          "pass": true
+        },
+        {
+          "name": "max_open_breaker_cycle_count",
+          "description": "Maximum cycles with open breakers",
+          "operator": "<=",
+          "threshold": 0,
+          "observed": 1,
+          "pass": false
+        },
+        {
+          "name": "max_scrape_p95_seconds",
+          "description": "Maximum scrape latency p95 (seconds)",
+          "operator": "<=",
+          "threshold": 360.0,
+          "observed": 300.0,
+          "pass": true
+        }
+      ],
+      "failure_reasons": [
+        "max_open_breaker_cycle_count failed: expected <= 0, observed 1"
+      ],
+      "pass": false
+    },
+    "fail_latency_case": {
+      "requires_min_cycles": true,
+      "requires_min_duration": true,
+      "requires_in_scope_fail_zero": true,
+      "requires_min_scrape_success_rate": true,
+      "requires_max_open_breaker_cycle_count": true,
+      "requires_max_scrape_p95_seconds": true,
+      "thresholds": {
+        "min_cycles": 10,
+        "min_duration_seconds": 1800,
+        "requires_in_scope_fail_zero": true,
+        "min_scrape_success_rate": 0.75,
+        "max_open_breaker_cycle_count": 0,
+        "max_scrape_p95_seconds": 360.0
+      },
+      "criteria": [
+        {
+          "name": "min_cycles",
+          "description": "Minimum completed cycles",
+          "operator": ">=",
+          "threshold": 10,
+          "observed": 10,
+          "pass": true
+        },
+        {
+          "name": "min_duration_seconds",
+          "description": "Minimum canary runtime (seconds)",
+          "operator": ">=",
+          "threshold": 1800.0,
+          "observed": 1800.0,
+          "pass": true
+        },
+        {
+          "name": "in_scope_fail_cycle_count",
+          "description": "In-scope FAIL cycles must be zero",
+          "operator": "==",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "min_scrape_success_rate",
+          "description": "Minimum scrape success rate",
+          "operator": ">=",
+          "threshold": 0.75,
+          "observed": 0.8,
+          "pass": true
+        },
+        {
+          "name": "max_open_breaker_cycle_count",
+          "description": "Maximum cycles with open breakers",
+          "operator": "<=",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "max_scrape_p95_seconds",
+          "description": "Maximum scrape latency p95 (seconds)",
+          "operator": "<=",
+          "threshold": 360.0,
+          "observed": 361.0,
+          "pass": false
+        }
+      ],
+      "failure_reasons": [
+        "max_scrape_p95_seconds failed: expected <= 360.0, observed 361.0"
+      ],
+      "pass": false
+    },
+    "fail_min_cycles_case": {
+      "requires_min_cycles": true,
+      "requires_min_duration": true,
+      "requires_in_scope_fail_zero": true,
+      "requires_min_scrape_success_rate": true,
+      "requires_max_open_breaker_cycle_count": true,
+      "requires_max_scrape_p95_seconds": true,
+      "thresholds": {
+        "min_cycles": 10,
+        "min_duration_seconds": 1800,
+        "requires_in_scope_fail_zero": true,
+        "min_scrape_success_rate": 0.75,
+        "max_open_breaker_cycle_count": 0,
+        "max_scrape_p95_seconds": 360.0
+      },
+      "criteria": [
+        {
+          "name": "min_cycles",
+          "description": "Minimum completed cycles",
+          "operator": ">=",
+          "threshold": 10,
+          "observed": 9,
+          "pass": false
+        },
+        {
+          "name": "min_duration_seconds",
+          "description": "Minimum canary runtime (seconds)",
+          "operator": ">=",
+          "threshold": 1800.0,
+          "observed": 1800.0,
+          "pass": true
+        },
+        {
+          "name": "in_scope_fail_cycle_count",
+          "description": "In-scope FAIL cycles must be zero",
+          "operator": "==",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "min_scrape_success_rate",
+          "description": "Minimum scrape success rate",
+          "operator": ">=",
+          "threshold": 0.75,
+          "observed": 0.8,
+          "pass": true
+        },
+        {
+          "name": "max_open_breaker_cycle_count",
+          "description": "Maximum cycles with open breakers",
+          "operator": "<=",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "max_scrape_p95_seconds",
+          "description": "Maximum scrape latency p95 (seconds)",
+          "operator": "<=",
+          "threshold": 360.0,
+          "observed": 300.0,
+          "pass": true
+        }
+      ],
+      "failure_reasons": [
+        "min_cycles failed: expected >= 10, observed 9"
+      ],
+      "pass": false
+    },
+    "fail_min_duration_case": {
+      "requires_min_cycles": true,
+      "requires_min_duration": true,
+      "requires_in_scope_fail_zero": true,
+      "requires_min_scrape_success_rate": true,
+      "requires_max_open_breaker_cycle_count": true,
+      "requires_max_scrape_p95_seconds": true,
+      "thresholds": {
+        "min_cycles": 10,
+        "min_duration_seconds": 1800,
+        "requires_in_scope_fail_zero": true,
+        "min_scrape_success_rate": 0.75,
+        "max_open_breaker_cycle_count": 0,
+        "max_scrape_p95_seconds": 360.0
+      },
+      "criteria": [
+        {
+          "name": "min_cycles",
+          "description": "Minimum completed cycles",
+          "operator": ">=",
+          "threshold": 10,
+          "observed": 10,
+          "pass": true
+        },
+        {
+          "name": "min_duration_seconds",
+          "description": "Minimum canary runtime (seconds)",
+          "operator": ">=",
+          "threshold": 1800.0,
+          "observed": 1799.0,
+          "pass": false
+        },
+        {
+          "name": "in_scope_fail_cycle_count",
+          "description": "In-scope FAIL cycles must be zero",
+          "operator": "==",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "min_scrape_success_rate",
+          "description": "Minimum scrape success rate",
+          "operator": ">=",
+          "threshold": 0.75,
+          "observed": 0.8,
+          "pass": true
+        },
+        {
+          "name": "max_open_breaker_cycle_count",
+          "description": "Maximum cycles with open breakers",
+          "operator": "<=",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "max_scrape_p95_seconds",
+          "description": "Maximum scrape latency p95 (seconds)",
+          "operator": "<=",
+          "threshold": 360.0,
+          "observed": 300.0,
+          "pass": true
+        }
+      ],
+      "failure_reasons": [
+        "min_duration_seconds failed: expected >= 1800.0, observed 1799.0"
+      ],
+      "pass": false
+    },
+    "fail_in_scope_fail_case": {
+      "requires_min_cycles": true,
+      "requires_min_duration": true,
+      "requires_in_scope_fail_zero": true,
+      "requires_min_scrape_success_rate": true,
+      "requires_max_open_breaker_cycle_count": true,
+      "requires_max_scrape_p95_seconds": true,
+      "thresholds": {
+        "min_cycles": 10,
+        "min_duration_seconds": 1800,
+        "requires_in_scope_fail_zero": true,
+        "min_scrape_success_rate": 0.75,
+        "max_open_breaker_cycle_count": 0,
+        "max_scrape_p95_seconds": 360.0
+      },
+      "criteria": [
+        {
+          "name": "min_cycles",
+          "description": "Minimum completed cycles",
+          "operator": ">=",
+          "threshold": 10,
+          "observed": 10,
+          "pass": true
+        },
+        {
+          "name": "min_duration_seconds",
+          "description": "Minimum canary runtime (seconds)",
+          "operator": ">=",
+          "threshold": 1800.0,
+          "observed": 1800.0,
+          "pass": true
+        },
+        {
+          "name": "in_scope_fail_cycle_count",
+          "description": "In-scope FAIL cycles must be zero",
+          "operator": "==",
+          "threshold": 0,
+          "observed": 1,
+          "pass": false
+        },
+        {
+          "name": "min_scrape_success_rate",
+          "description": "Minimum scrape success rate",
+          "operator": ">=",
+          "threshold": 0.75,
+          "observed": 0.8,
+          "pass": true
+        },
+        {
+          "name": "max_open_breaker_cycle_count",
+          "description": "Maximum cycles with open breakers",
+          "operator": "<=",
+          "threshold": 0,
+          "observed": 0,
+          "pass": true
+        },
+        {
+          "name": "max_scrape_p95_seconds",
+          "description": "Maximum scrape latency p95 (seconds)",
+          "operator": "<=",
+          "threshold": 360.0,
+          "observed": 300.0,
+          "pass": true
+        }
+      ],
+      "failure_reasons": [
+        "in_scope_fail_cycle_count failed: expected == 0, observed 1"
+      ],
+      "pass": false
+    }
+  }
+}
