@@ -1,13 +1,17 @@
 # Unibet (Kindred/FDJ) Implementation Plan
 
 **Date**: 2026-02-01  
-**Goal**: Add Unibet as a Premium back-bookmaker in the odds matcher, following the same production patterns as `EntainScraper` + `PunterstechScraper` (config-driven, consistent normalization, test coverage, validation-friendly).
+**Goal**: Maintain Unibet implementation readiness while keeping Unibet frozen during Phase A hardening (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
 
 ---
 
-## 0.1) Latest Reality Check (2026-02-03)
+## 0.1) Latest Reality Check (2026-02-15)
 
-Unibet/Kindred is now **active** and producing data in DB for:
+Unibet/Kindred remains **frozen** for activation in the current baseline:
+- Runtime freeze flag defaults/enforcement keep Unibet hidden from scrape selection and plan exposure.
+- Seed/database baseline keeps `unibet.is_active=false`.
+
+Historical implementation readiness (scraper capability) includes:
 - Soccer: EPL, La Liga, Bundesliga, Serie A, Ligue 1, A-League, UCL, MLS
 - Basketball: NBA (**NBL missing**, see below)
 - Ice Hockey: NHL (moneyline)
@@ -43,7 +47,7 @@ Unibet/Kindred is now **active** and producing data in DB for:
   - `normalize_event_name(event.name)` + `normalize_competition_name(event.competition.name)`
   - And selection grouping prefers `selection_key` (`home`/`away`/`draw`) first.
 
-**Implication**: Unibet is implemented and active; remaining work is a small checklist (NBL filter-path fix, pipeline stale-market clearing, and a few targeted verification steps).
+**Implication**: Unibet is implemented but intentionally frozen; remaining work is readiness hardening only, not activation.
 
 ---
 
@@ -136,10 +140,11 @@ These items are already implemented in the repo and should **not** be re-built:
 
 - `apps/worker/src/jobs/scrape_service.py`: `"kindred": KindredScraper` exists in `SCRAPER_CLASSES`
 
-### 2.3 Seed config (activation)
+### 2.3 Seed config (freeze baseline)
 
-- `apps/api/src/api/scripts/seed_all_bookmakers.py`: `unibet` is active with:
+- `apps/api/src/api/scripts/seed_all_bookmakers.py`: `unibet` is disabled with:
   - `platform="kindred"`, `scraper_class="kindred"`
+  - `is_active=false`
   - `horizon_days=21`
 
 ---
@@ -323,11 +328,14 @@ If NO-GO triggers, prefer one of:
    - `docker exec mb_api python -m worker.src.scripts.validate_scrapers --competition boxing --bookmaker unibet`
    - `docker exec mb_api python -m worker.src.scripts.validate_scrapers --competition nbl --bookmaker unibet` (after NBL fix)
 5. Odds matcher sanity:
-   - Confirm Unibet appears as a back bookmaker and that NHL uses moneyline-only markets.
+   - While freeze is active, confirm Unibet does **not** appear in plan-exposed bookmaker lists.
+   - Confirm NHL remains moneyline-only for the currently active books.
 
 ---
 
 ## 6) Rollout Strategy (Safe + Incremental)
+
+Activation work below is post-freeze only and requires explicit approval.
 
 1. **Stage 1 (low risk)**: soccer only (EPL + A-League + UCL)
 2. **Stage 2**: NBA + NHL moneyline

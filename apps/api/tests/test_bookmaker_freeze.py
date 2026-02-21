@@ -36,6 +36,16 @@ def test_subscription_service_excludes_unibet_when_frozen(monkeypatch):
     assert "unibet" not in allowed
 
 
+def test_subscription_service_excludes_unibet_for_all_plan_tiers_when_frozen(monkeypatch):
+    monkeypatch.delenv(BOOKMAKER_FREEZE_UNIBET_ENV, raising=False)
+    service = SubscriptionService()
+
+    for plan in ("free", "premium", "diamond"):
+        user = SimpleNamespace(current_plan=plan)
+        allowed = service.get_allowed_bookmakers(db=None, user=user)
+        assert "unibet" not in allowed
+
+
 def test_subscription_service_includes_unibet_when_unfrozen(monkeypatch):
     monkeypatch.setenv(BOOKMAKER_FREEZE_UNIBET_ENV, "false")
     service = SubscriptionService()

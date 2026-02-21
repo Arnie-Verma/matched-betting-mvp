@@ -16,6 +16,18 @@ Server-side validation after each scrape detects broken scrapers, mapping bugs, 
 3. Ladbrokes = bootstrap reference, consensus = long-term truth
 4. Never block user requests on validation failures
 5. Alert + quarantine, don't crash
+6. Empty-eligibility and out-of-scope windows are neutral (`N_A` / `SKIP`), not hard failures
+
+### Phase A Semantics Update (2026-02-11+)
+
+- Validation status model is `PASS`, `WARN`, `FAIL`, `SKIP`, `N_A`.
+- When eligible reference fixtures are zero:
+  - reference bookmaker -> `N_A`
+  - non-reference bookmakers -> `SKIP`
+- Explicit bookmaker x competition scope policy can force `SKIP` for out-of-scope pairs.
+- Gate semantics:
+  - `FAIL` is blocking
+  - `SKIP` and `N_A` are neutral/non-blocking, but not promotable evidence by themselves
 
 ---
 
@@ -598,6 +610,8 @@ docker exec mb_api python -m worker.src.scripts.validate_scrapers --format json
 | **PASS** | All checks within thresholds | None - scraper working correctly |
 | **WARN** | Minor issues detected | Review when convenient, not urgent |
 | **FAIL** | Critical issues detected | Investigate immediately - likely bug |
+| **SKIP** | Neutral result (out-of-scope or no eligible comparison window) | No immediate fix; gather a future eligible run if needed for promotion evidence |
+| **N_A** | Reference bookmaker had no eligible fixtures in current window | Neutral; rerun when eligible fixtures exist |
 
 ### What Each Metric Means
 

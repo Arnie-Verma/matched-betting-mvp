@@ -18,7 +18,7 @@ Unibet is now implemented (KindredScraper); next easiest to add:
 | **Ladbrokes** | Already working | Entain | Existing `EntainScraper` |
 | **Neds** | Already working | Entain | Existing `EntainScraper` |
 | **Betfair** | Already working | Exchange | Existing `BetfairScraper` |
-| **Unibet** | ✅ Implemented (ready to activate) | Kindred/FDJ (+ Shape Games config present) | Implemented via `KindredScraper` using `/sportsbook-feeds/views/filter/{sport}/all/matches` (no auth); allowlist + horizon filters |
+| **Unibet** | Implemented (frozen for activation) | Kindred/FDJ (+ Shape Games config present) | Implemented via `KindredScraper`; keep `BOOKMAKER_FREEZE_UNIBET=true` and `is_active=false` until explicit activation approval |
 | **PointsBet** | ✅ Strong “no proxy” candidate | Standalone (PointsBet) | Captured `https://api.au.pointsbet.com/api/v2/...` incl. `/sports/soccer/competitions`, `/sports/soccer/events/all-featured`, `/events/nextup` |
 | **BetRight** | ✅ Likely implementable | Standalone (BetRight) | Captured `https://next-api.betright.com.au/Sports/Next` + `PopularMarket/List` + SignalR negotiate |
 | **TABTouch** | ⚠️ Candidate (needs Kambi approach) | Kambi (via Shape Games config) | Config reveals `apiBaseUrl=https://oc-offering-api.kambicdn.com/{api}/v2018/` and stats GraphQL URLs |
@@ -227,8 +227,8 @@ GET /sportsbook-feeds/settings                           → Config (50KB)
 - Punterstech: platform scraper implemented (21-skin platform; multiple skins enabled)
 - **Total Working (implemented scrapers)**: 3 platform scrapers + exchange
 
-### Phase 1: Premium Tier (No Proxy) - ✅ READY
-- Kindred/Unibet: 1 bookmaker (single “all matches” endpoint per sport)
+### Phase 1: Premium Tier (No Proxy) - PARTIAL READY
+- Kindred/Unibet: implemented but intentionally frozen (no activation work in current baseline)
 - PointsBet: 1 bookmaker (public REST endpoints on `api.au.pointsbet.com`)
 - BetRight: 1 bookmaker (`next-api.betright.com.au` endpoints captured)
 
@@ -324,7 +324,7 @@ Located in `discovery_output/`:
 ✅ **Entain (Ladbrokes + Neds)**: 2 bookmakers working (same platform/API)
 ✅ **Betfair (Exchange)**: 1 exchange working
 ✅ **Punterstech (21 bookmakers)**: scraper implemented; enable/disable skins via DB config
-✅ **Kindred (Unibet)**: scraper implemented (direct HTTP); enable via DB config (`is_active=true`, `scraper_class=kindred`)
+✅ **Kindred (Unibet)**: scraper implemented (direct HTTP); keep frozen in baseline (`is_active=false`, runtime freeze flag enabled)
 
 ### What's Ready to Implement Next (no proxy priority)
 ✅ **PointsBet (1 bookmaker)**: public REST endpoints captured on `api.au.pointsbet.com`
@@ -352,7 +352,7 @@ Located in `discovery_output/`:
 **Tool**: `discovery.py` (Enhanced Playwright-based automated multi-sport research)
 **Status**: Punterstech + Unibet implemented; Premium-tier discovery refreshed (PointsBet/BetRight reconfirmed; others need deeper discovery)
 **Next Steps**:
-1. Enable Unibet in DB (`is_active=true`) and run validation framework for EPL/A-League/UCL/NBA/NHL/boxing
+1. Keep Unibet frozen (`BOOKMAKER_FREEZE_UNIBET=true`, `is_active=false`) and maintain readiness validation evidence
 2. Build PointsBet scraper using `api.au.pointsbet.com/api/v2/...` endpoints (Premium) + add `pointsbet` to worker scraper registry
 3. Build BetRight scraper using `next-api.betright.com.au` endpoints (Premium) + add `betright` to worker scraper registry
 4. Build BetCloud platform scraper using `/punter/sports/*` endpoints (2-3 days, 26 bookmakers)

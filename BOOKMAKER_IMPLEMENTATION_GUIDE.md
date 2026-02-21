@@ -45,12 +45,13 @@
 
 ---
 
-## Unibet End-to-End Acceptance Checklist (Local-First)
+## Unibet Freeze Baseline + Post-Freeze Checklist (Local-First)
 
-Use this checklist to prove Unibet is production-like ready in local pre-production mode.
+Current baseline: keep Unibet frozen (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
+Use this checklist for readiness validation; activation steps are post-freeze only.
 
 1. **Config + wiring**
-- [ ] `unibet` exists in `seed_all_bookmakers.py` with `platform=kindred`, `scraper_class=kindred`, `is_active=true`.
+- [ ] `unibet` exists in `seed_all_bookmakers.py` with `platform=kindred`, `scraper_class=kindred`, `is_active=false` while freeze is active.
 - [ ] `kindred` is registered in `apps/worker/src/jobs/scrape_service.py` `SCRAPER_CLASSES`.
 
 2. **Scraper health**
@@ -70,9 +71,9 @@ Use this checklist to prove Unibet is production-like ready in local pre-product
 - [ ] Monitor: success rate, breaker opens, validation trend, event/odds count drift.
 
 5. **UI visibility**
-- [ ] Confirm your account plan allows Unibet.
-- [ ] Open odds matcher and verify Unibet appears as a back bookmaker.
-- [ ] Verify expected opportunities appear for target competitions.
+- [ ] While freeze is active, confirm Unibet does not appear in plan-exposed bookmaker lists.
+- [ ] Post-freeze only: verify Unibet appears as a back bookmaker after explicit activation approval.
+- [ ] Post-freeze only: verify expected opportunities appear for target competitions.
 
 6. **Go/No-Go**
 - [ ] Promote only if checklist passes and no unresolved critical issues.
