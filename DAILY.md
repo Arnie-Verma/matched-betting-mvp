@@ -28,16 +28,26 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
   - removed raw sample event dumps from default telemetry response path
   - added security regression tests for telemetry access/bounds/sanitization
   - added ADR-0016 and PR14 evidence artifact
+- PR-E2 live telemetry evidence completed (no policy changes):
+  - reset telemetry stream and ran live canary/refresh loop for >=60 minutes (`pr15_live_canary_runtime.json`: 3886.73s, 21 cycles)
+  - generated live-stream telemetry summaries and threshold evaluation artifacts:
+    - `pr15_live_telemetry_metrics.json`
+    - `pr15_live_telemetry_threshold_eval.json`
+    - `pr15_live_telemetry_contract.md`
+  - generated live matcher/security telemetry events via runtime endpoint calls to ensure all required domains are represented
+  - re-verified freeze baseline (`BOOKMAKER_FREEZE_UNIBET=true` in `mb_api`/`mb_worker`, DB `unibet.is_active=false`)
 
 ### Decisions
 - Keep Unibet freeze baseline unchanged (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
 - PR-D1 remained docs-only; later PR-O1/PR-S2 introduced scoped API/worker observability and security policy changes.
 - Keep telemetry ACL denied-rate as report-only threshold by default (`OBS_ENFORCE_ACL_DENIED_RATE=false`).
 - Enforce explicit ops/internal access for operational health telemetry endpoints.
+- PR-E2 made no policy/threshold changes; evidence-only slice.
 
 ### Next Steps
 - If approved, proceed to next requested slice with code changes only after docs baseline is accepted.
 - Monitor denied access volume after S2 tightening to validate role configuration in target environments.
+- Investigate matcher p95 regression from live telemetry window before tightening matcher alert thresholds.
 
 ## 2026-02-15 (Sunday)
 

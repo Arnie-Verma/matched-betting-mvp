@@ -1,0 +1,155 @@
+{
+  "slice": "PR-E2",
+  "generated_at": "2026-02-21T09:37:35.252084+00:00",
+  "source": {
+    "type": "live_runtime_stream",
+    "stream_key": "observability:events:v1",
+    "window_hours": 4,
+    "events_analyzed": 488,
+    "canary_artifact": "docs\\evidence\\phase-a-hardening\\2026-02-11\\pr15_live_canary_runtime.json",
+    "canary_started_at": "2026-02-21T08:30:39.477291+00:00",
+    "canary_ended_at": "2026-02-21T09:35:26.210823+00:00",
+    "canary_duration_seconds": 3886.73353433609,
+    "canary_cycles_completed": 21
+  },
+  "schema_version": "observability.v1",
+  "summary": {
+    "schema_version": "observability.v1",
+    "total_events": 488,
+    "scheduler": {
+      "event_count": 21,
+      "configured_global_cap_latest": 4,
+      "configured_platform_caps_latest": {},
+      "observed_max_in_flight_global_max": 3,
+      "observed_max_in_flight_by_platform_max": {
+        "betfair": 1,
+        "entain": 1,
+        "punterstech": 1
+      }
+    },
+    "scrape_reliability": {
+      "result_event_count": 441,
+      "success_count": 434,
+      "failure_count": 7,
+      "scrape_success_rate": 0.9841269841269841,
+      "counts_by_bookmaker": {
+        "ladbrokes": {
+          "success": 19,
+          "failure": 2
+        },
+        "neds": {
+          "success": 21,
+          "failure": 0
+        },
+        "betfair": {
+          "success": 16,
+          "failure": 5
+        },
+        "tradiebet": {
+          "success": 21,
+          "failure": 0
+        },
+        "mintbet": {
+          "success": 21,
+          "failure": 0
+        },
+        "betchamps": {
+          "success": 21,
+          "failure": 0
+        },
+        "blondebet": {
+          "success": 21,
+          "failure": 0
+        },
+        "betfocus": {
+          "success": 21,
+          "failure": 0
+        },
+        "cashcage": {
+          "success": 21,
+          "failure": 0
+        },
+        "lightningbet": {
+          "success": 21,
+          "failure": 0
+        },
+        "starsports": {
+          "success": 21,
+          "failure": 0
+        },
+        "topbet": {
+          "success": 21,
+          "failure": 0
+        },
+        "betblitz": {
+          "success": 21,
+          "failure": 0
+        },
+        "truebet": {
+          "success": 21,
+          "failure": 0
+        },
+        "wizbet": {
+          "success": 21,
+          "failure": 0
+        },
+        "betbuzz": {
+          "success": 21,
+          "failure": 0
+        },
+        "ripperbet": {
+          "success": 21,
+          "failure": 0
+        },
+        "teambet": {
+          "success": 21,
+          "failure": 0
+        },
+        "millennialbet": {
+          "success": 21,
+          "failure": 0
+        },
+        "betreal": {
+          "success": 21,
+          "failure": 0
+        },
+        "betvista": {
+          "success": 21,
+          "failure": 0
+        }
+      },
+      "counts_by_platform": {
+        "entain": {
+          "success": 40,
+          "failure": 2
+        },
+        "betfair": {
+          "success": 16,
+          "failure": 5
+        },
+        "punterstech": {
+          "success": 378,
+          "failure": 0
+        }
+      },
+      "open_breaker_cycle_count": 0,
+      "breaker_open_transition_count": 0,
+      "scrape_duration_p95_seconds": 14.930962705612172
+    },
+    "matcher_performance": {
+      "request_count": 3,
+      "latency_ms_p50": 427.741,
+      "latency_ms_p95": 875.3074,
+      "query_round_trip_signal_p50": 4.0,
+      "query_round_trip_signal_p95": 4.0
+    },
+    "security": {
+      "allowed_count": 1,
+      "denied_count": 1,
+      "denied_counts_by_action": {
+        "scraper_health_access_denied": 1
+      },
+      "acl_denied_rate": 0.5
+    }
+  }
+}
