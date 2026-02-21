@@ -52,6 +52,11 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - `in_scope_fail_cycle_count=0` (issue remediated)
     - overall canary gate still `PASS=false` due `max_scrape_p95_seconds` breach only
   - Re-verified freeze baseline (`BOOKMAKER_FREEZE_UNIBET=true` in `mb_api`/`mb_worker`, DB `unibet.is_active=false`)
+- PR-D3 docs-only policy sync completed:
+  - Synced `ARCHITECTURE.md` and `docs/adr/ADR-0012-bookmaker-competition-coverage-scope-policy.md`
+    to reflect current NBL out-of-scope policy (`betblitz`, `betreal`, `starsports`, `truebet`, `wizbet`).
+  - Added explicit PR-R4A policy-drift update note in ADR-0012.
+  - No code/runtime behavior changes; documentation consistency only.
 
 ### Decisions
 - Keep Unibet freeze baseline unchanged (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
@@ -60,6 +65,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Enforce explicit ops/internal access for operational health telemetry endpoints.
 - PR-E2 made no policy/threshold changes; evidence-only slice.
 - PR-R4A changed scope-policy mapping only (`nbl x betreal`), with no change to gate semantics or Unibet freeze policy.
+- PR-D3 was docs-only synchronization for already-merged PR-R4A policy behavior.
 
 ### Next Steps
 - If approved, proceed to next requested slice with code changes only after docs baseline is accepted.

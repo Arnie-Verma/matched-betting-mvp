@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-02-15
+- Updated: 2026-02-21 (PR-R4A policy drift sync)
 - Owners: @platform
 
 ## Context
@@ -22,8 +23,11 @@ apply it in final score classification:
 3. In `validation/score_calculator.py`:
    - out-of-scope + zero-event => `SKIP`
    - in-scope + zero-event => existing `FAIL` rules remain.
-4. Initial scope policy is NBL-only out-of-scope list:
-   - `betblitz`, `starsports`, `truebet`, `wizbet`
+4. Current scope policy for NBL out-of-scope list is:
+   - `betblitz`, `betreal`, `starsports`, `truebet`, `wizbet`
+5. PR-R4A update (2026-02-21):
+   - Classified repeated `nbl x betreal` in-scope FAIL as policy drift.
+   - Updated NBL scope mapping so `betreal` is out-of-scope.
 
 ## Consequences
 Positive:
