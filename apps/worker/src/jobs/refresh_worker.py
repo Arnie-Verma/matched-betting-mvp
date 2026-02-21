@@ -19,8 +19,9 @@ import random
 sys.path.insert(0, "apps/api/src")
 sys.path.insert(0, "apps/worker/src")
 
+from api.core.bookmaker_freeze import is_bookmaker_frozen  # type: ignore
 from api.services.refresh_queue import DEFAULT_JOB_PREFIX, DEFAULT_QUEUE_KEY, get_job_status  # type: ignore
-from jobs.scrape_service import trigger_scrape  # type: ignore
+from jobs.scrape_service import get_scrape_service, trigger_scrape  # type: ignore
 
 
 def _update_job(
@@ -48,6 +49,38 @@ def _set_status(job: dict, status: str, message: Optional[str] = None) -> dict:
     if message:
         job["message"] = message
     return job
+
+
+def _resolve_active_bookmakers(
+    active_bookmakers: Optional[list[str]] = None,
+) -> list[str]:
+    """
+    Resolve active bookmakers from DB/runtime and enforce freeze policy.
+
+    - If explicit list is provided, it is treated as an override input.
+    - Otherwise, source of truth is ScrapeService.get_active_bookmakers_from_db().
+    """
+    if active_bookmakers:
+        candidates = [code.strip() for code in active_bookmakers if code and code.strip()]
+    else:
+        service = get_scrape_service()
+        configs = service.get_active_bookmakers_from_db()
+        candidates = [
+            (cfg.get("code") or "").strip()
+            for cfg in configs
+            if isinstance(cfg, dict)
+        ]
+
+    resolved: list[str] = []
+    seen: set[str] = set()
+    for code in candidates:
+        if not code or code in seen:
+            continue
+        if is_bookmaker_frozen(code):
+            continue
+        seen.add(code)
+        resolved.append(code)
+    return resolved
 
 
 async def _process_job(
@@ -89,7 +122,6 @@ async def _process_job(
 
     try:
         # Concurrency guard (global per bookmaker)
-        acquired = []
         for bm in active_bookmakers:
             running_key = f"odds_refresh_running:{bm}"
             count = redis_client.incr(running_key)
@@ -97,7 +129,6 @@ async def _process_job(
                 redis_client.decr(running_key)
                 raise RuntimeError(f"Bookmaker {bm} over concurrency cap {concurrency_cap}")
             redis_client.expire(running_key, slow_ttl_seconds)
-            acquired.append(running_key)
 
         # Currently always scrape all sports/all bookmakers; can later use payload fields
         result = await trigger_scrape(sport="all", limit=None)
@@ -109,6 +140,7 @@ async def _process_job(
             "bookmakers_scraped": result.get("bookmakers_scraped"),
             "odds_saved": result.get("odds_saved"),
             "errors": result.get("errors"),
+            "scheduler": result.get("scheduler"),
         }
 
         success = result.get("success", False)
@@ -195,6 +227,7 @@ async def run_worker_once(
 
     _, raw_job_id = item
     job_id = raw_job_id.decode()
+    runtime_active_bookmakers = _resolve_active_bookmakers(active_bookmakers)
     await _process_job(
         redis_client,
         job_id,
@@ -208,7 +241,7 @@ async def run_worker_once(
         max_retries=max_retries,
         backoff_base=backoff_base,
         backoff_jitter=backoff_jitter,
-        active_bookmakers=active_bookmakers or [],
+        active_bookmakers=runtime_active_bookmakers,
         concurrency_cap=concurrency_cap,
         dlq_key=dlq_key,
         slow_bookmakers=slow_bookmakers or set(),
@@ -234,8 +267,6 @@ def run_worker_forever() -> None:
     backoff_jitter = float(os.getenv("ODDS_REFRESH_BACKOFF_JITTER", "1.0"))
     concurrency_cap = int(os.getenv("BOOKMAKER_CONCURRENCY_CAP", "1"))
     dlq_key = os.getenv("ODDS_REFRESH_DLQ_KEY", "odds_refresh_jobs_dead")
-    active_bookmakers_env = os.getenv("ACTIVE_BOOKMAKERS", "betfair,ladbrokes")
-    active_bookmakers = [b.strip() for b in active_bookmakers_env.split(",") if b.strip()]
     slow_bookmakers_env = os.getenv("SLOW_BOOKMAKERS", "")
     slow_bookmakers = {b.strip() for b in slow_bookmakers_env.split(",") if b.strip()}
 
@@ -258,7 +289,6 @@ def run_worker_forever() -> None:
                     max_retries=max_retries,
                     backoff_base=backoff_base,
                     backoff_jitter=backoff_jitter,
-                    active_bookmakers=active_bookmakers,
                     concurrency_cap=concurrency_cap,
                     dlq_key=dlq_key,
                     slow_bookmakers=slow_bookmakers,

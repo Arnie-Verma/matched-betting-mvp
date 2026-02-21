@@ -1,0 +1,42 @@
+{
+  "slice": "PR-R2",
+  "timestamp_utc": "2026-02-21T05:39:55Z",
+  "scenario": "6 bookmakers synthetic fan-out with one bookmaker failure",
+  "before": {
+    "execution_model": "unbounded_gather_all_bookmakers",
+    "duration_seconds": 0.0249,
+    "observed_max_in_flight_global": 6,
+    "observed_max_in_flight_by_platform": {
+      "entain": 3,
+      "punterstech": 3
+    },
+    "success_count": 5,
+    "failed_count": 1
+  },
+  "after": {
+    "execution_model": "bounded_worker_pool_with_platform_caps",
+    "duration_seconds": 0.0916,
+    "cap_settings": {
+      "global_cap": 3,
+      "platform_default_cap": 2,
+      "platform_caps": {
+        "entain": 1,
+        "punterstech": 2
+      }
+    },
+    "observed_max_in_flight_global": 3,
+    "observed_max_in_flight_by_platform": {
+      "entain": 1,
+      "punterstech": 2
+    },
+    "success_count": 5,
+    "failed_count": 1,
+    "isolation_non_fatal": true
+  },
+  "comparison": {
+    "global_in_flight_reduction": 3,
+    "entain_in_flight_reduction": 2,
+    "punterstech_in_flight_reduction": 1,
+    "failure_isolation_maintained": true
+  }
+}

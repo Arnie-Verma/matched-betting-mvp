@@ -2,20 +2,10 @@
 Scraping service for on-demand odds fetching.
 Triggered by user actions (page load, refresh button).
 
-PRODUCTION OPTIMIZATION (Phase 1):
-- Parallel bookmaker scraping: All bookmakers run simultaneously
-- Parallel sport scraping: Each bookmaker scrapes all sports in parallel
-- Result: 96s → 10-15s for full scrape (6-8x improvement)
-
-DYNAMIC SCRAPER REGISTRY (Phase 1.2):
-- Config-driven scraper selection from database
-- Platform scrapers cover multiple bookmakers (e.g., Entain covers Ladbrokes/Neds; Kindred covers Unibet AU)
-- New bookmakers added by updating database config, not code
-
-Architecture:
-- scrape_all_active_bookmakers_parallel() → asyncio.gather for all bookmakers
-- Each bookmaker uses scrape_all_sports_parallel() internally
-- Total time = max(slowest_bookmaker) instead of sum(all_bookmakers)
+Key runtime behavior:
+- Dynamic active bookmaker selection from DB + freeze policy.
+- Bounded bookmaker scheduler with global and per-platform caps.
+- Per-bookmaker isolation: one scrape failure does not cancel others.
 """
 import sys
 sys.path.insert(0, "apps/api/src")
@@ -27,7 +17,7 @@ import time
 import redis
 import json
 from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional, Type
+from typing import List, Dict, Any, Optional, Type, Tuple
 from decimal import Decimal
 
 from scrapers.tab_scraper import TABScraper
@@ -119,10 +109,82 @@ class ScrapeService:
         self.breaker_threshold = int(os.getenv("BOOKMAKER_BREAKER_THRESHOLD", "5"))
         self.breaker_cooldown = int(os.getenv("BOOKMAKER_BREAKER_COOLDOWN_SECONDS", "60"))
         self.bookmaker_timeout = int(os.getenv("BOOKMAKER_TIMEOUT_SECONDS", "25"))
+        self.global_scrape_concurrency_cap = self._read_positive_int(
+            "SCRAPE_GLOBAL_CONCURRENCY_CAP",
+            fallback=self._read_positive_int("BOOKMAKER_CONCURRENCY_CAP", fallback=4),
+        )
+        self.platform_default_concurrency_cap = self._read_positive_int(
+            "SCRAPE_PLATFORM_CONCURRENCY_DEFAULT_CAP",
+            fallback=1,
+        )
+        self.platform_concurrency_caps = self._load_platform_concurrency_caps(
+            os.getenv("SCRAPE_PLATFORM_CONCURRENCY_CAPS_JSON", "")
+        )
 
         # Validation settings
         self.validation_enabled = os.getenv("VALIDATION_ENABLED", "false").lower() == "true"
         self._validation_pipeline = None
+
+    @staticmethod
+    def _read_positive_int(env_name: str, fallback: int) -> int:
+        raw_value = os.getenv(env_name)
+        if raw_value is None or raw_value == "":
+            return max(1, int(fallback))
+        try:
+            return max(1, int(raw_value))
+        except ValueError:
+            logger.warning(f"Invalid {env_name}={raw_value!r}; using fallback={fallback}")
+            return max(1, int(fallback))
+
+    @staticmethod
+    def _load_platform_concurrency_caps(raw_caps: str) -> Dict[str, int]:
+        """
+        Parse platform cap overrides from JSON object string.
+        Example: {"entain": 2, "punterstech": 3}
+        """
+        if not raw_caps:
+            return {}
+
+        try:
+            parsed = json.loads(raw_caps)
+        except json.JSONDecodeError:
+            logger.warning("Invalid SCRAPE_PLATFORM_CONCURRENCY_CAPS_JSON; ignoring overrides")
+            return {}
+
+        if not isinstance(parsed, dict):
+            logger.warning("SCRAPE_PLATFORM_CONCURRENCY_CAPS_JSON must be an object; ignoring overrides")
+            return {}
+
+        normalized: Dict[str, int] = {}
+        for platform, cap in parsed.items():
+            if not isinstance(platform, str) or not platform.strip():
+                continue
+            try:
+                normalized[platform.strip()] = max(1, int(cap))
+            except (TypeError, ValueError):
+                logger.warning(f"Ignoring invalid cap for platform {platform!r}: {cap!r}")
+                continue
+        return normalized
+
+    def _resolve_platform_cap(self, platform: str) -> int:
+        return max(
+            1,
+            int(
+                self.platform_concurrency_caps.get(
+                    platform,
+                    self.platform_default_concurrency_cap,
+                )
+            ),
+        )
+
+    @staticmethod
+    def _extract_platform_code(bookmaker_config: Dict[str, Any]) -> str:
+        scraping_config = bookmaker_config.get("scraping_config") or {}
+        if isinstance(scraping_config, dict):
+            platform = scraping_config.get("scraper_class")
+            if isinstance(platform, str) and platform.strip():
+                return platform.strip()
+        return "unknown"
 
     @property
     def scrapers(self) -> Dict[str, BaseScraper]:
@@ -654,18 +716,136 @@ class ScrapeService:
                 "odds_scraped": 0
             }
 
+    async def _run_bounded_bookmaker_schedule(
+        self,
+        bookmaker_configs: List[Dict[str, Any]],
+        sports_to_scrape: List[str],
+        limit: Optional[int],
+    ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        """
+        Run bookmaker scrape tasks with bounded global + per-platform concurrency.
+
+        Isolation policy: each bookmaker is executed independently and converted to
+        a non-fatal error result if it raises.
+        """
+        if not bookmaker_configs:
+            return [], {
+                "global_cap": self.global_scrape_concurrency_cap,
+                "platform_caps": {},
+                "observed_max_in_flight_global": 0,
+                "observed_max_in_flight_by_platform": {},
+                "total_scheduled": 0,
+            }
+
+        global_cap = min(self.global_scrape_concurrency_cap, len(bookmaker_configs))
+        platforms = [self._extract_platform_code(cfg) for cfg in bookmaker_configs]
+        platform_caps = {
+            platform: self._resolve_platform_cap(platform)
+            for platform in sorted(set(platforms))
+        }
+        platform_semaphores = {
+            platform: asyncio.Semaphore(cap)
+            for platform, cap in platform_caps.items()
+        }
+
+        queue: asyncio.Queue[Dict[str, Any]] = asyncio.Queue()
+        for cfg in bookmaker_configs:
+            queue.put_nowait(cfg)
+
+        current_global = 0
+        max_global = 0
+        current_platform: Dict[str, int] = {platform: 0 for platform in platform_caps}
+        max_platform: Dict[str, int] = {platform: 0 for platform in platform_caps}
+        counters_lock = asyncio.Lock()
+        results_by_bookmaker: Dict[str, Dict[str, Any]] = {}
+
+        async def _mark_start(platform: str) -> None:
+            nonlocal current_global, max_global
+            async with counters_lock:
+                current_global += 1
+                max_global = max(max_global, current_global)
+                current_platform[platform] = current_platform.get(platform, 0) + 1
+                max_platform[platform] = max(
+                    max_platform.get(platform, 0),
+                    current_platform[platform],
+                )
+
+        async def _mark_finish(platform: str) -> None:
+            nonlocal current_global
+            async with counters_lock:
+                current_global = max(0, current_global - 1)
+                current_platform[platform] = max(0, current_platform.get(platform, 0) - 1)
+
+        async def _worker() -> None:
+            while True:
+                try:
+                    bookmaker_cfg = queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    return
+
+                bookmaker_code = bookmaker_cfg.get("code")
+                platform = self._extract_platform_code(bookmaker_cfg)
+                platform_semaphore = platform_semaphores[platform]
+
+                await platform_semaphore.acquire()
+                await _mark_start(platform)
+                try:
+                    result = await self.scrape_bookmaker_all_sports(
+                        bookmaker_code=bookmaker_code,
+                        sports=sports_to_scrape,
+                        limit=limit,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.exception(f"[{bookmaker_code}] Scheduler worker failed: {exc}")
+                    result = {
+                        "bookmaker": bookmaker_code,
+                        "success": False,
+                        "error": str(exc),
+                        "events_scraped": 0,
+                        "odds_scraped": 0,
+                    }
+                finally:
+                    await _mark_finish(platform)
+                    platform_semaphore.release()
+                    queue.task_done()
+
+                results_by_bookmaker[str(bookmaker_code)] = result
+
+        workers = [asyncio.create_task(_worker()) for _ in range(global_cap)]
+        await asyncio.gather(*workers)
+
+        ordered_results: List[Dict[str, Any]] = []
+        for cfg in bookmaker_configs:
+            code = str(cfg.get("code"))
+            ordered_results.append(
+                results_by_bookmaker.get(
+                    code,
+                    {
+                        "bookmaker": code,
+                        "success": False,
+                        "error": "Missing scheduler result",
+                        "events_scraped": 0,
+                        "odds_scraped": 0,
+                    },
+                )
+            )
+
+        metrics = {
+            "global_cap": global_cap,
+            "platform_caps": platform_caps,
+            "observed_max_in_flight_global": max_global,
+            "observed_max_in_flight_by_platform": max_platform,
+            "total_scheduled": len(bookmaker_configs),
+        }
+        return ordered_results, metrics
+
     async def scrape_all_active_bookmakers(
         self,
         sport: str = "all",
         limit: Optional[int] = None
     ) -> Dict[str, Any]:
         """
-        Scrape all active bookmakers in PARALLEL for all sports.
-
-        PRODUCTION OPTIMIZED (Phase 1):
-        - All bookmakers run simultaneously via asyncio.gather
-        - Each bookmaker scrapes all sports in parallel internally
-        - Total time = max(slowest_bookmaker) ≈ 10-15s instead of 96s+
+        Scrape all active bookmakers for all sports with bounded concurrency.
 
         DYNAMIC REGISTRY (Phase 1.2):
         - Loads active bookmakers from database
@@ -694,32 +874,35 @@ class ScrapeService:
         # Create scrapers for each active bookmaker
         for bm_config in active_bookmaker_configs:
             code = bm_config["code"]
-            scraping_config = bm_config.get("scraping_config", {})
+            scraping_config = dict(bm_config.get("scraping_config", {}))
             scraping_config["base_url"] = bm_config.get("base_url")
             scraping_config["website_url"] = bm_config.get("website_url")
             self.get_scraper_for_bookmaker(code, scraping_config)
 
         logger.info(
-            f"[PARALLEL] Starting scrape: {len(active_bookmaker_codes)} bookmakers x {len(sports_to_scrape)} sports"
+            f"[BOUNDED] Starting scrape: {len(active_bookmaker_codes)} bookmakers x {len(sports_to_scrape)} sports"
         )
-        logger.info(f"[PARALLEL] Active bookmakers: {', '.join(active_bookmaker_codes)}")
+        logger.info(f"[BOUNDED] Active bookmakers: {', '.join(active_bookmaker_codes)}")
+        logger.info(
+            f"[BOUNDED] Caps: global={self.global_scrape_concurrency_cap}, "
+            f"platform_default={self.platform_default_concurrency_cap}, "
+            f"platform_overrides={self.platform_concurrency_caps}"
+        )
 
-        # PARALLEL EXECUTION: All bookmakers run simultaneously
-        tasks = [
-            self.scrape_bookmaker_all_sports(
-                bookmaker_code=bookmaker,
-                sports=sports_to_scrape,
-                limit=limit
-            )
-            for bookmaker in active_bookmaker_codes
-        ]
-
-        # Wait for all bookmakers to complete (with exception handling)
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Bounded execution: worker-pool by bookmaker with per-platform semaphores
+        results, scheduler_metrics = await self._run_bounded_bookmaker_schedule(
+            bookmaker_configs=active_bookmaker_configs,
+            sports_to_scrape=sports_to_scrape,
+            limit=limit,
+        )
 
         parallel_duration = time.time() - parallel_start
         logger.info(
-            f"[PARALLEL] All bookmakers completed in {parallel_duration:.2f}s"
+            f"[BOUNDED] All bookmakers completed in {parallel_duration:.2f}s"
+        )
+        logger.info(
+            f"[BOUNDED] Observed max in-flight: global={scheduler_metrics.get('observed_max_in_flight_global')}, "
+            f"per_platform={scheduler_metrics.get('observed_max_in_flight_by_platform')}"
         )
 
         # Aggregate statistics
@@ -731,16 +914,6 @@ class ScrapeService:
         bookmaker_results = []
 
         for bookmaker, result in zip(active_bookmaker_codes, results):
-            if isinstance(result, Exception):
-                logger.error(f"[{bookmaker}] Scrape task failed with exception: {result}")
-                all_errors.append(f"{bookmaker}: {str(result)}")
-                bookmaker_results.append({
-                    "bookmaker": bookmaker,
-                    "success": False,
-                    "error": str(result)
-                })
-                continue
-
             bookmaker_results.append(result)
 
             if result.get("success"):
@@ -762,7 +935,7 @@ class ScrapeService:
                 cleanup_start = time.time()
                 cleanup_result = self._run_post_scrape_cleanup()
                 cleanup_duration = time.time() - cleanup_start
-                logger.info(f"⏱️  [CLEANUP] Post-scrape cleanup took {cleanup_duration:.2f}s")
+                logger.info(f"[CLEANUP] Post-scrape cleanup took {cleanup_duration:.2f}s")
             except Exception as e:
                 logger.error(f"[CLEANUP] Post-scrape cleanup failed: {e}")
                 cleanup_result = {"error": str(e)}
@@ -785,7 +958,7 @@ class ScrapeService:
                 validation_comp = competition_map.get(sports_to_scrape[0], "laliga")
                 validation_result = self._run_post_scrape_validation(validation_comp)
                 validation_duration = time.time() - validation_start
-                logger.info(f"⏱️  [VALIDATION] Post-scrape validation took {validation_duration:.2f}s")
+                logger.info(f"[VALIDATION] Post-scrape validation took {validation_duration:.2f}s")
             except Exception as e:
                 logger.error(f"[VALIDATION] Post-scrape validation failed: {e}")
                 validation_result = {"error": str(e)}
@@ -801,11 +974,11 @@ class ScrapeService:
             "duration_seconds": parallel_duration,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "results": bookmaker_results,
-            "parallel": True,  # Flag indicating parallel execution
+            "parallel": True,  # Preserve existing contract; execution remains concurrent.
+            "scheduler": scheduler_metrics,
             "cleanup": cleanup_result,  # Phase 3: cleanup stats
             "validation": validation_result,  # Validation results
         }
-
 
 # Singleton instance
 _scrape_service = None
