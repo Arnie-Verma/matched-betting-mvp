@@ -39,6 +39,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://postgres:postgres@db:5432/mb_dev}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - BOOKMAKER_FREEZE_UNIBET=true
       # MB_AUTH_* come from env_file; don't redeclare here to avoid blank warnings
     working_dir: /workspace/apps/api
     volumes:
@@ -112,9 +113,12 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://postgres:postgres@db:5432/mb_dev}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
-      - ACTIVE_BOOKMAKERS=${ACTIVE_BOOKMAKERS:-betfair,ladbrokes}
+      - BOOKMAKER_FREEZE_UNIBET=true
       - SLOW_BOOKMAKERS=${SLOW_BOOKMAKERS:-}
       - BOOKMAKER_CONCURRENCY_CAP=${BOOKMAKER_CONCURRENCY_CAP:-1}
+      - SCRAPE_GLOBAL_CONCURRENCY_CAP=${SCRAPE_GLOBAL_CONCURRENCY_CAP:-4}
+      - SCRAPE_PLATFORM_CONCURRENCY_DEFAULT_CAP=${SCRAPE_PLATFORM_CONCURRENCY_DEFAULT_CAP:-2}
+      - SCRAPE_PLATFORM_CONCURRENCY_CAPS_JSON=${SCRAPE_PLATFORM_CONCURRENCY_CAPS_JSON:-}
       - BOOKMAKER_BREAKER_THRESHOLD=${BOOKMAKER_BREAKER_THRESHOLD:-5}
       - BOOKMAKER_BREAKER_COOLDOWN_SECONDS=${BOOKMAKER_BREAKER_COOLDOWN_SECONDS:-60}
       - ODDS_REFRESH_MAX_RETRIES=${ODDS_REFRESH_MAX_RETRIES:-3}
