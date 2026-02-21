@@ -27,6 +27,25 @@ This plan directly implements:
 - Out of scope: adding new platforms/bookmakers until hardening exit criteria pass
 - Freeze enforcement: Unibet remains code-frozen during Phase A via `BOOKMAKER_FREEZE_UNIBET=true` (default)
 
+## Phase A Progress Sync (2026-02-21)
+Implemented now:
+1. Validation semantics hardening (`PASS/WARN/FAIL/SKIP/N_A`) with scope-aware gating.
+2. Local canary gate contract with deterministic reliability thresholds and explicit failure reasons.
+3. Bounded scrape orchestration with global/per-platform caps and scheduler metrics.
+4. Runtime active-bookmaker derivation from DB + freeze policy (no static active-list control path).
+5. Matcher hot-path N+1 reduction using set-based preloading.
+6. Security controls for refresh status ownership and scraper health endpoint access policy.
+
+Known constraints still open:
+1. Lifecycle transition guards and promotion blocking are not fully code-enforced.
+2. Canary/ramp selection controls are still limited (full rollout control plane pending).
+3. Health/alerting is functional but not yet a first-class dashboarded operational surface.
+
+Planned follow-up work:
+1. Tighten canary reliability thresholds after longer bounded-scheduler telemetry windows.
+2. Add durable lifecycle state + transition enforcement in persistence layer.
+3. Move from set-based matcher path to dedicated read-model serving for sustained scale.
+
 ## Workstreams
 
 ## 1) Validation Semantics Hardening (P0)
@@ -156,7 +175,8 @@ Why it matters:
 - You run locally (Docker), so this is your production-like confidence step.
 
 Changes:
-- Add script to run repeated refresh/validate cycles and emit a Go/No-Go report.
+- Run script for repeated refresh/validate cycles and emit a Go/No-Go report.
+- Enforce deterministic gate contract (validation + reliability thresholds) with explicit failure reasons.
 - Include per-bookmaker metrics:
   - success rate
   - latency p50/p95
@@ -165,8 +185,8 @@ Changes:
   - event/odds drift
 
 Primary files:
-- `apps/worker/src/scripts/*` (new canary script)
-- report artifact in `docs/` or root evidence folder
+- `apps/worker/src/scripts/run_phase_a_canary.py`
+- report artifacts under `docs/evidence/phase-a-hardening/2026-02-11/`
 
 Exit criteria:
 - Entain + Punterstech pass local canary with no unresolved critical failures.

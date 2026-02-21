@@ -37,10 +37,12 @@ Key code:
 - `bookmakers.scraping_config.scraper_class` -> class in `SCRAPER_CLASSES`.
 - New bookmaker on existing platform is mostly config + validation.
 
-3. Bookmaker execution is isolated:
-- Per-bookmaker scrape tasks
-- Per-bookmaker circuit breaker state in Redis
-- Partial completion is allowed
+3. Bookmaker execution is bounded and isolated:
+- global worker-pool cap (`SCRAPE_GLOBAL_CONCURRENCY_CAP`)
+- per-platform caps (`SCRAPE_PLATFORM_CONCURRENCY_DEFAULT_CAP` + `SCRAPE_PLATFORM_CONCURRENCY_CAPS_JSON`)
+- per-bookmaker circuit breaker state in Redis
+- partial completion is allowed (one bookmaker failure is non-fatal)
+- scheduler emits observed in-flight metrics for auditability
 
 4. Phase A onboarding freeze is code-enforced:
 - `BOOKMAKER_FREEZE_UNIBET` (default `true`) freezes Unibet activation.
@@ -89,7 +91,9 @@ Redis-backed queue semantics:
 
 Worker orchestration behavior:
 - calls `trigger_scrape(sport="all")`
-- applies per-bookmaker concurrency cap bookkeeping in Redis
+- resolves active bookmakers from DB at runtime and re-applies freeze policy
+- bounded bookmaker scheduler enforces global + per-platform concurrency caps
+- emits scheduler metrics (`observed_max_in_flight_global`, `observed_max_in_flight_by_platform`)
 - updates global and per-bookmaker refresh timestamps
 
 Key code:
@@ -104,7 +108,7 @@ Scraper contract:
 Orchestration:
 - load active bookmakers from DB
 - dynamically instantiate scraper by `scraper_class`
-- run all active bookmakers in parallel
+- run bounded concurrent bookmaker workers (not unbounded gather)
 - each bookmaker can run multi-sport scrape (batch-controlled)
 
 Resilience controls:
@@ -154,15 +158,18 @@ Matcher API (`GET /odds/matcher`) does:
 1. plan-gated bookmaker allow-list
 2. fetch upcoming scheduled events (next 14 days)
 3. group duplicate events by normalized event + normalized competition
-4. gather eligible markets and selections
-5. collect back odds from allowed bookmakers and lay odds from Betfair
-6. compute matched-bet outputs using matching engine
-7. one opportunity per bookmaker/selection pairing
-8. sort by `pnl_percentage`, paginate, return
+4. preload eligible markets in bulk for all candidate events
+5. preload selections in bulk for all candidate markets
+6. preload current odds in bulk for all candidate selections/bookmakers
+7. collect back odds from allowed bookmakers and lay odds from Betfair
+8. compute matched-bet outputs using matching engine
+9. one opportunity per bookmaker/selection pairing
+10. sort by `pnl_percentage`, paginate, return
 
 Additional behavior:
 - market preference ranking to align market types per sport
 - ETag/Last-Modified headers for client revalidation
+- no debug `print()` calls in request path (enforced by regression test)
 
 Key code:
 - `apps/api/src/api/routers/odds_matcher.py`
@@ -190,6 +197,10 @@ Plan enforcement is server-side:
 - allowed bookmaker list derived by plan
 - metadata endpoints return plan-allowed bookmakers
 - frozen bookmakers are filtered from allow-lists during freeze windows
+- refresh job status access is owner/shared-reader scoped:
+  - owner: `payload.requested_by`
+  - merged/shared readers: `payload.shared_user_ids`
+  - others: `403`
 
 Key code:
 - `apps/api/src/api/services/subscription_service.py`
@@ -222,8 +233,9 @@ Validation:
   - outputs under `docs/evidence/phase-a-hardening/2026-02-11/`
 
 Health:
-- `/health/scrapers` reports freshness, odds counts, breaker state
-- `/health/database` and `/health/detailed` for runtime checks
+- `/health/scrapers` reports freshness, odds counts, breaker state and is protected by auth/internal-token policy
+- `/health/detailed` shares the same access policy as `/health/scrapers`
+- `/health/database` remains readable runtime health data
 
 Key code:
 - `apps/worker/src/validation/*`
@@ -236,11 +248,16 @@ Important runtime knobs:
 - `BOOKMAKER_TIMEOUT_SECONDS`
 - `BOOKMAKER_BREAKER_THRESHOLD`
 - `BOOKMAKER_BREAKER_COOLDOWN_SECONDS`
+- `SCRAPE_GLOBAL_CONCURRENCY_CAP`
+- `SCRAPE_PLATFORM_CONCURRENCY_DEFAULT_CAP`
+- `SCRAPE_PLATFORM_CONCURRENCY_CAPS_JSON`
 - `BOOKMAKER_CONCURRENCY_CAP`
 - `ODDS_CACHE_TTL_FAST_SECONDS`
 - `ODDS_REFRESH_PER_USER_SECONDS`
 - `VALIDATION_ENABLED`
 - `BOOKMAKER_FREEZE_UNIBET` (default `true`; set `false` only after explicit GO)
+- `HEALTH_SCRAPERS_INTERNAL_TOKEN`
+- `HEALTH_SCRAPERS_ALLOWED_ROLES`
 
 Notes:
 - scraper code defaults `SCRAPER_BATCH_SIZE` to `1` if env is absent
@@ -249,8 +266,27 @@ Notes:
 ## Current Known Constraints
 1. Lifecycle and activation gates are documented but not fully code-enforced yet.
 2. Validation thresholds still need ongoing calibration across competitions/platforms.
-3. Read path still does substantial in-request grouping/processing at API layer.
-4. Some plan/bookmaker lists are hardcoded and need long-term config centralization.
+3. Matcher hot-path N+1 has been removed, but response assembly is still in-request in-memory work (no dedicated read model yet).
+4. Refresh job ACLs are stored in Redis payload metadata; stronger typed persistence/audit logging is still pending.
+5. Some plan/bookmaker lists are hardcoded and need long-term config centralization.
+
+## Implementation Status (Phase A hardening)
+Implemented now:
+1. Bounded scheduler with global + per-platform caps and scheduler metrics.
+2. Runtime active bookmaker derivation from DB plus freeze policy (no static active-list control path).
+3. Matcher set-based preloading strategy for events/markets/selections/odds.
+4. Security policy on `/odds/refresh/status` ownership/shared visibility.
+5. Security policy on `/health/scrapers` and `/health/detailed` auth/internal access.
+
+Still open:
+1. Lifecycle transition guards and activation-gate enforcement in code.
+2. First-class health dashboard + alert routing beyond current endpoint surface.
+3. Dedicated matcher read model/materialization for higher sustained traffic.
+
+Planned follow-ups:
+1. Tighten canary reliability thresholds after scheduler and matcher improvements are observed over longer windows.
+2. Add durable job ACL/audit model for refresh status access.
+3. Continue policy centralization for plan/bookmaker exposure rules.
 
 These are tracked in:
 - `BOOKMAKER_OPERATING_SYSTEM.md`

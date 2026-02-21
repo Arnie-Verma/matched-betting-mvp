@@ -88,6 +88,8 @@ This methodology is designed to be executed locally first to get as close to pro
 1. Queue execution:
    - Enqueue per-bookmaker jobs with bounded global and per-platform concurrency.
    - Separate queues for `standard_books` and `proxy_books`.
+   - Active bookmaker set is derived from DB active rows plus freeze policy at runtime.
+   - Emit scheduler discipline metrics (`observed_max_in_flight_global`, per-platform max in-flight).
 2. Adapter pipeline:
    - `fetch -> parse -> normalize -> validate -> persist -> publish_status`.
 3. Failure control:
@@ -146,6 +148,15 @@ This methodology is designed to be executed locally first to get as close to pro
 4. Event/odds count deltas.
 5. Validation score trend.
 6. Breaker state and open duration.
+7. Scheduler max in-flight (global and per-platform).
+
+## Security Access Policy (Current)
+1. Refresh status endpoint (`GET /odds/refresh/status`):
+   - allow owner (`payload.requested_by`) and explicitly shared merged readers (`payload.shared_user_ids`)
+   - deny cross-user access with `403`
+2. Scraper health endpoints:
+   - `/health/scrapers` and `/health/detailed` require authenticated or internal-token access policy
+   - optional role gate can be applied via runtime config
 
 ## Unibet Scale-Proof Method (Repeatable Template)
 Use Unibet as the proof case for scaling from Entain/Punterstech to any new bookmaker.
@@ -260,7 +271,25 @@ These are still required to make onboarding low-risk at 100+ bookmakers:
 5. Add canary controls and exposure ramp controls in refresh selection.
 6. Add first-class bookmaker health dashboard with alerting hooks.
 7. Add automated onboarding report generation (go/no-go artifact).
-8. Strengthen matcher read path for high-bookmaker, high-user load.
+8. Evolve matcher from in-request set-based preloading to dedicated read-model/materialized serving for sustained high load.
+
+## Phase A Sync Status (Post PR-R2/PR-R3/PR-S1)
+Implemented now:
+1. Bounded concurrency scheduler with global and per-platform caps.
+2. Runtime active-bookmaker derivation from DB + freeze policy (no static active-list control path).
+3. Matcher hot-path N+1 reduction through set-based bulk preloading.
+4. Ownership/shared-reader authorization on refresh status endpoint.
+5. Auth/internal access policy on scraper health endpoints.
+
+Known constraints still open:
+1. Lifecycle transitions and activation gates are still partially doc-driven.
+2. Refresh ACL metadata is Redis payload-based (durable ACL/audit model not yet implemented).
+3. Health visibility exists via endpoints but not a dedicated operational dashboard.
+
+Planned follow-up work:
+1. Tighten canary thresholds after longer-run telemetry under bounded scheduler.
+2. Add durable refresh-job ACL/audit logging.
+3. Build matcher read model for sustained 100+ bookmaker load.
 
 ## Definition Of Scaled
 1. New bookmaker onboarding is mostly config + validation.

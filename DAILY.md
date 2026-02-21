@@ -4,6 +4,28 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-02-21 (Saturday)
+
+### Completed
+- PR-D1 docs-only synchronization slice completed (post PR-R2/PR-R3/PR-S1) with no code-file edits.
+- Updated `ARCHITECTURE.md` to reflect:
+  - bounded scheduler semantics and runtime active-bookmaker derivation
+  - matcher set-based preloading hot path behavior
+  - refresh-status ownership ACL + health endpoint access policy
+  - current/open/planned status split for auditability
+- Updated `README.md` with Phase A hardening snapshot (implemented now vs still open).
+- Updated `BOOKMAKER_OPERATING_SYSTEM.md` with scheduler/security policy updates and status split (implemented/open/follow-up).
+- Updated `SCRAPER_HARDENING_PLAN.md` with Phase A progress sync and canary reliability-gate language.
+- Verified ADR index completeness (`docs/adr/README.md` includes all `ADR-*.md` files).
+- Verified command block hygiene in `docs/evidence/phase-a-hardening/2026-02-11/pr12_security_controls_contract.md`; no malformed lines found.
+
+### Decisions
+- Keep Unibet freeze baseline unchanged (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
+- Keep this slice docs-only: no API/worker/web code path changes.
+
+### Next Steps
+- If approved, proceed to next requested slice with code changes only after docs baseline is accepted.
+
 ## 2026-02-15 (Sunday)
 
 ### Completed
