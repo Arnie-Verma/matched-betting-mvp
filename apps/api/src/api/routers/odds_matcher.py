@@ -5,10 +5,11 @@ Supports filtering by stake, bet type, bookmakers, leagues, and search.
 """
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
-from typing import Optional, List
+from collections import defaultdict
+from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_
 from email.utils import format_datetime, parsedate_to_datetime
 
@@ -58,6 +59,136 @@ def _market_preference_rank(sport_code: str, market_name: str) -> int:
 
     # Soccer and other sports: treat all match-winner markets as equivalent for now.
     return 0
+
+
+def _parse_csv_filter(value: Optional[str]) -> Optional[List[str]]:
+    if not value:
+        return None
+    parts = [part.strip() for part in value.split(",")]
+    filtered = [part for part in parts if part]
+    return filtered or None
+
+
+def _matcher_market_filter_clause():
+    """SQL clause for match-winner compatible markets."""
+    return or_(
+        # Match "Result" but exclude HTResult, H2Result, and combined markets
+        and_(
+            Market.name.ilike("%result"),
+            Market.name.notilike("%htresult%"),  # Exclude half-time result
+            Market.name.notilike("%h2result%"),  # Exclude 2nd half result
+            Market.name.notilike("%both%"),      # Exclude Result-BothTmScr
+            Market.name.notilike("%rou%"),       # Exclude Result-OU combined markets
+        ),
+        Market.name.ilike("%match winner%"),
+        Market.name.ilike("%match odds%"),       # Betfair
+        Market.name.ilike("%money%line%"),       # NBA/NHL
+        Market.name.ilike("%head%to%head%"),     # Ladbrokes
+        Market.name.ilike("%fight betting%"),    # Boxing
+        Market.name.ilike("%fight%result%"),     # Punterstech boxing
+        and_(Market.name.ilike("%h2h%"), Market.name.notilike("%hth2h%")),
+    )
+
+
+def _group_events(events: List[Event]) -> Dict[str, List[Event]]:
+    """Group event rows by normalized event+competition key."""
+    event_groups: Dict[str, List[Event]] = defaultdict(list)
+    for event in events:
+        norm_event_name = normalize_event_name(event.name)
+        norm_comp = normalize_competition_name(event.competition.name if event.competition else "")
+        group_key = f"{norm_event_name}_{norm_comp}"
+        event_groups[group_key].append(event)
+    return dict(event_groups)
+
+
+def _load_precomputed_matcher_data(
+    db: Session,
+    *,
+    event_ids: List[int],
+    bookmaker_filter: List[str],
+) -> Dict[str, Any]:
+    """
+    Bulk preload markets, selections, and odds for the candidate event set.
+
+    This replaces per-event/per-market query loops to avoid N+1 behavior.
+    """
+    if not event_ids:
+        return {
+            "markets_by_event_id": {},
+            "selections_by_market_id": {},
+            "selection_by_id": {},
+            "odds_by_selection_id": {},
+        }
+
+    markets = (
+        db.query(Market)
+        .filter(
+            and_(
+                Market.event_id.in_(event_ids),
+                Market.is_active == True,
+                _matcher_market_filter_clause(),
+            )
+        )
+        .all()
+    )
+    market_ids = [market.id for market in markets]
+    markets_by_event_id: Dict[int, List[Market]] = defaultdict(list)
+    for market in markets:
+        markets_by_event_id[market.event_id].append(market)
+
+    if not market_ids:
+        return {
+            "markets_by_event_id": dict(markets_by_event_id),
+            "selections_by_market_id": {},
+            "selection_by_id": {},
+            "odds_by_selection_id": {},
+        }
+
+    selections = (
+        db.query(Selection)
+        .options(joinedload(Selection.market))
+        .filter(Selection.market_id.in_(market_ids))
+        .all()
+    )
+    selection_ids = [selection.id for selection in selections]
+    selections_by_market_id: Dict[int, List[Selection]] = defaultdict(list)
+    selection_by_id: Dict[int, Selection] = {}
+    for selection in selections:
+        selections_by_market_id[selection.market_id].append(selection)
+        selection_by_id[selection.id] = selection
+
+    if not selection_ids:
+        return {
+            "markets_by_event_id": dict(markets_by_event_id),
+            "selections_by_market_id": dict(selections_by_market_id),
+            "selection_by_id": selection_by_id,
+            "odds_by_selection_id": {},
+        }
+
+    bookmaker_codes = sorted(set((bookmaker_filter or []) + ["betfair"]))
+    odds_rows = (
+        db.query(OddsSnapshot)
+        .join(Bookmaker)
+        .options(joinedload(OddsSnapshot.bookmaker))
+        .filter(
+            and_(
+                OddsSnapshot.selection_id.in_(selection_ids),
+                OddsSnapshot.is_current == True,
+                Bookmaker.code.in_(bookmaker_codes),
+            )
+        )
+        .all()
+    )
+    odds_by_selection_id: Dict[int, List[OddsSnapshot]] = defaultdict(list)
+    for odds_row in odds_rows:
+        odds_by_selection_id[odds_row.selection_id].append(odds_row)
+
+    return {
+        "markets_by_event_id": dict(markets_by_event_id),
+        "selections_by_market_id": dict(selections_by_market_id),
+        "selection_by_id": selection_by_id,
+        "odds_by_selection_id": dict(odds_by_selection_id),
+    }
 
 
 class OddsMatcherFilters(BaseModel):
@@ -398,16 +529,9 @@ async def get_matcher_opportunities(
     """
     import logging
     import time
+
     total_start = time.time()
     logger = logging.getLogger(__name__)
-
-    print("\n" + "="*80)
-    print("=== MATCHER ENDPOINT CALLED ===")
-    print(f"Parameters: stake={stake}, bet_type={bet_type}, bookmaker_codes={bookmaker_codes}")
-    print("="*80 + "\n")
-
-    logger.info("=== MATCHER ENDPOINT CALLED ===")
-    logger.info(f"Parameters: stake={stake}, bet_type={bet_type}, bookmaker_codes={bookmaker_codes}")
 
     # Get or create user (auto-create on first access)
     user = db.query(User).filter(User.clerk_user_id == user_claims.sub).first()
@@ -417,7 +541,7 @@ async def get_matcher_opportunities(
             email=user_claims.email or f"{user_claims.sub}@temp.com",
             email_verified=user_claims.email_verified or False,
             current_plan="free",
-            plan_status="active"
+            plan_status="active",
         )
         db.add(user)
         db.commit()
@@ -435,85 +559,63 @@ async def get_matcher_opportunities(
     allowed_bookmakers = subscription_service.get_allowed_bookmakers(db, user)
 
     # Parse comma-separated filters
-    bookmaker_filter = bookmaker_codes.split(",") if bookmaker_codes else None
-    sport_filter = sport_codes.split(",") if sport_codes else None
-    competition_code_filter = competition_codes.split(",") if competition_codes else None
-    competition_filter = [int(x) for x in competition_ids.split(",")] if competition_ids else None
+    bookmaker_filter = _parse_csv_filter(bookmaker_codes)
+    sport_filter = _parse_csv_filter(sport_codes)
+    competition_code_filter = _parse_csv_filter(competition_codes)
+    competition_filter = [int(x) for x in competition_ids.split(",") if x.strip()] if competition_ids else None
 
     # Apply plan restrictions: filter to only allowed bookmakers
-    print(f"allowed_bookmakers: {allowed_bookmakers}")
-    print(f"bookmaker_filter (before): {bookmaker_filter}")
-
     if bookmaker_filter:
-        # User requested specific bookmakers - ensure they're allowed
         bookmaker_filter = [bm for bm in bookmaker_filter if bm in allowed_bookmakers]
     else:
-        # No filter specified - use all allowed bookmakers
         bookmaker_filter = allowed_bookmakers
-
-    print(f"bookmaker_filter (after): {bookmaker_filter}")
 
     if not bookmaker_filter:
         raise HTTPException(
             status_code=403,
-            detail="Your plan does not allow access to the requested bookmakers"
+            detail="Your plan does not allow access to the requested bookmakers",
         )
 
-    # Build query for current odds
-    # We need: Event -> Market -> Selection -> OddsSnapshot
     # Find events happening in next 14 days
     now = datetime.now(timezone.utc)
     date_from = now
     date_to = now + timedelta(days=14)
 
-    # Query for events with filters
-    import logging
-    logger = logging.getLogger(__name__)
-
-    logger.info(f"=== MATCHER QUERY DEBUG ===")
-    logger.info(f"Date range: {date_from} to {date_to}")
-    logger.info(f"Sport filter: {sport_filter}")
-    logger.info(f"Competition filter: {competition_filter}")
-    logger.info(f"Competition codes: {competition_code_filter}")
-    logger.info(f"Search filter: {search}")
-
-    events_query = db.query(Event).join(Competition).join(Sport)
-
-    # Apply date filter
-    events_query = events_query.filter(
-        and_(
-            Event.start_time >= date_from,
-            Event.start_time <= date_to,
-            Event.status == "scheduled"
+    # Query for events with filters and eager-load metadata used in response payload.
+    events_query = (
+        db.query(Event)
+        .options(joinedload(Event.competition).joinedload(Competition.sport))
+        .join(Competition)
+        .join(Sport)
+        .filter(
+            and_(
+                Event.start_time >= date_from,
+                Event.start_time <= date_to,
+                Event.status == "scheduled",
+            )
         )
     )
 
-    # Apply sport filter
     if sport_filter:
         events_query = events_query.filter(Sport.code.in_(sport_filter))
 
-    # Apply competition filter
     if competition_filter:
         events_query = events_query.filter(Event.competition_id.in_(competition_filter))
 
-    # Apply search filter
     if search:
         events_query = events_query.filter(Event.name.ilike(f"%{search}%"))
 
-    logger.info("About to execute query...")
     query_start = time.time()
-    # Fetch all events - we need to group duplicates across bookmakers
-    # 500 limit should cover all sports for next 14 days
     events = events_query.limit(500).all()
     query_time = time.time() - query_start
-    logger.info(f"⏱️  [MATCHER] Events query took {query_time:.2f}s, found {len(events)} events")
+    logger.info(f"[MATCHER] Events query took {query_time:.2f}s, found {len(events)} events")
 
     # Apply competition code filter using normalization (handles season prefixes/suffixes)
     if competition_code_filter:
         normalized_codes = {
-            normalize_competition_name(code.strip())
+            normalize_competition_name(code)
             for code in competition_code_filter
-            if code.strip()
+            if code
         }
         if normalized_codes:
             filtered_events = []
@@ -524,107 +626,58 @@ async def get_matcher_opportunities(
                 if normalize_competition_name(comp_name) in normalized_codes:
                     filtered_events.append(event)
             events = filtered_events
-            logger.info(f"[MATCHER] Competition code filter applied: {len(events)} events match {normalized_codes}")
-
-    print(f"\n>>> Found {len(events)} events in date range {date_from} to {date_to}")
-    print(f">>> Bookmaker filter: {bookmaker_filter}\n")
-
-    logger.info(f"Matcher query found {len(events)} events in date range {date_from} to {date_to}")
-    logger.info(f"Bookmaker filter: {bookmaker_filter}")
 
     if not events:
-        logger.warning("No events found - returning empty list")
-        print(">>> No events found - returning empty list")
         return PaginatedOddsResponse(
             items=[],
             total=0,
             offset=offset,
             limit=limit,
-            has_more=False
+            has_more=False,
         )
 
-    # Group events by normalized name to handle duplicate events from different bookmakers
-    # Uses NormalizationService (Phase 4) for centralized team/event mappings
-    print(f"\n>>> Grouping {len(events)} events by normalized name...")
+    event_groups = _group_events(events)
+    preloaded = _load_precomputed_matcher_data(
+        db,
+        event_ids=[event.id for event in events],
+        bookmaker_filter=bookmaker_filter,
+    )
 
-    event_groups = {}
-    for event in events:
-        norm_event_name = normalize_event_name(event.name)
-        # Also normalize competition to handle "Premier League" vs "English Premier League"
-        norm_comp = normalize_competition_name(event.competition.name if event.competition else "")
-        # Create composite key: normalized_event_name + normalized_competition
-        # This ensures events from same match but different bookmaker competition names are grouped
-        group_key = f"{norm_event_name}_{norm_comp}"
+    markets_by_event_id: Dict[int, List[Market]] = preloaded["markets_by_event_id"]
+    selections_by_market_id: Dict[int, List[Selection]] = preloaded["selections_by_market_id"]
+    odds_by_selection_id: Dict[int, List[OddsSnapshot]] = preloaded["odds_by_selection_id"]
 
-        if group_key not in event_groups:
-            event_groups[group_key] = []
-        event_groups[group_key].append(event)
-
-    print(f">>> Found {len(event_groups)} unique events (from {len(events)} total events)")
-
-    # For each event group, find matched betting opportunities
     matching_engine = MatchingEngine()
-    opportunities = []
+    opportunities: List[OddsMatchResponse] = []
+    back_bookmakers = [bm for bm in bookmaker_filter if bm != "betfair"]
 
     matching_start = time.time()
-    print(f"\n>>> Processing {len(event_groups)} unique events to find opportunities...")
-    for norm_event_name, events_in_group in event_groups.items():
-        # Use the first event for metadata
+
+    for events_in_group in event_groups.values():
         representative_event = events_in_group[0]
         sport_code = (
             representative_event.competition.sport.code
             if representative_event.competition and representative_event.competition.sport
             else ""
         )
-        event_ids = [e.id for e in events_in_group]
-        event_names = [e.name for e in events_in_group]
 
-        print(f">>> Event group '{norm_event_name}' (original names: {event_names})")
-        logger.info(f"Processing event group: {event_names} (IDs: {event_ids})")
+        group_markets: List[Market] = []
+        for event in events_in_group:
+            group_markets.extend(markets_by_event_id.get(event.id, []))
 
-        # Get markets for ALL events in this group (only H2H/Match Result markets - exclude combined markets)
-        markets = db.query(Market).filter(
-            and_(
-                Market.event_id.in_(event_ids),
-                Market.is_active == True,
-                or_(
-                    # Match "Result" but exclude HTResult, H2Result, and combined markets
-                    and_(
-                        Market.name.ilike('%result'),
-                        Market.name.notilike('%htresult%'),  # Exclude half-time result
-                        Market.name.notilike('%h2result%'),  # Exclude 2nd half result
-                        Market.name.notilike('%both%'),      # Exclude Result-BothTmScr
-                        Market.name.notilike('%rou%')        # Exclude Result-OU combined markets
-                    ),
-                    Market.name.ilike('%match winner%'),
-                    Market.name.ilike('%match odds%'),  # Betfair calls it "Match Odds"
-                    Market.name.ilike('%money%line%'),  # NBA/NHL use "Money Line" or "Moneyline"
-                    Market.name.ilike('%head%to%head%'),  # Ladbrokes uses "Head To Head"
-                    Market.name.ilike('%fight betting%'),  # Boxing uses "Fight Betting"
-                    Market.name.ilike('%fight%result%'),  # Punterstech uses "Fight Result"
-                    and_(Market.name.ilike('%h2h%'), Market.name.notilike('%hth2h%'))
-                )
-            )
-        ).all()
+        if not group_markets:
+            continue
 
-        print(f"    Markets found across all events: {len(markets)}")
-        logger.info(f"  Found {len(markets)} markets across event group {event_names}")
+        all_selections: List[Selection] = []
+        for market in group_markets:
+            all_selections.extend(selections_by_market_id.get(market.id, []))
 
-        # PHASE 1: Collect ALL selections across ALL markets in this event group
-        # Then group them by normalized team name
-        all_selections = []
-        for market in markets:
-            selections = db.query(Selection).filter(Selection.market_id == market.id).all()
-            all_selections.extend(selections)
+        if not all_selections:
+            continue
 
-        # Group selections by normalized name (using NormalizationService)
-        selection_groups = {}
-
-        # PHASE 2: Group selections by normalized name
+        selection_groups: Dict[str, Dict[str, Any]] = {}
         for selection in all_selections:
             # Prefer selection_key (home/away/draw) for match-winner markets.
-            # This avoids missing matches when bookmakers abbreviate names differently
-            # (e.g., boxing: "Lopez, T" vs "Teofimo Lopez").
             selection_group_key = (selection.selection_key or "").strip().lower()
             if not selection_group_key:
                 selection_group_key = normalize_selection_name(selection.name)
@@ -633,94 +686,72 @@ async def get_matcher_opportunities(
 
             if selection_group_key not in selection_groups:
                 selection_groups[selection_group_key] = {
-                    'selections': [],
-                    'selection_ids': [],
-                    'back_odds': [],
-                    'lay_odds': []
+                    "selections": [],
+                    "selection_ids": [],
                 }
 
-            selection_groups[selection_group_key]['selections'].append(selection)
-            selection_groups[selection_group_key]['selection_ids'].append(selection.id)
+            selection_groups[selection_group_key]["selections"].append(selection)
+            selection_groups[selection_group_key]["selection_ids"].append(selection.id)
 
-        logger.info(f"  Grouped {len(all_selections)} selections into {len(selection_groups)} normalized groups")
+        for group in selection_groups.values():
+            selection_ids = group["selection_ids"]
+            selection_by_id = {s.id: s for s in group.get("selections", [])}
 
-        # PHASE 3: For each selection group, query odds for ALL selection IDs in the group
-        # This is the key fix - we query across all selections with the same normalized name
-        back_bookmakers = [bm for bm in bookmaker_filter if bm != "betfair"]
+            group_odds: List[OddsSnapshot] = []
+            for selection_id in selection_ids:
+                group_odds.extend(odds_by_selection_id.get(selection_id, []))
 
-        for norm_name, group in selection_groups.items():
-            selection_ids = group['selection_ids']
-
-            # Get back odds for ALL selections in this group
             if back_bookmakers:
-                back = db.query(OddsSnapshot).join(Bookmaker).filter(
-                    and_(
-                        OddsSnapshot.selection_id.in_(selection_ids),
-                        OddsSnapshot.is_current == True,
-                        Bookmaker.code.in_(back_bookmakers)
-                    )
-                ).all()
-                group['back_odds'] = back
+                back_odds_list = [
+                    odds_row
+                    for odds_row in group_odds
+                    if odds_row.bookmaker and odds_row.bookmaker.code in back_bookmakers
+                ]
+            else:
+                back_odds_list = []
 
-            # Get lay odds for ALL selections in this group
-            lay = db.query(OddsSnapshot).join(Bookmaker).filter(
-                and_(
-                    OddsSnapshot.selection_id.in_(selection_ids),
-                    OddsSnapshot.is_current == True,
-                    Bookmaker.code == "betfair"
-                )
-            ).all()
-            group['lay_odds'] = lay
-
-        # Now check each selection group for matched opportunities
-        # KEY CHANGE: Create one opportunity PER BOOKMAKER (like Outmatched)
-        # This allows users to see and bet on the same event across multiple bookmakers
-        for norm_name, group in selection_groups.items():
-            back_odds_list = group['back_odds']
-            # Filter out invalid lay odds (odds >= 100 are Betfair placeholders meaning no liquidity)
-            lay_odds = [lo for lo in group['lay_odds'] if lo.decimal_odds < Decimal("100")]
-            selection = group['selections'][0]  # Use first selection for metadata
-            selection_by_id = {s.id: s for s in group.get('selections', [])}
-
-            # Show all original names in this group
-            all_names = [s.name for s in group['selections']]
-            print(f"    Selection group '{norm_name}' (names: {all_names}): {len(back_odds_list)} back, {len(lay_odds)} lay (valid)")
+            # Filter out invalid lay odds (odds >= 100 are placeholders meaning no liquidity)
+            lay_odds = [
+                odds_row
+                for odds_row in group_odds
+                if odds_row.bookmaker
+                and odds_row.bookmaker.code == "betfair"
+                and odds_row.decimal_odds < Decimal("100")
+            ]
 
             if not back_odds_list or not lay_odds:
-                if not back_odds_list:
-                    print(f"      SKIP: no back odds")
-                if not lay_odds:
-                    print(f"      SKIP: no valid lay odds (filtered out odds >= 100)")
                 continue
+
+            selection = group["selections"][0]
 
             def market_rank_for_snapshot(snapshot: OddsSnapshot) -> int:
                 sel = selection_by_id.get(snapshot.selection_id)
                 market_name = sel.market.name if sel and sel.market else ""
                 return _market_preference_rank(sport_code, market_name)
 
-            # Find best lay odds PER market rank so we can keep back+lay markets aligned
-            # for each bookmaker (prevents mismatched markets like NHL Match Odds vs Moneyline).
-            lay_by_rank: dict[int, list[OddsSnapshot]] = {}
-            for lo in lay_odds:
-                rank = market_rank_for_snapshot(lo)
-                lay_by_rank.setdefault(rank, []).append(lo)
+            # Find best lay odds per rank so back+lay markets stay aligned.
+            lay_by_rank: Dict[int, List[OddsSnapshot]] = defaultdict(list)
+            for lay_row in lay_odds:
+                rank = market_rank_for_snapshot(lay_row)
+                lay_by_rank[rank].append(lay_row)
 
-            best_lay_by_rank: dict[int, OddsSnapshot] = {}
+            best_lay_by_rank: Dict[int, OddsSnapshot] = {}
             for rank, items in lay_by_rank.items():
                 best_lay_by_rank[rank] = min(items, key=lambda x: x.decimal_odds)
 
-            # Group back odds by bookmaker and find best odds per bookmaker
-            # (in case same bookmaker has multiple odds entries for same selection)
-            bookmaker_best_odds: dict[str, OddsSnapshot] = {}
+            # Pick best back odds per bookmaker with market preference.
+            bookmaker_best_odds: Dict[str, OddsSnapshot] = {}
             for back_odds in back_odds_list:
-                bm_code = back_odds.bookmaker.code
+                bookmaker = back_odds.bookmaker
+                if not bookmaker:
+                    continue
+
+                bm_code = bookmaker.code
                 existing = bookmaker_best_odds.get(bm_code)
                 if not existing:
                     bookmaker_best_odds[bm_code] = back_odds
                     continue
 
-                # Prefer the correct market for the sport (e.g., Money Line for basketball),
-                # then choose the best price within that market.
                 existing_rank = market_rank_for_snapshot(existing)
                 candidate_rank = market_rank_for_snapshot(back_odds)
                 if candidate_rank < existing_rank:
@@ -728,119 +759,93 @@ async def get_matcher_opportunities(
                 elif candidate_rank == existing_rank and back_odds.decimal_odds > existing.decimal_odds:
                     bookmaker_best_odds[bm_code] = back_odds
 
-            print(f"      MATCHES FOUND! Creating {len(bookmaker_best_odds)} opportunities (one per bookmaker)")
-
-            # Create one opportunity per bookmaker
-            for bm_code, best_back in bookmaker_best_odds.items():
+            for best_back in bookmaker_best_odds.values():
                 back_rank = market_rank_for_snapshot(best_back)
                 best_lay = best_lay_by_rank.get(back_rank)
                 if not best_lay:
-                    print(f"      SKIP {bm_code}: no Betfair lay market matching rank={back_rank}")
                     continue
 
                 back_selection = selection_by_id.get(best_back.selection_id, selection)
                 lay_selection = selection_by_id.get(best_lay.selection_id)
 
-                # Safety: don't create "free money" opportunities caused by mismatched selections
-                # (e.g., backing Team A but laying Team B).
+                # Safety: avoid mismatched back/lay selection pairs.
                 if lay_selection and back_selection:
                     back_key = (back_selection.selection_key or "").strip().lower()
                     lay_key = (lay_selection.selection_key or "").strip().lower()
-                    if back_key and lay_key and back_key == lay_key:
-                        # selection_key match is the strongest signal (home/away/draw)
-                        pass
-                    else:
+                    if not (back_key and lay_key and back_key == lay_key):
                         score = fuzzy_match_score(back_selection.name, lay_selection.name)
                         if score < 0.75:
-                            logger.debug(
-                                f"Skipping mismatched selection pair (score={score:.2f}): "
-                                f"back='{back_selection.name}' vs lay='{lay_selection.name}'"
-                            )
                             continue
 
-                # Calculate matched bet for this bookmaker
                 back_bet = BackBet(
                     bookmaker_code=best_back.bookmaker.code,
                     bookmaker_name=best_back.bookmaker.display_name,
                     back_odds=best_back.decimal_odds,
-                    stake=stake
+                    stake=stake,
                 )
-
                 lay_bet = LayBet(
                     lay_odds=best_lay.decimal_odds,
-                    commission=Decimal("0.06"),  # 6% Betfair commission (Australian users)
-                    liquidity=best_lay.available_amount
+                    commission=Decimal("0.06"),
+                    liquidity=best_lay.available_amount,
                 )
 
-                calculation = matching_engine.calculate_matched_bet(
-                    back_bet, lay_bet, bet_type
-                )
-
-                # Apply rating filter
+                calculation = matching_engine.calculate_matched_bet(back_bet, lay_bet, bet_type)
                 if min_rating and calculation.rating < min_rating:
                     continue
 
-                # Calculate PnL percentage
                 pnl_pct = matching_engine.calculate_pnl_percentage(calculation)
-
-                # Use the back selection's market/selection metadata so UI links match the odds.
                 market = back_selection.market if back_selection else selection.market
                 response_selection = back_selection if back_selection else selection
 
-                opportunities.append(OddsMatchResponse(
-                    event_id=representative_event.id,
-                    event_name=representative_event.name,
-                    event_start_time=representative_event.start_time,
-                    sport_name=representative_event.competition.sport.display_name,
-                    competition_name=get_competition_display_name(representative_event.competition.name if representative_event.competition else ""),
-                    market_id=market.id,
-                    market_name=market.name,
-                    market_type=market.market_type,
-                    selection_id=response_selection.id,
-                    selection_name=response_selection.name,
-                    back_bookmaker_code=calculation.back_bet.bookmaker_code,
-                    back_bookmaker_name=calculation.back_bet.bookmaker_name,
-                    back_odds=float(calculation.back_bet.back_odds),
-                    back_stake=float(calculation.back_stake),
-                    lay_odds=float(calculation.lay_bet.lay_odds),
-                    lay_stake=float(calculation.lay_stake),
-                    lay_liability=float(calculation.lay_liability),
-                    lay_commission=float(calculation.lay_bet.commission),
-                    lay_liquidity=float(calculation.lay_bet.liquidity) if calculation.lay_bet.liquidity else None,
-                    profit_if_back_wins=float(calculation.profit_if_back_wins),
-                    profit_if_lay_wins=float(calculation.profit_if_lay_wins),
-                    qualifying_loss=float(calculation.qualifying_loss),
-                    pnl_percentage=float(pnl_pct),
-                    bet_type=calculation.bet_type,
-                    rating=float(calculation.rating),
-                    last_updated=best_back.timestamp
-                ))
+                opportunities.append(
+                    OddsMatchResponse(
+                        event_id=representative_event.id,
+                        event_name=representative_event.name,
+                        event_start_time=representative_event.start_time,
+                        sport_name=(
+                            representative_event.competition.sport.display_name
+                            if representative_event.competition and representative_event.competition.sport
+                            else ""
+                        ),
+                        competition_name=get_competition_display_name(
+                            representative_event.competition.name if representative_event.competition else ""
+                        ),
+                        market_id=market.id,
+                        market_name=market.name,
+                        market_type=market.market_type,
+                        selection_id=response_selection.id,
+                        selection_name=response_selection.name,
+                        back_bookmaker_code=calculation.back_bet.bookmaker_code,
+                        back_bookmaker_name=calculation.back_bet.bookmaker_name,
+                        back_odds=float(calculation.back_bet.back_odds),
+                        back_stake=float(calculation.back_stake),
+                        lay_odds=float(calculation.lay_bet.lay_odds),
+                        lay_stake=float(calculation.lay_stake),
+                        lay_liability=float(calculation.lay_liability),
+                        lay_commission=float(calculation.lay_bet.commission),
+                        lay_liquidity=float(calculation.lay_bet.liquidity) if calculation.lay_bet.liquidity else None,
+                        profit_if_back_wins=float(calculation.profit_if_back_wins),
+                        profit_if_lay_wins=float(calculation.profit_if_lay_wins),
+                        qualifying_loss=float(calculation.qualifying_loss),
+                        pnl_percentage=float(pnl_pct),
+                        bet_type=calculation.bet_type,
+                        rating=float(calculation.rating),
+                        last_updated=best_back.timestamp,
+                    )
+                )
 
-    # Sort by PnL percentage (most profitable first: -1% is better than -5%)
-    # For normal bets: higher PnL% = less loss = better (e.g., -1% > -5%)
-    # For bonus bets: higher PnL% = more profit = better (e.g., 80% > 70%)
     matching_time = time.time() - matching_start
-    logger.info(f"⏱️  [MATCHER] Matching logic took {matching_time:.2f}s")
+    logger.info(f"[MATCHER] Matching logic took {matching_time:.2f}s")
 
     sort_start = time.time()
     opportunities.sort(key=lambda x: x.pnl_percentage, reverse=True)
     sort_time = time.time() - sort_start
-    logger.info(f"⏱️  [MATCHER] Sorting took {sort_time:.2f}s")
+    logger.info(f"[MATCHER] Sorting took {sort_time:.2f}s")
 
     total_time = time.time() - total_start
-    logger.info(f"⏱️  [MATCHER] TOTAL endpoint time: {total_time:.2f}s")
+    logger.info(f"[MATCHER] Total endpoint time: {total_time:.2f}s")
 
-    print(f"\n{'='*80}")
-    print(f"=== SUMMARY: Found {len(opportunities)} matched betting opportunities ===")
-    print(f"=== TOTAL TIME: {total_time:.2f}s ===")
-    print(f"{'='*80}\n")
-
-    logger.info(f"=== MATCHER SUMMARY ===")
     total_count = len(opportunities)
-    logger.info(f"Total opportunities found: {total_count}")
-    logger.info(f"Returning items {offset} to {offset + limit} (offset={offset}, limit={limit})")
-
-    # Apply pagination: slice from offset to offset+limit
     paginated_opps = opportunities[offset:offset + limit]
     has_more = (offset + limit) < total_count
 
@@ -864,8 +869,9 @@ async def get_matcher_opportunities(
                 total=total_count,
                 offset=offset,
                 limit=limit,
-                has_more=has_more
+                has_more=has_more,
             )
+
         if incoming_last_mod:
             try:
                 if_last_mod_dt = parsedate_to_datetime(incoming_last_mod)
@@ -876,7 +882,7 @@ async def get_matcher_opportunities(
                         total=total_count,
                         offset=offset,
                         limit=limit,
-                        has_more=has_more
+                        has_more=has_more,
                     )
             except Exception:
                 pass
@@ -886,5 +892,5 @@ async def get_matcher_opportunities(
         total=total_count,
         offset=offset,
         limit=limit,
-        has_more=has_more
+        has_more=has_more,
     )

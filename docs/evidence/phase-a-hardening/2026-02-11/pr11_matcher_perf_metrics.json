@@ -1,0 +1,37 @@
+{
+  "slice": "PR-R3",
+  "generated_at_utc": "2026-02-21T06:08:15.734629+00:00",
+  "scenario": {
+    "events_seeded": 80,
+    "bookmakers": [
+      "ladbrokes",
+      "neds",
+      "betfair"
+    ],
+    "window_days": 14
+  },
+  "baseline_legacy_n_plus_one": {
+    "iterations": 20,
+    "query_count_min": 482,
+    "query_count_median": 482.0,
+    "query_count_p95": 482.0,
+    "latency_ms_mean": 429.01,
+    "latency_ms_p95": 537.687,
+    "opportunities_mean": 160
+  },
+  "optimized_preloaded_set_based": {
+    "iterations": 20,
+    "query_count_min": 4,
+    "query_count_median": 4.0,
+    "query_count_p95": 4.0,
+    "latency_ms_mean": 27.047,
+    "latency_ms_p95": 34.461,
+    "opportunities_mean": 160
+  },
+  "improvement": {
+    "query_count_median_delta": 478.0,
+    "query_count_median_reduction_pct": 99.17,
+    "latency_p95_ms_delta": 503.226,
+    "latency_p95_reduction_pct": 93.59
+  }
+}
