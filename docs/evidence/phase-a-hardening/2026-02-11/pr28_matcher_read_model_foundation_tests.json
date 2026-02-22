@@ -1,0 +1,46 @@
+{
+  "slice": "PR-M1a",
+  "generated_at": "2026-02-22T00:00:00Z",
+  "commands": [
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_foundation.py -q",
+      "result": "passed",
+      "summary": "3 passed, 1 warning"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_odds_matcher_hot_path.py -q",
+      "result": "passed",
+      "summary": "3 passed, 3 warnings"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q",
+      "result": "passed",
+      "summary": "6 passed, 1 warning"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q",
+      "result": "passed",
+      "summary": "1 passed, 3 warnings"
+    },
+    {
+      "command": "docker exec mb_api alembic upgrade head",
+      "result": "passed",
+      "summary": "applied migration 20260222_matcher_rm"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; python -m api.scripts.build_matcher_read_model --read-model-version pr28_live_probe_v1 --event-limit 50 --event-batch-size 10 --row-batch-size 20 --shadow-parity --shadow-parity-limit 50",
+      "result": "passed",
+      "summary": "build summary emitted with parity_pass=true on live probe"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; python -m api.scripts.generate_pr28_matcher_read_model_foundation_parity",
+      "result": "passed",
+      "summary": "generated parity/idempotency evidence JSON"
+    }
+  ],
+  "freeze_verification": {
+    "mb_api_env": "BOOKMAKER_FREEZE_UNIBET=true",
+    "mb_worker_env": "BOOKMAKER_FREEZE_UNIBET=true",
+    "db_unibet_is_active": false
+  }
+}

@@ -185,10 +185,23 @@ Additional behavior:
 - ETag/Last-Modified headers for client revalidation
 - no debug `print()` calls in request path (enforced by regression test)
 
+Matcher read-model foundation (PR-M1a, non-serving):
+- dedicated persistence:
+  - `matcher_read_model_builds` (freshness/build metadata)
+  - `matcher_read_model_rows` (matcher-ready payload rows)
+- idempotent builder updates rows by deterministic row key under a version namespace
+- stale rows for the same version are pruned after successful rebuild
+- bounded controls:
+  - `event_limit`
+  - `event_batch_size`
+  - `row_batch_size`
+- optional shadow parity compares runtime matcher output vs read-model payloads without changing serving behavior
+
 Key code:
 - `apps/api/src/api/routers/odds_matcher.py`
 - `apps/api/src/api/services/matching_engine.py`
 - `apps/api/src/api/services/normalization_service.py`
+- `apps/api/src/api/services/matcher_read_model_service.py`
 
 ## Normalization Strategy
 Centralized normalization is in one service:
@@ -319,7 +332,7 @@ Notes:
 ## Current Known Constraints
 1. Evidence retention/list/query tooling around canonical records is still minimal.
 2. Validation thresholds still need ongoing calibration across competitions/platforms.
-3. Matcher hot-path N+1 has been removed, but response assembly is still in-request in-memory work (no dedicated read model yet).
+3. Matcher read-model foundation exists, but serving cutover is not enabled (`/odds/matcher` still serves from runtime source path).
 4. Refresh-job ACL durability and retention cleanup are implemented, but operator query/dashboard tooling for audit rows is still minimal.
 5. Some plan/bookmaker lists are hardcoded and need long-term config centralization.
 
@@ -350,10 +363,14 @@ Implemented now:
    - max-delete caps per run for terminal jobs, audit rows, and ACL rows
    - cap-breach override requires explicit per-run operator flag (`--allow-cap-breach`)
    - structured run summaries and observability outcomes (`success|aborted|failure`)
+11. Matcher read-model foundation (non-serving):
+   - persistent matcher-ready rows with build freshness metadata
+   - idempotent bounded builder (`event_limit`, `event_batch_size`, `row_batch_size`)
+   - optional shadow parity mode for runtime-vs-read-model correctness checks
 
 Still open:
 1. First-class health dashboard + alert routing beyond current endpoint surface.
-2. Dedicated matcher read model/materialization for higher sustained traffic.
+2. Matcher API serving cutover to read-model rows (runtime path remains primary).
 3. Canonical evidence retention and discovery tooling (list/query/dashboard) for lifecycle gate inputs.
 4. Rollout policy history/audit stream is not yet first-class (current policy rows store latest state only).
 5. Refresh ACL/audit operator query tooling is still limited.

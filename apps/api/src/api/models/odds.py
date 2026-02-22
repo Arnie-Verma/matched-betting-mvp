@@ -707,6 +707,75 @@ class OddsComparison(Base):
     )
 
 
+class MatcherReadModelBuild(Base):
+    """Build metadata for matcher read-model snapshots."""
+    __tablename__ = "matcher_read_model_builds"
+
+    id = Column(Integer, primary_key=True, index=True)
+    read_model_version = Column(String(80), nullable=False, unique=True, index=True)
+    builder_run_id = Column(String(80), nullable=False, index=True)
+    built_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+    source_window_start = Column(DateTime(timezone=True), nullable=False)
+    source_window_end = Column(DateTime(timezone=True), nullable=False)
+    source_max_odds_timestamp = Column(DateTime(timezone=True), nullable=True)
+    event_limit = Column(Integer, nullable=False, default=500)
+    event_batch_size = Column(Integer, nullable=False, default=100)
+    row_batch_size = Column(Integer, nullable=False, default=250)
+    processed_events = Column(Integer, nullable=False, default=0)
+    upserted_rows = Column(Integer, nullable=False, default=0)
+    deleted_stale_rows = Column(Integer, nullable=False, default=0)
+    build_summary = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    rows = relationship(
+        "MatcherReadModelRow",
+        back_populates="build",
+        cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (
+        Index("idx_matcher_rm_build_version_built", "read_model_version", "built_at"),
+    )
+
+
+class MatcherReadModelRow(Base):
+    """Matcher-ready serving row persisted for read-model based serving paths."""
+    __tablename__ = "matcher_read_model_rows"
+
+    id = Column(Integer, primary_key=True, index=True)
+    build_id = Column(Integer, ForeignKey("matcher_read_model_builds.id"), nullable=False, index=True)
+    read_model_version = Column(String(80), nullable=False, index=True)
+    row_key = Column(String(120), nullable=False)
+    builder_run_id = Column(String(80), nullable=False, index=True)
+
+    built_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    source_window_start = Column(DateTime(timezone=True), nullable=False)
+    source_window_end = Column(DateTime(timezone=True), nullable=False)
+
+    event_id = Column(Integer, nullable=False, index=True)
+    market_id = Column(Integer, nullable=False, index=True)
+    selection_id = Column(Integer, nullable=False, index=True)
+    back_bookmaker_code = Column(String(30), nullable=False, index=True)
+
+    rating = Column(Numeric(10, 4), nullable=False)
+    pnl_percentage = Column(Numeric(10, 4), nullable=False)
+    last_updated = Column(DateTime(timezone=True), nullable=False, index=True)
+    payload = Column(JSON, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    build = relationship("MatcherReadModelBuild", back_populates="rows")
+
+    __table_args__ = (
+        UniqueConstraint("read_model_version", "row_key", name="uq_matcher_rm_version_row_key"),
+        Index("idx_matcher_rm_version_event", "read_model_version", "event_id"),
+        Index("idx_matcher_rm_version_market", "read_model_version", "market_id"),
+        Index("idx_matcher_rm_version_rating", "read_model_version", "rating"),
+    )
+
+
 BOOKMAKER_LIVE_RUNTIME_STATES = {"canary_active", "active", "degraded"}
 BOOKMAKER_VALID_LIFECYCLE_STATES = {
     "backlog",

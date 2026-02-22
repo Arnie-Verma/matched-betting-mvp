@@ -16,6 +16,7 @@ from api.models import (
     User, Subscription, Plan, WebhookEvent,
     Sport, Competition, Team, Bookmaker, BookmakerSource, BookmakerLifecycleTransition, BookmakerActivationEvidence,
     PlatformRolloutPolicy, BookmakerRolloutPolicy,
+    MatcherReadModelBuild, MatcherReadModelRow,
     Event, Market, Selection, OddsSnapshot, OddsComparison
 )
 

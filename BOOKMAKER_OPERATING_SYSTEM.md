@@ -50,6 +50,7 @@ This methodology is designed to be executed locally first to get as close to pro
 5. Fast read path:
    - Matcher reads from current-state/read-optimized data structures.
    - Avoid API hot-path N+1/in-memory heavy grouping.
+   - Maintain read-model foundation with parity checks before serving cutover.
 6. Observable by default:
    - Mandatory per-bookmaker metrics: success rate, latency, count deltas, validation score, last success.
 
@@ -302,16 +303,21 @@ Implemented now:
    - canary scope controls (`sport`, `competition`, `bookmaker`) for runtime selection.
    - admin/internal rollout policy and status endpoints.
    - rollback path excludes affected bookmakers immediately on next selection evaluation.
+10. Matcher read-model foundation is in place (non-serving):
+   - matcher-ready rows and build freshness metadata persisted in DB.
+   - idempotent bounded builder path with deterministic summary output.
+   - optional shadow parity checks compare read-model rows to runtime matcher output.
 
 Known constraints still open:
 1. Evidence retention/discovery tooling around canonical records is still limited.
 2. Rollout policy history/audit stream is latest-state only; immutable change history is pending.
 3. Health visibility exists via endpoints but not a dedicated operational dashboard.
 4. Refresh ACL audit query/dashboard tooling is still minimal.
+5. Matcher serving path still reads from runtime source flow; read-model serving cutover is pending.
 
 Planned follow-up work:
 1. Tighten canary thresholds after longer-run telemetry under bounded scheduler.
-2. Build matcher read model for sustained 100+ bookmaker load.
+2. Cut over matcher serving path to read-model rows after sustained parity/latency validation.
 3. Add rollout policy history + operator dashboards.
 4. Add refresh ACL/audit operator query surfaces and dashboards.
 

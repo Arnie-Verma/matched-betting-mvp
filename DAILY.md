@@ -174,6 +174,23 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - `pr27_retention_lock_guardrail_contract.md`
     - `pr27_retention_lock_guardrail_tests.json`
     - `pr27_retention_lock_guardrail_scenarios.json`
+- PR-M1a matcher read-model foundation completed (single slice, no serving cutover):
+  - Added matcher read-model persistence:
+    - `matcher_read_model_builds`
+    - `matcher_read_model_rows`
+  - Added idempotent bounded builder service:
+    - deterministic row-key upsert per read-model version
+    - stale-row pruning for same version after rebuild
+    - bounded controls (`event_limit`, `event_batch_size`, `row_batch_size`)
+  - Added optional non-serving shadow parity checks:
+    - compares runtime matcher output vs read-model payload rows
+  - Added build/parity scripts:
+    - `build_matcher_read_model.py`
+    - `generate_pr28_matcher_read_model_foundation_parity.py`
+  - Added ADR-0022 and PR28 evidence artifacts:
+    - `pr28_matcher_read_model_foundation_contract.md`
+    - `pr28_matcher_read_model_foundation_tests.json`
+    - `pr28_matcher_read_model_foundation_parity.json`
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
@@ -193,6 +210,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - PR-A2a sets refresh ACL/audit retention cleanup to dry-run-by-default with explicit `--execute` gate and non-terminal safety invariants.
 - PR-A2b enforces automation lock + guardrail abort behavior before execute deletes; no terminal-only cleanup semantics changes.
 - PR-A2c hardens retention lock release to atomic compare-delete and requires explicit per-run cap-override intent.
+- PR-M1a introduces read-model persistence/builder/parity foundation while keeping `/odds/matcher` runtime path as primary serving behavior.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
@@ -204,6 +222,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Refresh ACL retention policy now exists; operator-facing query/dashboards and long-term archival policy are still pending.
 - Retention automation depends on lock store availability; lock-client outages fail closed (`lock_client_unavailable`) and should alert on-call.
 - Retention automation still relies on lock TTL tuning; if TTL is too short for rare long runs, operators may see repeated `lock_not_acquired` retries.
+- Matcher read-model is currently non-serving; parity and freshness checks must remain healthy before any serving-path cutover.
 
 ## 2026-02-21 (Saturday)
 

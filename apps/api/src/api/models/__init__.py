@@ -6,6 +6,7 @@ from .odds import (
     BookmakerLifecycleTransition, BookmakerActivationEvidence,
     RefreshJob, RefreshJobAclEntry, RefreshJobAuditEvent,
     PlatformRolloutPolicy, BookmakerRolloutPolicy,
+    MatcherReadModelBuild, MatcherReadModelRow,
     Event, Market, Selection, OddsSnapshot, OddsComparison,
     SourceType, SportType, MarketType, EventStatus, BookmakerLifecycleState
 )
@@ -15,6 +16,7 @@ __all__ = [
     "Sport", "Competition", "Team", "Bookmaker", "BookmakerSource", "BookmakerLifecycleTransition", "BookmakerActivationEvidence",
     "RefreshJob", "RefreshJobAclEntry", "RefreshJobAuditEvent",
     "PlatformRolloutPolicy", "BookmakerRolloutPolicy",
+    "MatcherReadModelBuild", "MatcherReadModelRow",
     "Event", "Market", "Selection", "OddsSnapshot", "OddsComparison",
     "SourceType", "SportType", "MarketType", "EventStatus", "BookmakerLifecycleState"
 ]

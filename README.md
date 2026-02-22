@@ -48,6 +48,11 @@ Implemented now:
 - Bounded scrape scheduler in worker (`global` + `per-platform` concurrency caps) with scheduler metrics.
 - Runtime active bookmaker derivation from DB + freeze policy (no static active bookmaker control path).
 - Odds matcher hot path refactor to set-based preloading (events, markets, selections, odds) with no response schema changes.
+- Matcher read-model foundation (non-serving) with:
+  - dedicated `matcher_read_model_builds` and `matcher_read_model_rows` persistence
+  - idempotent bounded builder (`event_limit`, `event_batch_size`, `row_batch_size`)
+  - optional shadow parity mode to compare read-model rows with runtime matcher output
+  - builder command: `python -m api.scripts.build_matcher_read_model --shadow-parity`
 - Lifecycle persistence + transition guard enforcement in code:
   - persistent bookmaker lifecycle states
   - audited lifecycle transition history
@@ -71,7 +76,7 @@ Implemented now:
 - Unibet remains frozen by baseline policy (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
 
 Still open:
-- Dedicated matcher read model/materialized serving path is not implemented yet.
+- Matcher API serving cutover to read-model rows is not enabled yet (runtime path remains primary).
 - Health/audit surfacing remains endpoint-based and needs deeper operational tooling.
 
 ## Archive
