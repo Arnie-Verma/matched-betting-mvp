@@ -294,3 +294,35 @@ class TestErrorHandling:
         assert result.events_scraped == 0
         assert result.odds_scraped == 0
         assert result.errors == errors
+
+
+class TestResponseListenerLifecycle:
+    """Ensure per-competition response handlers are detached."""
+
+    @pytest.fixture
+    def scraper(self):
+        return EntainScraper("ladbrokes", "https://www.ladbrokes.com.au")
+
+    def test_detach_response_listener_prefers_remove_listener(self, scraper):
+        calls = []
+
+        class _Page:
+            def remove_listener(self, event, listener):
+                calls.append((event, listener))
+
+        listener = object()
+        scraper._detach_response_listener(_Page(), listener)
+
+        assert calls == [("response", listener)]
+
+    def test_detach_response_listener_falls_back_to_off(self, scraper):
+        calls = []
+
+        class _Page:
+            def off(self, event, listener):
+                calls.append((event, listener))
+
+        listener = object()
+        scraper._detach_response_listener(_Page(), listener)
+
+        assert calls == [("response", listener)]

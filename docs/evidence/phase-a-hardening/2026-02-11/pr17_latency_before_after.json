@@ -1,0 +1,291 @@
+{
+  "slice": "PR-R4B",
+  "generated_from": [
+    "pr16_scope_gate_canary.json",
+    "pr17_latency_canary.json",
+    "pr17_latency_live_probe_soccer.json"
+  ],
+  "scheduler_defaults_runtime": {
+    "global_scrape_concurrency_cap": 4,
+    "platform_default_concurrency_cap": 1,
+    "platform_concurrency_caps": {
+      "punterstech": 2
+    }
+  },
+  "before": {
+    "artifact": "pr16_scope_gate_canary.json",
+    "duration_seconds": 2157.831784248352,
+    "cycles_completed": 10,
+    "scrape_duration_p95_seconds": 388.5931831479072,
+    "scrape_duration_p50_seconds": 133.03403842449188,
+    "scrape_duration_avg_seconds": 161.27717943191527,
+    "in_scope_fail_cycle_count": 0,
+    "scrape_success_rate": 0.9857142857142858,
+    "open_breaker_cycle_count": 0,
+    "gate_passed": false,
+    "top_slowest_cycles": [
+      {
+        "cycle": 1,
+        "sport": "soccer",
+        "scrape_duration_seconds": 400.8324933052063,
+        "scrape_failures": []
+      },
+      {
+        "cycle": 9,
+        "sport": "soccer",
+        "scrape_duration_seconds": 373.6340262889862,
+        "scrape_failures": []
+      },
+      {
+        "cycle": 5,
+        "sport": "soccer",
+        "scrape_duration_seconds": 303.0015547275543,
+        "scrape_failures": []
+      },
+      {
+        "cycle": 10,
+        "sport": "basketball",
+        "scrape_duration_seconds": 135.78090238571167,
+        "scrape_failures": []
+      },
+      {
+        "cycle": 6,
+        "sport": "basketball",
+        "scrape_duration_seconds": 133.87678813934326,
+        "scrape_failures": []
+      }
+    ],
+    "sport_attribution": {
+      "soccer": {
+        "cycles": 3,
+        "avg_scrape_seconds": 359.1560247739156,
+        "max_scrape_seconds": 400.8324933052063,
+        "min_scrape_seconds": 303.0015547275543,
+        "sorted_scrape_seconds": [
+          303.0015547275543,
+          373.6340262889862,
+          400.8324933052063
+        ]
+      },
+      "basketball": {
+        "cycles": 3,
+        "avg_scrape_seconds": 133.94965974489847,
+        "max_scrape_seconds": 135.78090238571167,
+        "min_scrape_seconds": 132.1912887096405,
+        "sorted_scrape_seconds": [
+          132.1912887096405,
+          133.87678813934326,
+          135.78090238571167
+        ]
+      },
+      "ice_hockey": {
+        "cycles": 2,
+        "avg_scrape_seconds": 21.1766676902771,
+        "max_scrape_seconds": 25.9001247882843,
+        "min_scrape_seconds": 16.453210592269897,
+        "sorted_scrape_seconds": [
+          16.453210592269897,
+          25.9001247882843
+        ]
+      },
+      "boxing": {
+        "cycles": 2,
+        "avg_scrape_seconds": 45.550702691078186,
+        "max_scrape_seconds": 54.54344367980957,
+        "min_scrape_seconds": 36.5579617023468,
+        "sorted_scrape_seconds": [
+          36.5579617023468,
+          54.54344367980957
+        ]
+      }
+    }
+  },
+  "after": {
+    "artifact": "pr17_latency_canary.json",
+    "duration_seconds": 1873.019732952118,
+    "cycles_completed": 12,
+    "scrape_duration_p95_seconds": 245.19691054821016,
+    "scrape_duration_p50_seconds": 84.37022936344147,
+    "scrape_duration_avg_seconds": 101.75509389241536,
+    "in_scope_fail_cycle_count": 0,
+    "scrape_success_rate": 0.9880952380952381,
+    "open_breaker_cycle_count": 0,
+    "gate_passed": true,
+    "top_slowest_cycles": [
+      {
+        "cycle": 1,
+        "sport": "soccer",
+        "scrape_duration_seconds": 247.9957206249237,
+        "scrape_failures": []
+      },
+      {
+        "cycle": 5,
+        "sport": "soccer",
+        "scrape_duration_seconds": 242.90697503089905,
+        "scrape_failures": []
+      },
+      {
+        "cycle": 9,
+        "sport": "soccer",
+        "scrape_duration_seconds": 195.4641981124878,
+        "scrape_failures": []
+      },
+      {
+        "cycle": 2,
+        "sport": "basketball",
+        "scrape_duration_seconds": 131.1787133216858,
+        "scrape_failures": []
+      },
+      {
+        "cycle": 10,
+        "sport": "basketball",
+        "scrape_duration_seconds": 127.86955571174622,
+        "scrape_failures": []
+      }
+    ],
+    "sport_attribution": {
+      "soccer": {
+        "cycles": 3,
+        "avg_scrape_seconds": 228.78896458943686,
+        "max_scrape_seconds": 247.9957206249237,
+        "min_scrape_seconds": 195.4641981124878,
+        "sorted_scrape_seconds": [
+          195.4641981124878,
+          242.90697503089905,
+          247.9957206249237
+        ]
+      },
+      "basketball": {
+        "cycles": 3,
+        "avg_scrape_seconds": 128.93686564763388,
+        "max_scrape_seconds": 131.1787133216858,
+        "min_scrape_seconds": 127.7623279094696,
+        "sorted_scrape_seconds": [
+          127.7623279094696,
+          127.86955571174622,
+          131.1787133216858
+        ]
+      },
+      "ice_hockey": {
+        "cycles": 3,
+        "avg_scrape_seconds": 16.64573009808858,
+        "max_scrape_seconds": 20.300947666168213,
+        "min_scrape_seconds": 13.90465760231018,
+        "sorted_scrape_seconds": [
+          13.90465760231018,
+          15.731585025787354,
+          20.300947666168213
+        ]
+      },
+      "boxing": {
+        "cycles": 3,
+        "avg_scrape_seconds": 32.64881523450216,
+        "max_scrape_seconds": 40.97813081741333,
+        "min_scrape_seconds": 27.850080490112305,
+        "sorted_scrape_seconds": [
+          27.850080490112305,
+          29.118234395980835,
+          40.97813081741333
+        ]
+      }
+    }
+  },
+  "delta": {
+    "scrape_duration_p95_seconds_delta": -143.39627259969706,
+    "scrape_duration_p50_seconds_delta": -48.663809061050415,
+    "scrape_duration_avg_seconds_delta": -59.52208553949991,
+    "in_scope_fail_cycle_count_delta": 0
+  },
+  "live_bookmaker_platform_latency_probe": {
+    "artifact": "pr17_latency_live_probe_soccer.json",
+    "sport": "soccer",
+    "total_duration_seconds": 198.98160123825073,
+    "top_contributors": [
+      {
+        "bookmaker": "ladbrokes",
+        "platform": "entain",
+        "duration_seconds": 108.56390595436096,
+        "success": true,
+        "events_scraped": 54,
+        "odds_scraped": 162
+      },
+      {
+        "bookmaker": "betfair",
+        "platform": "betfair",
+        "duration_seconds": 93.59718203544617,
+        "success": true,
+        "events_scraped": 84,
+        "odds_scraped": 234
+      },
+      {
+        "bookmaker": "neds",
+        "platform": "entain",
+        "duration_seconds": 90.29674959182739,
+        "success": true,
+        "events_scraped": 54,
+        "odds_scraped": 162
+      },
+      {
+        "bookmaker": "truebet",
+        "platform": "punterstech",
+        "duration_seconds": 18.43500590324402,
+        "success": true,
+        "events_scraped": 104,
+        "odds_scraped": 435
+      },
+      {
+        "bookmaker": "millennialbet",
+        "platform": "punterstech",
+        "duration_seconds": 17.948211669921875,
+        "success": true,
+        "events_scraped": 108,
+        "odds_scraped": 462
+      },
+      {
+        "bookmaker": "lightningbet",
+        "platform": "punterstech",
+        "duration_seconds": 16.8908269405365,
+        "success": true,
+        "events_scraped": 90,
+        "odds_scraped": 375
+      },
+      {
+        "bookmaker": "teambet",
+        "platform": "punterstech",
+        "duration_seconds": 16.412872314453125,
+        "success": true,
+        "events_scraped": 98,
+        "odds_scraped": 399
+      },
+      {
+        "bookmaker": "betblitz",
+        "platform": "punterstech",
+        "duration_seconds": 15.90378475189209,
+        "success": true,
+        "events_scraped": 98,
+        "odds_scraped": 417
+      },
+      {
+        "bookmaker": "wizbet",
+        "platform": "punterstech",
+        "duration_seconds": 15.661852836608887,
+        "success": true,
+        "events_scraped": 81,
+        "odds_scraped": 348
+      },
+      {
+        "bookmaker": "starsports",
+        "platform": "punterstech",
+        "duration_seconds": 15.559176206588745,
+        "success": true,
+        "events_scraped": 97,
+        "odds_scraped": 396
+      }
+    ]
+  },
+  "interpretation": {
+    "tail_driver_before": "soccer cycles dominated scrape tail latency in PR16",
+    "tail_driver_after": "soccer remains the slowest sport but below threshold in PR17",
+    "tail_characterization": "deterministic tail on soccer cycles rather than isolated burst noise"
+  }
+}

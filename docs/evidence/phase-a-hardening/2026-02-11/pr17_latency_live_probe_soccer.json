@@ -1,0 +1,201 @@
+{
+  "captured_at": "2026-02-22T03:31:27.093156+00:00",
+  "sport": "soccer",
+  "total_duration_seconds": 198.98160123825073,
+  "total_bookmakers": 21,
+  "bookmakers_scraped": 21,
+  "events_scraped": 1888,
+  "odds_scraped": 7482,
+  "odds_saved": 7482,
+  "results": [
+    {
+      "bookmaker": "ladbrokes",
+      "platform": "unknown",
+      "duration_seconds": 108.56390595436096,
+      "success": true,
+      "error": null,
+      "events_scraped": 54,
+      "odds_scraped": 162
+    },
+    {
+      "bookmaker": "betfair",
+      "platform": "unknown",
+      "duration_seconds": 93.59718203544617,
+      "success": true,
+      "error": null,
+      "events_scraped": 84,
+      "odds_scraped": 234
+    },
+    {
+      "bookmaker": "neds",
+      "platform": "unknown",
+      "duration_seconds": 90.29674959182739,
+      "success": true,
+      "error": null,
+      "events_scraped": 54,
+      "odds_scraped": 162
+    },
+    {
+      "bookmaker": "truebet",
+      "platform": "unknown",
+      "duration_seconds": 18.43500590324402,
+      "success": true,
+      "error": null,
+      "events_scraped": 104,
+      "odds_scraped": 435
+    },
+    {
+      "bookmaker": "millennialbet",
+      "platform": "unknown",
+      "duration_seconds": 17.948211669921875,
+      "success": true,
+      "error": null,
+      "events_scraped": 108,
+      "odds_scraped": 462
+    },
+    {
+      "bookmaker": "lightningbet",
+      "platform": "unknown",
+      "duration_seconds": 16.8908269405365,
+      "success": true,
+      "error": null,
+      "events_scraped": 90,
+      "odds_scraped": 375
+    },
+    {
+      "bookmaker": "teambet",
+      "platform": "unknown",
+      "duration_seconds": 16.412872314453125,
+      "success": true,
+      "error": null,
+      "events_scraped": 98,
+      "odds_scraped": 399
+    },
+    {
+      "bookmaker": "betblitz",
+      "platform": "unknown",
+      "duration_seconds": 15.90378475189209,
+      "success": true,
+      "error": null,
+      "events_scraped": 98,
+      "odds_scraped": 417
+    },
+    {
+      "bookmaker": "wizbet",
+      "platform": "unknown",
+      "duration_seconds": 15.661852836608887,
+      "success": true,
+      "error": null,
+      "events_scraped": 81,
+      "odds_scraped": 348
+    },
+    {
+      "bookmaker": "starsports",
+      "platform": "unknown",
+      "duration_seconds": 15.559176206588745,
+      "success": true,
+      "error": null,
+      "events_scraped": 97,
+      "odds_scraped": 396
+    },
+    {
+      "bookmaker": "topbet",
+      "platform": "unknown",
+      "duration_seconds": 15.296091556549072,
+      "success": true,
+      "error": null,
+      "events_scraped": 85,
+      "odds_scraped": 360
+    },
+    {
+      "bookmaker": "ripperbet",
+      "platform": "unknown",
+      "duration_seconds": 15.194366931915283,
+      "success": true,
+      "error": null,
+      "events_scraped": 111,
+      "odds_scraped": 438
+    },
+    {
+      "bookmaker": "betbuzz",
+      "platform": "unknown",
+      "duration_seconds": 14.452324628829956,
+      "success": true,
+      "error": null,
+      "events_scraped": 103,
+      "odds_scraped": 321
+    },
+    {
+      "bookmaker": "betvista",
+      "platform": "unknown",
+      "duration_seconds": 13.852332592010498,
+      "success": true,
+      "error": null,
+      "events_scraped": 111,
+      "odds_scraped": 438
+    },
+    {
+      "bookmaker": "betreal",
+      "platform": "unknown",
+      "duration_seconds": 12.740934133529663,
+      "success": true,
+      "error": null,
+      "events_scraped": 79,
+      "odds_scraped": 309
+    },
+    {
+      "bookmaker": "blondebet",
+      "platform": "unknown",
+      "duration_seconds": 11.961865663528442,
+      "success": true,
+      "error": null,
+      "events_scraped": 98,
+      "odds_scraped": 432
+    },
+    {
+      "bookmaker": "mintbet",
+      "platform": "unknown",
+      "duration_seconds": 11.944084882736206,
+      "success": true,
+      "error": null,
+      "events_scraped": 111,
+      "odds_scraped": 438
+    },
+    {
+      "bookmaker": "betchamps",
+      "platform": "unknown",
+      "duration_seconds": 9.854015350341797,
+      "success": true,
+      "error": null,
+      "events_scraped": 84,
+      "odds_scraped": 360
+    },
+    {
+      "bookmaker": "betfocus",
+      "platform": "unknown",
+      "duration_seconds": 9.60499382019043,
+      "success": true,
+      "error": null,
+      "events_scraped": 83,
+      "odds_scraped": 354
+    },
+    {
+      "bookmaker": "cashcage",
+      "platform": "unknown",
+      "duration_seconds": 9.360478401184082,
+      "success": true,
+      "error": null,
+      "events_scraped": 82,
+      "odds_scraped": 351
+    },
+    {
+      "bookmaker": "tradiebet",
+      "platform": "unknown",
+      "duration_seconds": 7.643344402313232,
+      "success": true,
+      "error": null,
+      "events_scraped": 73,
+      "odds_scraped": 291
+    }
+  ]
+}

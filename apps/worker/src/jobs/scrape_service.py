@@ -95,6 +95,12 @@ class ScrapeService:
     - Or fallback to static list if database unavailable
     """
 
+    DEFAULT_PLATFORM_CONCURRENCY_CAPS: Dict[str, int] = {
+        # Punterstech has many active skins in Phase A; default cap=2 prevents
+        # serialized fan-out while keeping bounded execution and isolation.
+        "punterstech": 2,
+    }
+
     def __init__(self):
         # Static scrapers (legacy - kept for backwards compatibility)
         # These are used as fallback if database is unavailable
@@ -119,9 +125,12 @@ class ScrapeService:
             "SCRAPE_PLATFORM_CONCURRENCY_DEFAULT_CAP",
             fallback=1,
         )
-        self.platform_concurrency_caps = self._load_platform_concurrency_caps(
+        self.platform_concurrency_caps = {
+            **self.DEFAULT_PLATFORM_CONCURRENCY_CAPS,
+            **self._load_platform_concurrency_caps(
             os.getenv("SCRAPE_PLATFORM_CONCURRENCY_CAPS_JSON", "")
-        )
+            ),
+        }
 
         # Validation settings
         self.validation_enabled = os.getenv("VALIDATION_ENABLED", "false").lower() == "true"

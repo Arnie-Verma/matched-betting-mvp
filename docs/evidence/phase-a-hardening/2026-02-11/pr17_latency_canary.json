@@ -1,0 +1,1842 @@
+{
+  "started_at": "2026-02-22T02:57:02.568973+00:00",
+  "ended_at": "2026-02-22T03:28:15.588711+00:00",
+  "duration_seconds": 1873.019732952118,
+  "cycles_completed": 12,
+  "min_duration_seconds": 1800,
+  "min_cycles": 10,
+  "max_cycles": 20,
+  "sleep_seconds": 60,
+  "sports_cycle": [
+    "soccer",
+    "basketball",
+    "ice_hockey",
+    "boxing"
+  ],
+  "latency_metrics": {
+    "scrape_duration_p50_seconds": 84.37022936344147,
+    "scrape_duration_p95_seconds": 245.19691054821016,
+    "scrape_duration_avg_seconds": 101.75509389241536,
+    "validation_duration_p50_seconds": 0.6095436811447144,
+    "validation_duration_p95_seconds": 0.8264713883399963,
+    "cycle_duration_p50_seconds": 85.0726318359375,
+    "cycle_duration_p95_seconds": 246.10633797645568
+  },
+  "reliability_metrics": {
+    "total_bookmakers_considered": 252,
+    "successful_bookmakers": 249,
+    "scrape_success_rate": 0.9880952380952381,
+    "cycles_considered": 12,
+    "open_breaker_cycle_count": 0
+  },
+  "breaker_metrics": {
+    "cycles_with_open_breakers": [],
+    "open_breaker_cycle_count": 0,
+    "max_open_breakers_in_cycle": 0,
+    "max_half_open_breakers_in_cycle": 0
+  },
+  "validation_gate_metrics": {
+    "cycles_with_in_scope_fails": [],
+    "in_scope_fail_cycle_count": 0,
+    "in_scope_fail_rows": [],
+    "priority_competitions": [
+      "epl",
+      "nba",
+      "nhl",
+      "boxing",
+      "nbl"
+    ]
+  },
+  "cycles": [
+    {
+      "cycle": 1,
+      "started_at": "2026-02-22T02:57:02.568986+00:00",
+      "scrape": {
+        "sport": "soccer",
+        "duration_seconds": 247.9957206249237,
+        "bookmakers_scraped": 21,
+        "total_bookmakers": 21,
+        "events_scraped": 1922,
+        "odds_scraped": 7674,
+        "odds_saved": 7674,
+        "scrape_failures": []
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 6,
+            "eligible_reference_events": 6,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 28,
+            "eligible_reference_events": 28,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.8477780818939209,
+      "cycle_duration_seconds": 248.94948816299438
+    },
+    {
+      "cycle": 2,
+      "started_at": "2026-02-22T03:02:10.070516+00:00",
+      "scrape": {
+        "sport": "basketball",
+        "duration_seconds": 131.1787133216858,
+        "bookmakers_scraped": 21,
+        "total_bookmakers": 21,
+        "events_scraped": 259,
+        "odds_scraped": 545,
+        "odds_saved": 545,
+        "scrape_failures": []
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 28,
+            "eligible_reference_events": 28,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.6168274879455566,
+      "cycle_duration_seconds": 131.8701069355011
+    },
+    {
+      "cycle": 3,
+      "started_at": "2026-02-22T03:05:20.438626+00:00",
+      "scrape": {
+        "sport": "ice_hockey",
+        "duration_seconds": 20.300947666168213,
+        "bookmakers_scraped": 20,
+        "total_bookmakers": 21,
+        "events_scraped": 144,
+        "odds_scraped": 288,
+        "odds_saved": 288,
+        "scrape_failures": [
+          "betfair"
+        ]
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 28,
+            "eligible_reference_events": 28,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.6835806369781494,
+      "cycle_duration_seconds": 21.06705594062805
+    },
+    {
+      "cycle": 4,
+      "started_at": "2026-02-22T03:06:40.065087+00:00",
+      "scrape": {
+        "sport": "boxing",
+        "duration_seconds": 40.97813081741333,
+        "bookmakers_scraped": 21,
+        "total_bookmakers": 21,
+        "events_scraped": 362,
+        "odds_scraped": 720,
+        "odds_saved": 720,
+        "scrape_failures": []
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 30,
+            "eligible_reference_events": 30,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.749422550201416,
+      "cycle_duration_seconds": 41.80937647819519
+    },
+    {
+      "cycle": 5,
+      "started_at": "2026-02-22T03:08:20.415299+00:00",
+      "scrape": {
+        "sport": "soccer",
+        "duration_seconds": 242.90697503089905,
+        "bookmakers_scraped": 21,
+        "total_bookmakers": 21,
+        "events_scraped": 1837,
+        "odds_scraped": 7437,
+        "odds_saved": 7437,
+        "scrape_failures": []
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 30,
+            "eligible_reference_events": 30,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.8090386390686035,
+      "cycle_duration_seconds": 243.78012418746948
+    },
+    {
+      "cycle": 6,
+      "started_at": "2026-02-22T03:13:22.737097+00:00",
+      "scrape": {
+        "sport": "basketball",
+        "duration_seconds": 127.7623279094696,
+        "bookmakers_scraped": 21,
+        "total_bookmakers": 21,
+        "events_scraped": 258,
+        "odds_scraped": 543,
+        "odds_saved": 543,
+        "scrape_failures": []
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 30,
+            "eligible_reference_events": 30,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.5174124240875244,
+      "cycle_duration_seconds": 128.3358871936798
+    },
+    {
+      "cycle": 7,
+      "started_at": "2026-02-22T03:16:29.627201+00:00",
+      "scrape": {
+        "sport": "ice_hockey",
+        "duration_seconds": 15.731585025787354,
+        "bookmakers_scraped": 20,
+        "total_bookmakers": 21,
+        "events_scraped": 144,
+        "odds_scraped": 288,
+        "odds_saved": 288,
+        "scrape_failures": [
+          "betfair"
+        ]
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 30,
+            "eligible_reference_events": 30,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.44130468368530273,
+      "cycle_duration_seconds": 16.22315001487732
+    },
+    {
+      "cycle": 8,
+      "started_at": "2026-02-22T03:17:44.331640+00:00",
+      "scrape": {
+        "sport": "boxing",
+        "duration_seconds": 27.850080490112305,
+        "bookmakers_scraped": 21,
+        "total_bookmakers": 21,
+        "events_scraped": 379,
+        "odds_scraped": 755,
+        "odds_saved": 755,
+        "scrape_failures": []
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 30,
+            "eligible_reference_events": 30,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.45224857330322266,
+      "cycle_duration_seconds": 28.352554321289062
+    },
+    {
+      "cycle": 9,
+      "started_at": "2026-02-22T03:19:11.218047+00:00",
+      "scrape": {
+        "sport": "soccer",
+        "duration_seconds": 195.4641981124878,
+        "bookmakers_scraped": 21,
+        "total_bookmakers": 21,
+        "events_scraped": 1960,
+        "odds_scraped": 7785,
+        "odds_saved": 7785,
+        "scrape_failures": []
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 30,
+            "eligible_reference_events": 30,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.6038932800292969,
+      "cycle_duration_seconds": 196.12501907348633
+    },
+    {
+      "cycle": 10,
+      "started_at": "2026-02-22T03:23:25.858078+00:00",
+      "scrape": {
+        "sport": "basketball",
+        "duration_seconds": 127.86955571174622,
+        "bookmakers_scraped": 21,
+        "total_bookmakers": 21,
+        "events_scraped": 259,
+        "odds_scraped": 550,
+        "odds_saved": 550,
+        "scrape_failures": []
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 30,
+            "eligible_reference_events": 30,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.6151940822601318,
+      "cycle_duration_seconds": 128.54466676712036
+    },
+    {
+      "cycle": 11,
+      "started_at": "2026-02-22T03:26:32.906223+00:00",
+      "scrape": {
+        "sport": "ice_hockey",
+        "duration_seconds": 13.90465760231018,
+        "bookmakers_scraped": 20,
+        "total_bookmakers": 21,
+        "events_scraped": 144,
+        "odds_scraped": 288,
+        "odds_saved": 288,
+        "scrape_failures": [
+          "betfair"
+        ]
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 30,
+            "eligible_reference_events": 30,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.5380260944366455,
+      "cycle_duration_seconds": 14.502402305603027
+    },
+    {
+      "cycle": 12,
+      "started_at": "2026-02-22T03:27:45.922330+00:00",
+      "scrape": {
+        "sport": "boxing",
+        "duration_seconds": 29.118234395980835,
+        "bookmakers_scraped": 21,
+        "total_bookmakers": 21,
+        "events_scraped": 379,
+        "odds_scraped": 755,
+        "odds_saved": 755,
+        "scrape_failures": []
+      },
+      "breaker": {
+        "states": {
+          "betblitz": "closed",
+          "betbuzz": "closed",
+          "betchamps": "closed",
+          "betfair": "closed",
+          "betfocus": "closed",
+          "betreal": "closed",
+          "betvista": "closed",
+          "blondebet": "closed",
+          "cashcage": "closed",
+          "ladbrokes": "closed",
+          "lightningbet": "closed",
+          "millennialbet": "closed",
+          "mintbet": "closed",
+          "neds": "closed",
+          "ripperbet": "closed",
+          "starsports": "closed",
+          "teambet": "closed",
+          "topbet": "closed",
+          "tradiebet": "closed",
+          "truebet": "closed",
+          "wizbet": "closed"
+        },
+        "failures": {
+          "betblitz": 0,
+          "betbuzz": 0,
+          "betchamps": 0,
+          "betfair": 0,
+          "betfocus": 0,
+          "betreal": 0,
+          "betvista": 0,
+          "blondebet": 0,
+          "cashcage": 0,
+          "ladbrokes": 0,
+          "lightningbet": 0,
+          "millennialbet": 0,
+          "mintbet": 0,
+          "neds": 0,
+          "ripperbet": 0,
+          "starsports": 0,
+          "teambet": 0,
+          "topbet": 0,
+          "tradiebet": 0,
+          "truebet": 0,
+          "wizbet": 0
+        },
+        "open_codes": [],
+        "half_open_codes": [],
+        "open_count": 0,
+        "half_open_count": 0
+      },
+      "validation": {
+        "competition_summaries": {
+          "epl": {
+            "reference_total_events": 27,
+            "eligible_reference_events": 27,
+            "status_summary": {
+              "pass_count": 20,
+              "warn_count": 1,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nba": {
+            "reference_total_events": 17,
+            "eligible_reference_events": 17,
+            "status_summary": {
+              "pass_count": 21,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 0,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nhl": {
+            "reference_total_events": 0,
+            "eligible_reference_events": 0,
+            "status_summary": {
+              "pass_count": 1,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 19,
+              "na_count": 1
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "boxing": {
+            "reference_total_events": 30,
+            "eligible_reference_events": 30,
+            "status_summary": {
+              "pass_count": 0,
+              "warn_count": 3,
+              "fail_count": 0,
+              "skip_count": 18,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          },
+          "nbl": {
+            "reference_total_events": 1,
+            "eligible_reference_events": 1,
+            "status_summary": {
+              "pass_count": 16,
+              "warn_count": 0,
+              "fail_count": 0,
+              "skip_count": 5,
+              "na_count": 0
+            },
+            "fail_bookmakers": [],
+            "in_scope_fail_bookmakers": [],
+            "out_of_scope_fail_bookmakers": []
+          }
+        },
+        "in_scope_fail_rows": []
+      },
+      "validation_duration_seconds": 0.47621583938598633,
+      "cycle_duration_seconds": 29.655823230743408
+    }
+  ],
+  "gate": {
+    "requires_min_cycles": true,
+    "requires_min_duration": true,
+    "requires_in_scope_fail_zero": true,
+    "requires_min_scrape_success_rate": true,
+    "requires_max_open_breaker_cycle_count": true,
+    "requires_max_scrape_p95_seconds": true,
+    "thresholds": {
+      "min_cycles": 10,
+      "min_duration_seconds": 1800,
+      "requires_in_scope_fail_zero": true,
+      "min_scrape_success_rate": 0.75,
+      "max_open_breaker_cycle_count": 0,
+      "max_scrape_p95_seconds": 360.0
+    },
+    "criteria": [
+      {
+        "name": "min_cycles",
+        "description": "Minimum completed cycles",
+        "operator": ">=",
+        "threshold": 10,
+        "observed": 12,
+        "pass": true
+      },
+      {
+        "name": "min_duration_seconds",
+        "description": "Minimum canary runtime (seconds)",
+        "operator": ">=",
+        "threshold": 1800.0,
+        "observed": 1873.019732952118,
+        "pass": true
+      },
+      {
+        "name": "in_scope_fail_cycle_count",
+        "description": "In-scope FAIL cycles must be zero",
+        "operator": "==",
+        "threshold": 0,
+        "observed": 0,
+        "pass": true
+      },
+      {
+        "name": "min_scrape_success_rate",
+        "description": "Minimum scrape success rate",
+        "operator": ">=",
+        "threshold": 0.75,
+        "observed": 0.9880952380952381,
+        "pass": true
+      },
+      {
+        "name": "max_open_breaker_cycle_count",
+        "description": "Maximum cycles with open breakers",
+        "operator": "<=",
+        "threshold": 0,
+        "observed": 0,
+        "pass": true
+      },
+      {
+        "name": "max_scrape_p95_seconds",
+        "description": "Maximum scrape latency p95 (seconds)",
+        "operator": "<=",
+        "threshold": 360.0,
+        "observed": 245.19691054821016,
+        "pass": true
+      }
+    ],
+    "failure_reasons": [],
+    "pass": true
+  }
+}

@@ -341,6 +341,23 @@ class EntainScraper(BaseScraper):
             return None
         return f"{self.base_url}{path}"
 
+    @staticmethod
+    def _detach_response_listener(page: Any, listener: Any) -> None:
+        """
+        Remove a previously attached response listener.
+
+        Playwright exposes EventEmitter methods that vary by wrapper version.
+        Prefer remove_listener, with off as fallback.
+        """
+        remover = getattr(page, "remove_listener", None)
+        if callable(remover):
+            remover("response", listener)
+            return
+
+        off = getattr(page, "off", None)
+        if callable(off):
+            off("response", listener)
+
     async def scrape_sport(self, sport: str, limit: Optional[int] = None) -> ScrapeResult:
         """
         Scrape a specific sport using Playwright network interception.
@@ -457,90 +474,93 @@ class EntainScraper(BaseScraper):
 
                     # Set up handler for this competition
                     handler = await make_handler(captured_data, api_urls_seen, comp_name)
-                    page.on('response', lambda res, h=handler: asyncio.create_task(h(res)))
-
-                    # Navigate to competition page
-                    nav_start = time.time()
-                    self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Navigating to {comp_url}")
-
+                    response_listener = lambda res, h=handler: asyncio.create_task(h(res))
+                    page.on('response', response_listener)
                     try:
-                        await page.goto(comp_url, wait_until='domcontentloaded', timeout=20000)
-                    except Exception as nav_error:
-                        self.logger.warning(f"[{self.bookmaker_code}/{comp_name}] Navigation failed: {nav_error}")
-                        errors.append(f"{comp_name}: navigation failed")
-                        continue
+                        # Navigate to competition page
+                        nav_start = time.time()
+                        self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Navigating to {comp_url}")
 
-                    nav_time = time.time() - nav_start
-                    self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Page load: {nav_time:.2f}s")
+                        try:
+                            await page.goto(comp_url, wait_until='domcontentloaded', timeout=20000)
+                        except Exception as nav_error:
+                            self.logger.warning(f"[{self.bookmaker_code}/{comp_name}] Navigation failed: {nav_error}")
+                            errors.append(f"{comp_name}: navigation failed")
+                            continue
 
-                    # Wait for data - need enough time for legacy API to respond
-                    # Legacy event-request often comes after GraphQL, so wait longer
-                    wait_start = time.time()
-                    max_wait = 8.0
-                    legacy_captured = False
+                        nav_time = time.time() - nav_start
+                        self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Page load: {nav_time:.2f}s")
 
-                    while (time.time() - wait_start) < max_wait:
-                        # Check if we have legacy data (preferred)
-                        for item in captured_data:
-                            if item.get('type') == 'legacy':
-                                legacy_captured = True
+                        # Wait for data - need enough time for legacy API to respond
+                        # Legacy event-request often comes after GraphQL, so wait longer
+                        wait_start = time.time()
+                        max_wait = 8.0
+                        legacy_captured = False
+
+                        while (time.time() - wait_start) < max_wait:
+                            # Check if we have legacy data (preferred)
+                            for item in captured_data:
+                                if item.get('type') == 'legacy':
+                                    legacy_captured = True
+                                    break
+
+                            if legacy_captured:
+                                # Give a bit more time for additional data
+                                await asyncio.sleep(0.5)
+                                break
+                            elif captured_data and (time.time() - wait_start) > 4.0:
+                                # Have some data but no legacy after 4s, accept what we have
+                                await asyncio.sleep(0.3)
                                 break
 
-                        if legacy_captured:
-                            # Give a bit more time for additional data
-                            await asyncio.sleep(0.5)
-                            break
-                        elif captured_data and (time.time() - wait_start) > 4.0:
-                            # Have some data but no legacy after 4s, accept what we have
                             await asyncio.sleep(0.3)
-                            break
 
-                        await asyncio.sleep(0.3)
+                        self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Captured {len(captured_data)} responses (legacy={legacy_captured})")
 
-                    self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Captured {len(captured_data)} responses (legacy={legacy_captured})")
+                        # Parse captured data
+                        comp_events = []
+                        for item in captured_data:
+                            item_type = item.get('type', 'legacy')
+                            data = item.get('data', item)
 
-                    # Parse captured data
-                    comp_events = []
-                    for item in captured_data:
-                        item_type = item.get('type', 'legacy')
-                        data = item.get('data', item)
+                            if item_type == 'graphql':
+                                events = self._parse_graphql_response(data, sport)
+                            else:
+                                events = self._parse_entain_response(data, sport)
 
-                        if item_type == 'graphql':
-                            events = self._parse_graphql_response(data, sport)
+                            # Override competition name with expected name if unknown
+                            for e in events:
+                                if e.competition == "Unknown Competition":
+                                    e.competition = comp_name
+                            comp_events.extend(events)
+
+                        # Apply competition filter - legacy API returns all competitions
+                        # We filter to only the competition we're targeting
+                        competition_filters = self.COMPETITION_FILTERS.get(sport, [])
+                        if competition_filters and comp_events:
+                            filter_set = {f.lower() for f in competition_filters}
+                            filtered_events = [
+                                e for e in comp_events
+                                if e.competition.lower() in filter_set
+                            ]
+                            if len(filtered_events) < len(comp_events):
+                                self.logger.info(
+                                    f"[{self.bookmaker_code}/{comp_name}] Filtered {len(comp_events)} -> {len(filtered_events)} events"
+                                )
+                            comp_events = filtered_events
+
+                        if comp_events:
+                            self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Parsed {len(comp_events)} events")
+                            all_events.extend(comp_events)
                         else:
-                            events = self._parse_entain_response(data, sport)
+                            self.logger.warning(f"[{self.bookmaker_code}/{comp_name}] No events parsed (post-filter)")
+                            if api_urls_seen:
+                                self.logger.debug(f"[{self.bookmaker_code}/{comp_name}] URLs: {api_urls_seen[:5]}")
 
-                        # Override competition name with expected name if unknown
-                        for e in events:
-                            if e.competition == "Unknown Competition":
-                                e.competition = comp_name
-                        comp_events.extend(events)
-
-                    # Apply competition filter - legacy API returns all competitions
-                    # We filter to only the competition we're targeting
-                    competition_filters = self.COMPETITION_FILTERS.get(sport, [])
-                    if competition_filters and comp_events:
-                        filter_set = {f.lower() for f in competition_filters}
-                        filtered_events = [
-                            e for e in comp_events
-                            if e.competition.lower() in filter_set
-                        ]
-                        if len(filtered_events) < len(comp_events):
-                            self.logger.info(
-                                f"[{self.bookmaker_code}/{comp_name}] Filtered {len(comp_events)} -> {len(filtered_events)} events"
-                            )
-                        comp_events = filtered_events
-
-                    if comp_events:
-                        self.logger.info(f"[{self.bookmaker_code}/{comp_name}] Parsed {len(comp_events)} events")
-                        all_events.extend(comp_events)
-                    else:
-                        self.logger.warning(f"[{self.bookmaker_code}/{comp_name}] No events parsed (post-filter)")
-                        if api_urls_seen:
-                            self.logger.debug(f"[{self.bookmaker_code}/{comp_name}] URLs: {api_urls_seen[:5]}")
-
-                    # Small delay between competitions to avoid rate limiting
-                    await asyncio.sleep(0.5)
+                        # Small delay between competitions to avoid rate limiting
+                        await asyncio.sleep(0.5)
+                    finally:
+                        self._detach_response_listener(page, response_listener)
 
                 # Remove duplicates
                 seen_ids = set()

@@ -47,6 +47,20 @@ def service(monkeypatch):
     return svc
 
 
+def test_platform_default_concurrency_fallback_and_default_overrides(monkeypatch):
+    monkeypatch.setattr(scrape_service_module, "BetfairScraper", _DummyScraper)
+    monkeypatch.setattr(scrape_service_module, "EntainScraper", _DummyScraper)
+    monkeypatch.setattr(scrape_service_module.redis, "from_url", lambda *_args, **_kwargs: _DummyRedis())
+    monkeypatch.delenv("SCRAPE_PLATFORM_CONCURRENCY_DEFAULT_CAP", raising=False)
+    monkeypatch.delenv("SCRAPE_GLOBAL_CONCURRENCY_CAP", raising=False)
+    monkeypatch.delenv("BOOKMAKER_CONCURRENCY_CAP", raising=False)
+
+    svc = scrape_service_module.ScrapeService()
+
+    assert svc.platform_default_concurrency_cap == 1
+    assert svc.platform_concurrency_caps.get("punterstech") == 2
+
+
 @pytest.mark.asyncio
 async def test_global_scheduler_cap_is_respected(monkeypatch, service):
     monkeypatch.setenv("SCRAPE_GLOBAL_CONCURRENCY_CAP", "2")

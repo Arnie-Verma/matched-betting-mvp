@@ -4,6 +4,37 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 
 ---
 
+## 2026-02-22 (Sunday)
+
+### Completed
+- PR-R4B latency NO-GO remediation completed (single slice, no Unibet onboarding/activation work).
+- Implemented deterministic latency-tail fixes:
+  - `apps/worker/src/scrapers/entain_scraper.py`: per-competition response listener detachment in `finally` to prevent handler accumulation across Entain competition loops.
+  - `apps/worker/src/jobs/scrape_service.py`: reusable default platform cap override (`punterstech=2`) while keeping bounded fallback default (`1`) for unspecified platforms.
+- Added regression tests:
+  - `apps/worker/tests/test_entain_scraper.py`: listener detachment path (`remove_listener` and `off` fallback).
+  - `apps/worker/tests/test_scrape_scheduler.py`: default cap behavior (`platform_default_concurrency_cap == 1`, `punterstech == 2`).
+- Ran full live canary evidence window (>=30 minutes, >=10 cycles):
+  - `pr17_latency_canary.json`: 12 cycles, 1873.02s runtime
+  - `scrape_duration_p95_seconds=245.1969` (threshold `<=360`, gate PASS)
+  - `in_scope_fail_cycle_count=0` preserved
+- Added PR17 artifacts:
+  - `docs/evidence/phase-a-hardening/2026-02-11/pr17_latency_root_cause.md`
+  - `docs/evidence/phase-a-hardening/2026-02-11/pr17_latency_before_after.json`
+  - `docs/evidence/phase-a-hardening/2026-02-11/pr17_latency_canary.json`
+  - `docs/evidence/phase-a-hardening/2026-02-11/pr17_latency_canary.md`
+- Re-verified freeze baseline:
+  - `mb_api`: `BOOKMAKER_FREEZE_UNIBET=true`
+  - `mb_worker`: `BOOKMAKER_FREEZE_UNIBET=true`
+  - DB: `unibet.is_active=false`
+
+### Decisions
+- Kept canary thresholds and gate semantics unchanged in PR-R4B.
+- Applied reusable remediation only (no bookmaker-specific one-off hacks outside platform-level scheduler default).
+
+### Risks
+- Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
+
 ## 2026-02-21 (Saturday)
 
 ### Completed
