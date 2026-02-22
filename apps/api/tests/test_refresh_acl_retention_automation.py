@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import threading
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -7,7 +8,9 @@ from sqlalchemy.orm import sessionmaker
 from api.core.database import Base
 from api.models import RefreshJob, RefreshJobAclEntry, RefreshJobAuditEvent, User
 from api.services import refresh_acl_retention_service as retention_service_module
+from api.services import refresh_acl_retention_automation_service as automation_service_module
 from api.services.refresh_acl_retention_automation_service import (
+    _release_lock,
     execute_refresh_acl_retention_automation,
     run_refresh_acl_retention_schedule,
 )
@@ -22,19 +25,33 @@ from api.services.refresh_job_acl_service import RefreshJobAclService
 class _FakeRedis:
     def __init__(self):
         self.store = {}
+        self._lock = threading.Lock()
 
     def set(self, key, value, nx=False, ex=None):
-        if nx and key in self.store:
-            return None
-        self.store[key] = value
-        return True
+        with self._lock:
+            if nx and key in self.store:
+                return None
+            self.store[key] = value
+            return True
 
     def get(self, key):
-        return self.store.get(key)
+        with self._lock:
+            return self.store.get(key)
 
     def delete(self, key):
-        self.store.pop(key, None)
-        return 1
+        with self._lock:
+            existed = key in self.store
+            self.store.pop(key, None)
+            return 1 if existed else 0
+
+    def eval(self, script, numkeys, lock_key, lock_token):
+        # Atomic compare-and-delete simulation for lock release.
+        with self._lock:
+            current = self.store.get(lock_key)
+            if current == lock_token:
+                self.store.pop(lock_key, None)
+                return 1
+            return 0
 
 
 def _build_session(tmp_path: Path):
@@ -223,6 +240,21 @@ def test_automation_lock_guard_aborts_when_lock_not_acquired(tmp_path, monkeypat
         engine.dispose()
 
 
+def test_lock_release_does_not_delete_new_owner_after_reacquire():
+    fake_redis = _FakeRedis()
+    lock_key = "maintenance:race-lock"
+    stale_token = "owner-a-token"
+    new_token = "owner-b-token"
+
+    fake_redis.set(lock_key, stale_token, nx=True, ex=60)
+    # Simulate TTL expiry and reacquire by a new run.
+    fake_redis.set(lock_key, new_token, nx=False, ex=60)
+
+    _release_lock(fake_redis, lock_key=lock_key, lock_token=stale_token)
+
+    assert fake_redis.get(lock_key) == new_token
+
+
 def test_automation_non_terminal_risk_guard_aborts_without_delete(tmp_path, monkeypatch):
     SessionLocal, engine = _build_session(tmp_path)
     fake_redis = _FakeRedis()
@@ -280,6 +312,87 @@ def test_automation_non_terminal_risk_guard_aborts_without_delete(tmp_path, monk
         engine.dispose()
 
 
+def test_contended_runs_do_not_overlap_cleanup_execution(tmp_path, monkeypatch):
+    SessionLocal, engine = _build_session(tmp_path)
+    fake_redis = _FakeRedis()
+    monkeypatch.setattr(
+        "api.services.refresh_acl_retention_automation_service.emit_observability_event",
+        lambda **_kwargs: "1-1",
+    )
+
+    now = datetime(2026, 2, 22, tzinfo=timezone.utc)
+    retention, guardrails = _base_configs(now)
+    entry_event = threading.Event()
+    release_event = threading.Event()
+    cleanup_calls = {"count": 0}
+    original_runner = automation_service_module.run_refresh_acl_retention_with_guardrails
+
+    def _blocking_runner(db, *, config, dry_run, guardrails):
+        cleanup_calls["count"] += 1
+        entry_event.set()
+        release_event.wait(timeout=3)
+        return RefreshAclRetentionSummary(
+            dry_run=bool(dry_run),
+            config={"audit_retention_days": int(config.audit_retention_days)},
+            before={"total_jobs": 0},
+            candidates={
+                "terminal_jobs": 0,
+                "audit_rows_for_terminal_jobs": 0,
+                "acl_rows_for_terminal_jobs": 0,
+                "aged_terminal_audit_rows": 0,
+            },
+            deleted={
+                "terminal_jobs": 0,
+                "audit_rows_for_terminal_jobs": 0,
+                "acl_rows_for_terminal_jobs": 0,
+                "aged_terminal_audit_rows": 0,
+            },
+            after={"total_jobs": 0},
+            safety={"non_terminal_job_delete_candidates": 0, "guards_passed": True},
+            generated_at=config.now.isoformat(),
+            run_status="success",
+        )
+
+    monkeypatch.setattr(automation_service_module, "run_refresh_acl_retention_with_guardrails", _blocking_runner)
+
+    first_result = {}
+
+    def _run_first():
+        first_result["value"] = execute_refresh_acl_retention_automation(
+            dry_run=True,
+            retention_config=retention,
+            guardrail_config=guardrails,
+            lock_key="maintenance:contention-lock",
+            redis_client=fake_redis,
+            db_factory=SessionLocal,
+        )
+
+    worker = threading.Thread(target=_run_first)
+    try:
+        worker.start()
+        assert entry_event.wait(timeout=2), "first run did not enter cleanup path"
+        second = execute_refresh_acl_retention_automation(
+            dry_run=True,
+            retention_config=retention,
+            guardrail_config=guardrails,
+            lock_key="maintenance:contention-lock",
+            redis_client=fake_redis,
+            db_factory=SessionLocal,
+        )
+        assert second.run_status == "aborted"
+        assert second.reason_code == "lock_not_acquired"
+        assert cleanup_calls["count"] == 1
+    finally:
+        release_event.set()
+        worker.join(timeout=3)
+        monkeypatch.setattr(automation_service_module, "run_refresh_acl_retention_with_guardrails", original_runner)
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+    assert "value" in first_result
+    assert first_result["value"].run_status == "success"
+
+
 def test_automation_delete_cap_guard_aborts_without_override(tmp_path, monkeypatch):
     SessionLocal, engine = _build_session(tmp_path)
     fake_redis = _FakeRedis()
@@ -332,6 +445,71 @@ def test_automation_delete_cap_guard_aborts_without_override(tmp_path, monkeypat
             assert still_exists is not None
         finally:
             db.close()
+    finally:
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def test_cap_override_requires_explicit_per_run_flag(tmp_path, monkeypatch):
+    SessionLocal, engine = _build_session(tmp_path)
+    fake_redis = _FakeRedis()
+    monkeypatch.setattr(
+        "api.services.refresh_acl_retention_automation_service.emit_observability_event",
+        lambda **_kwargs: "1-1",
+    )
+
+    now = datetime(2026, 2, 22, tzinfo=timezone.utc)
+    retention, _ = _base_configs(now)
+    env_like_guardrails = RefreshAclRetentionGuardrailConfig(
+        max_delete_terminal_jobs=0,
+        max_delete_audit_rows=0,
+        max_delete_acl_rows=0,
+        allow_cap_breach=True,
+    )
+
+    db = SessionLocal()
+    try:
+        owner, shared, _ = _seed_users(db)
+        _add_job(
+            db,
+            job_id="cap-override-job",
+            owner_id=owner.id,
+            shared_id=shared.id,
+            status="success",
+            now=now,
+            age_days=40,
+            completed_days=40,
+        )
+    finally:
+        db.close()
+
+    try:
+        denied = execute_refresh_acl_retention_automation(
+            dry_run=False,
+            retention_config=retention,
+            guardrail_config=env_like_guardrails,
+            allow_cap_breach_override=False,
+            lock_key="maintenance:cap-override-requires-flag-denied",
+            redis_client=fake_redis,
+            db_factory=SessionLocal,
+        )
+        assert denied.run_status == "aborted"
+        assert denied.reason_code == "delete_cap_exceeded"
+        assert denied.summary.get("guardrails", {}).get("allow_cap_breach") is False
+
+        allowed = execute_refresh_acl_retention_automation(
+            dry_run=False,
+            retention_config=retention,
+            guardrail_config=env_like_guardrails,
+            allow_cap_breach_override=True,
+            lock_key="maintenance:cap-override-requires-flag-allowed",
+            redis_client=fake_redis,
+            db_factory=SessionLocal,
+        )
+        assert allowed.run_status == "success"
+        assert allowed.reason_code == "success"
+        assert allowed.summary.get("guardrails", {}).get("allow_cap_breach") is True
+        assert allowed.summary.get("deleted", {}).get("terminal_jobs") == 1
     finally:
         Base.metadata.drop_all(bind=engine)
         engine.dispose()

@@ -66,7 +66,7 @@ def main() -> None:
         max_delete_terminal_jobs=_positive_int_or(env_guardrails.max_delete_terminal_jobs, args.max_delete_terminal_jobs),
         max_delete_audit_rows=_positive_int_or(env_guardrails.max_delete_audit_rows, args.max_delete_audit_rows),
         max_delete_acl_rows=_positive_int_or(env_guardrails.max_delete_acl_rows, args.max_delete_acl_rows),
-        allow_cap_breach=bool(args.allow_cap_breach or env_guardrails.allow_cap_breach),
+        allow_cap_breach=False,
     )
 
     report = run_refresh_acl_retention_schedule(

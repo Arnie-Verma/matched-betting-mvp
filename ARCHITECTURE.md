@@ -309,7 +309,6 @@ Important runtime knobs:
 - `REFRESH_RETENTION_MAX_DELETE_TERMINAL_JOBS` (default `5000`)
 - `REFRESH_RETENTION_MAX_DELETE_AUDIT_ROWS` (default `200000`)
 - `REFRESH_RETENTION_MAX_DELETE_ACL_ROWS` (default `50000`)
-- `REFRESH_RETENTION_ALLOW_CAP_BREACH` (default `false`)
 - `REFRESH_RETENTION_LOCK_KEY` (default `maintenance:refresh_acl_retention:lock`)
 - `REFRESH_RETENTION_LOCK_TTL_SECONDS` (default `900`)
 
@@ -346,8 +345,10 @@ Implemented now:
    - admin/internal rollout control endpoints and status summary
 10. Refresh ACL retention automation + guardrails:
    - scheduled automation runner with single-run lock
+   - atomic compare-and-delete lock release (race-safe under TTL expiry + reacquire)
    - hard abort if non-terminal delete risk is detected
    - max-delete caps per run for terminal jobs, audit rows, and ACL rows
+   - cap-breach override requires explicit per-run operator flag (`--allow-cap-breach`)
    - structured run summaries and observability outcomes (`success|aborted|failure`)
 
 Still open:

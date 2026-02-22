@@ -74,7 +74,7 @@ def main() -> None:
             if isinstance(args.max_delete_acl_rows, int) and int(args.max_delete_acl_rows) > 0
             else int(env_guardrails.max_delete_acl_rows)
         ),
-        allow_cap_breach=bool(args.allow_cap_breach or env_guardrails.allow_cap_breach),
+        allow_cap_breach=False,
     )
 
     report = run_refresh_acl_retention_schedule(

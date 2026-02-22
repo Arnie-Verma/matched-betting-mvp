@@ -62,8 +62,9 @@ Implemented now:
 - Security controls:
   - `GET /odds/refresh/status` restricted by durable DB-backed owner/shared ACL (Redis payload fallback only for pre-migration jobs).
   - refresh ACL decisions are durably audited (`job create`, `share/unshare`, `status access allow/deny`).
-  - refresh ACL/audit retention cleanup utility with dry-run default and lock/cap guardrails:
+  - refresh ACL/audit retention cleanup utility with dry-run default, atomic lock release, and lock/cap guardrails:
     - `python -m api.scripts.cleanup_refresh_acl_retention --audit-retention-days 30 --terminal-job-retention-days 14`
+  - cap-breach override is explicit per-run intent only (`--allow-cap-breach`); env/config cannot force-enable it.
   - scheduled automation runner (single-run lock enforced):
     - `python -m api.scripts.run_refresh_acl_retention_automation --max-runs 1 --interval-seconds 0`
   - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access; telemetry defaults to aggregate-only response output.

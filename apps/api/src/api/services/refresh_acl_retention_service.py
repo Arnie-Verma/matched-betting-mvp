@@ -138,7 +138,8 @@ def load_refresh_acl_retention_guardrail_config_from_env() -> RefreshAclRetentio
             os.getenv("REFRESH_RETENTION_MAX_DELETE_ACL_ROWS"),
             DEFAULT_REFRESH_RETENTION_MAX_DELETE_ACL_ROWS,
         ),
-        allow_cap_breach=(os.getenv("REFRESH_RETENTION_ALLOW_CAP_BREACH", "0").strip().lower() in {"1", "true", "yes", "on"}),
+        # Safety invariant: cap-breach override is explicit per-run intent only.
+        allow_cap_breach=False,
     )
 
 

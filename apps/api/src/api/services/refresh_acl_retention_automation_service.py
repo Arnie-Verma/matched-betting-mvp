@@ -23,6 +23,12 @@ from api.services.refresh_acl_retention_service import (
 
 DEFAULT_REFRESH_RETENTION_LOCK_KEY = "maintenance:refresh_acl_retention:lock"
 DEFAULT_REFRESH_RETENTION_LOCK_TTL_SECONDS = 900
+_LOCK_RELEASE_SCRIPT = """
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+  return redis.call('DEL', KEYS[1])
+end
+return 0
+"""
 
 
 @dataclass(frozen=True)
@@ -69,12 +75,6 @@ def _parse_int(value: Optional[str], fallback: int) -> int:
     return int(parsed) if parsed > 0 else int(fallback)
 
 
-def _decode_scalar(raw: Any) -> str:
-    if isinstance(raw, bytes):
-        return raw.decode("utf-8", errors="ignore")
-    return str(raw)
-
-
 def _get_redis_client(redis_client=None):
     if redis_client is not None:
         return redis_client
@@ -92,15 +92,7 @@ def _acquire_lock(redis_client, *, lock_key: str, lock_token: str, lock_ttl_seco
 
 def _release_lock(redis_client, *, lock_key: str, lock_token: str) -> None:
     try:
-        existing = redis_client.get(lock_key)
-    except Exception:
-        return
-    if existing is None:
-        return
-    if _decode_scalar(existing) != str(lock_token):
-        return
-    try:
-        redis_client.delete(lock_key)
+        redis_client.eval(_LOCK_RELEASE_SCRIPT, 1, lock_key, str(lock_token))
     except Exception:
         return
 
@@ -151,13 +143,13 @@ def execute_refresh_acl_retention_automation(
 
     config = retention_config or load_refresh_acl_retention_config_from_env(now=started_at)
     guardrails = guardrail_config or load_refresh_acl_retention_guardrail_config_from_env()
-    if allow_cap_breach_override:
-        guardrails = RefreshAclRetentionGuardrailConfig(
-            max_delete_terminal_jobs=int(guardrails.max_delete_terminal_jobs),
-            max_delete_audit_rows=int(guardrails.max_delete_audit_rows),
-            max_delete_acl_rows=int(guardrails.max_delete_acl_rows),
-            allow_cap_breach=True,
-        )
+    # Cap-breach override must always be explicit per run; env/config cannot force-enable it.
+    guardrails = RefreshAclRetentionGuardrailConfig(
+        max_delete_terminal_jobs=int(guardrails.max_delete_terminal_jobs),
+        max_delete_audit_rows=int(guardrails.max_delete_audit_rows),
+        max_delete_acl_rows=int(guardrails.max_delete_acl_rows),
+        allow_cap_breach=bool(allow_cap_breach_override),
+    )
 
     lock_token = f"{run_id}:{int(started_at.timestamp())}"
     try:

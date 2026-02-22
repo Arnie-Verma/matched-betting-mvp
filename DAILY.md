@@ -160,6 +160,20 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - `pr26_refresh_acl_retention_automation_contract.md`
     - `pr26_refresh_acl_retention_automation_tests.json`
     - `pr26_refresh_acl_retention_automation_runs.json`
+- PR-A2c retention lock correctness + cap-override hardening completed (single slice):
+  - Replaced lock release with atomic compare-and-delete semantics.
+  - Added race-safe lock tests proving a stale lock owner cannot delete a newer owner lock after TTL expiry/reacquire.
+  - Enforced cap-breach bypass as explicit per-run intent only:
+    - env/config no longer force-enable cap-breach bypass
+    - `--allow-cap-breach` remains the required operator override flag
+  - Added contention test proving second run aborts (`lock_not_acquired`) while first run is in cleanup path.
+  - Added cap-guard tests for both branches:
+    - no explicit override => `delete_cap_exceeded` abort
+    - explicit override => execute path allowed
+  - Added PR27 evidence artifacts:
+    - `pr27_retention_lock_guardrail_contract.md`
+    - `pr27_retention_lock_guardrail_tests.json`
+    - `pr27_retention_lock_guardrail_scenarios.json`
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
@@ -178,6 +192,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - PR-A1 sets durable DB ACL as refresh-status authority for durable jobs; Redis payload ACL remains temporary fallback for pre-migration jobs only.
 - PR-A2a sets refresh ACL/audit retention cleanup to dry-run-by-default with explicit `--execute` gate and non-terminal safety invariants.
 - PR-A2b enforces automation lock + guardrail abort behavior before execute deletes; no terminal-only cleanup semantics changes.
+- PR-A2c hardens retention lock release to atomic compare-delete and requires explicit per-run cap-override intent.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
@@ -188,6 +203,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - During DB/policy-source outage, refresh jobs fail closed by design; operational response needs fast DB/policy restoration playbook.
 - Refresh ACL retention policy now exists; operator-facing query/dashboards and long-term archival policy are still pending.
 - Retention automation depends on lock store availability; lock-client outages fail closed (`lock_client_unavailable`) and should alert on-call.
+- Retention automation still relies on lock TTL tuning; if TTL is too short for rare long runs, operators may see repeated `lock_not_acquired` retries.
 
 ## 2026-02-21 (Saturday)
 

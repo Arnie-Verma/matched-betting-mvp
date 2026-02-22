@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-02-22T00:00:00+00:00",
+  "slice": "PR-A2c",
+  "scenario_count": 4,
+  "scenarios": [
+    {
+      "name": "lock_release_race_safety",
+      "expected": "new owner lock remains",
+      "observed_lock_value": "new-owner",
+      "pass": true
+    },
+    {
+      "name": "lock_contention_aborts",
+      "expected_reason_code": "lock_not_acquired",
+      "observed_reason_code": "lock_not_acquired",
+      "pass": true
+    },
+    {
+      "name": "cap_breach_denied_without_override",
+      "expected_reason_code": "delete_cap_exceeded",
+      "observed_reason_code": "delete_cap_exceeded",
+      "observed_allow_cap_breach": false,
+      "pass": true
+    },
+    {
+      "name": "cap_breach_allowed_with_explicit_override",
+      "expected_reason_code": "success",
+      "observed_reason_code": "success",
+      "observed_allow_cap_breach": true,
+      "terminal_jobs_deleted": 1,
+      "pass": true
+    }
+  ]
+}

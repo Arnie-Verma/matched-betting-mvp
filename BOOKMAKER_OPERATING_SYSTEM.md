@@ -158,9 +158,9 @@ This methodology is designed to be executed locally first to get as close to pro
    - access allow/deny decisions are durably audited (`refresh_job_audit_events`)
    - retention cleanup is policy-driven via `cleanup_refresh_acl_retention` / `run_refresh_acl_retention_automation`:
      - dry-run default
-     - single-run lock
+     - single-run lock with atomic compare-and-delete release
      - hard abort on non-terminal delete risk
-     - max-delete caps with explicit override flag only
+     - max-delete caps with explicit per-run override flag only (env/config cannot force-enable cap bypass)
    - deny cross-user access with `403`
 2. Scraper health endpoints:
    - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access
