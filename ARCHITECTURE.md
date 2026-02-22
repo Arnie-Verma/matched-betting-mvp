@@ -306,6 +306,12 @@ Important runtime knobs:
 - `REFRESH_AUDIT_RETENTION_DAYS` (default `30`)
 - `REFRESH_TERMINAL_JOB_RETENTION_DAYS` (default `14`)
 - `REFRESH_TERMINAL_JOB_STATUSES` (default `success,failed,cancelled,canceled,expired`)
+- `REFRESH_RETENTION_MAX_DELETE_TERMINAL_JOBS` (default `5000`)
+- `REFRESH_RETENTION_MAX_DELETE_AUDIT_ROWS` (default `200000`)
+- `REFRESH_RETENTION_MAX_DELETE_ACL_ROWS` (default `50000`)
+- `REFRESH_RETENTION_ALLOW_CAP_BREACH` (default `false`)
+- `REFRESH_RETENTION_LOCK_KEY` (default `maintenance:refresh_acl_retention:lock`)
+- `REFRESH_RETENTION_LOCK_TTL_SECONDS` (default `900`)
 
 Notes:
 - scraper code defaults `SCRAPER_BATCH_SIZE` to `1` if env is absent
@@ -338,6 +344,11 @@ Implemented now:
    - kill switch controls at platform and bookmaker levels
    - canary cohort runtime filtering by sport/competition/bookmaker
    - admin/internal rollout control endpoints and status summary
+10. Refresh ACL retention automation + guardrails:
+   - scheduled automation runner with single-run lock
+   - hard abort if non-terminal delete risk is detected
+   - max-delete caps per run for terminal jobs, audit rows, and ACL rows
+   - structured run summaries and observability outcomes (`success|aborted|failure`)
 
 Still open:
 1. First-class health dashboard + alert routing beyond current endpoint surface.

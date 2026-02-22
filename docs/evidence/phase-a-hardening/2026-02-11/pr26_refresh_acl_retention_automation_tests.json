@@ -1,0 +1,61 @@
+{
+  "slice": "PR-A2b",
+  "generated_at": "2026-02-22T00:00:00Z",
+  "commands": [
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_refresh_acl_retention_automation.py -q",
+      "result": "passed",
+      "summary": "5 passed, 1 warning"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_refresh_acl_retention.py -q",
+      "result": "passed",
+      "summary": "3 passed, 1 warning"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_refresh_acl_durable.py -q",
+      "result": "passed",
+      "summary": "5 passed, 3 warnings"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_security_controls.py -q",
+      "result": "passed",
+      "summary": "3 passed, 3 warnings"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q",
+      "result": "passed",
+      "summary": "6 passed, 1 warning"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q",
+      "result": "passed",
+      "summary": "1 passed, 3 warnings"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; python -m api.scripts.generate_pr26_refresh_acl_retention_automation_runs",
+      "result": "passed",
+      "summary": "generated synthetic run evidence with 5 runs"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; python -m api.scripts.cleanup_refresh_acl_retention --audit-retention-days 30 --terminal-job-retention-days 14",
+      "result": "passed",
+      "summary": "dry-run automation path output generated"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; python -m api.scripts.run_refresh_acl_retention_automation --max-runs 2 --interval-seconds 0 --audit-retention-days 30 --terminal-job-retention-days 14",
+      "result": "passed",
+      "summary": "scheduled dry-run automation path executed with structured output"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; python -m api.scripts.run_refresh_acl_retention_automation --execute --max-runs 1 --interval-seconds 0 --audit-retention-days 30 --terminal-job-retention-days 14",
+      "result": "passed",
+      "summary": "execute-mode automation path completed with guardrails applied"
+    }
+  ],
+  "freeze_verification": {
+    "mb_api_env": "BOOKMAKER_FREEZE_UNIBET=true",
+    "mb_worker_env": "BOOKMAKER_FREEZE_UNIBET=true",
+    "db_unibet_is_active": false
+  }
+}

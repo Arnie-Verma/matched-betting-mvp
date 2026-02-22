@@ -21,6 +21,9 @@ DEFAULT_REFRESH_TERMINAL_STATUSES = (
     "canceled",
     "expired",
 )
+DEFAULT_REFRESH_RETENTION_MAX_DELETE_TERMINAL_JOBS = 5000
+DEFAULT_REFRESH_RETENTION_MAX_DELETE_AUDIT_ROWS = 200000
+DEFAULT_REFRESH_RETENTION_MAX_DELETE_ACL_ROWS = 50000
 
 
 @dataclass(frozen=True)
@@ -49,6 +52,10 @@ class RefreshAclRetentionSummary:
     after: Dict[str, int]
     safety: Dict[str, Any]
     generated_at: str
+    run_status: str = "success"
+    aborted_reason_code: str | None = None
+    guardrails: Dict[str, Any] | None = None
+    duration_ms: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -60,7 +67,19 @@ class RefreshAclRetentionSummary:
             "after": dict(self.after),
             "safety": dict(self.safety),
             "generated_at": self.generated_at,
+            "run_status": self.run_status,
+            "aborted_reason_code": self.aborted_reason_code,
+            "guardrails": dict(self.guardrails or {}),
+            "duration_ms": int(self.duration_ms),
         }
+
+
+@dataclass(frozen=True)
+class RefreshAclRetentionGuardrailConfig:
+    max_delete_terminal_jobs: int
+    max_delete_audit_rows: int
+    max_delete_acl_rows: int
+    allow_cap_breach: bool = False
 
 
 def _utcnow() -> datetime:
@@ -102,6 +121,24 @@ def load_refresh_acl_retention_config_from_env(*, now: datetime | None = None) -
         ),
         terminal_statuses=_parse_statuses(os.getenv("REFRESH_TERMINAL_JOB_STATUSES")),
         now=now or _utcnow(),
+    )
+
+
+def load_refresh_acl_retention_guardrail_config_from_env() -> RefreshAclRetentionGuardrailConfig:
+    return RefreshAclRetentionGuardrailConfig(
+        max_delete_terminal_jobs=_parse_int(
+            os.getenv("REFRESH_RETENTION_MAX_DELETE_TERMINAL_JOBS"),
+            DEFAULT_REFRESH_RETENTION_MAX_DELETE_TERMINAL_JOBS,
+        ),
+        max_delete_audit_rows=_parse_int(
+            os.getenv("REFRESH_RETENTION_MAX_DELETE_AUDIT_ROWS"),
+            DEFAULT_REFRESH_RETENTION_MAX_DELETE_AUDIT_ROWS,
+        ),
+        max_delete_acl_rows=_parse_int(
+            os.getenv("REFRESH_RETENTION_MAX_DELETE_ACL_ROWS"),
+            DEFAULT_REFRESH_RETENTION_MAX_DELETE_ACL_ROWS,
+        ),
+        allow_cap_breach=(os.getenv("REFRESH_RETENTION_ALLOW_CAP_BREACH", "0").strip().lower() in {"1", "true", "yes", "on"}),
     )
 
 
@@ -158,6 +195,7 @@ def run_refresh_acl_retention(
     config: RefreshAclRetentionConfig,
     dry_run: bool,
 ) -> RefreshAclRetentionSummary:
+    started_at = _utcnow()
     before = _count_before(db, config.terminal_statuses)
     terminal_job_ids = _collect_terminal_job_ids(db, config)
     aged_audit_ids = _collect_old_terminal_audit_ids(
@@ -233,6 +271,7 @@ def run_refresh_acl_retention(
         db.commit()
 
     after = _count_before(db, config.terminal_statuses)
+    duration_ms = int((_utcnow() - started_at).total_seconds() * 1000)
 
     return RefreshAclRetentionSummary(
         dry_run=bool(dry_run),
@@ -252,4 +291,116 @@ def run_refresh_acl_retention(
             "guards_passed": int(non_terminal_delete_candidates) == 0,
         },
         generated_at=(config.now if config.now.tzinfo else config.now.replace(tzinfo=timezone.utc)).isoformat(),
+        run_status="success",
+        aborted_reason_code=None,
+        guardrails={},
+        duration_ms=duration_ms,
+    )
+
+
+def run_refresh_acl_retention_with_guardrails(
+    db: Session,
+    *,
+    config: RefreshAclRetentionConfig,
+    dry_run: bool,
+    guardrails: RefreshAclRetentionGuardrailConfig,
+) -> RefreshAclRetentionSummary:
+    started_at = _utcnow()
+    precheck = run_refresh_acl_retention(db, config=config, dry_run=True)
+
+    total_audit_delete_candidates = int(precheck.candidates.get("audit_rows_for_terminal_jobs", 0)) + int(
+        precheck.candidates.get("aged_terminal_audit_rows", 0)
+    )
+    candidate_map = {
+        "terminal_jobs": int(precheck.candidates.get("terminal_jobs", 0)),
+        "audit_rows": int(total_audit_delete_candidates),
+        "acl_rows": int(precheck.candidates.get("acl_rows_for_terminal_jobs", 0)),
+    }
+    cap_map = {
+        "terminal_jobs": int(guardrails.max_delete_terminal_jobs),
+        "audit_rows": int(guardrails.max_delete_audit_rows),
+        "acl_rows": int(guardrails.max_delete_acl_rows),
+    }
+
+    cap_exceeded = [
+        {
+            "name": key,
+            "candidate_count": int(candidate_map[key]),
+            "max_allowed": int(cap_map[key]),
+        }
+        for key in ("terminal_jobs", "audit_rows", "acl_rows")
+        if int(candidate_map[key]) > int(cap_map[key])
+    ]
+
+    non_terminal_risk = int(precheck.safety.get("non_terminal_job_delete_candidates", 0))
+    aborted_reason_code: str | None = None
+    if non_terminal_risk > 0:
+        aborted_reason_code = "non_terminal_delete_risk"
+    elif cap_exceeded and not bool(guardrails.allow_cap_breach):
+        aborted_reason_code = "delete_cap_exceeded"
+
+    duration_ms = int((_utcnow() - started_at).total_seconds() * 1000)
+    guardrail_payload = {
+        "allow_cap_breach": bool(guardrails.allow_cap_breach),
+        "caps": cap_map,
+        "candidate_totals": candidate_map,
+        "cap_exceeded": cap_exceeded,
+        "non_terminal_job_delete_candidates": non_terminal_risk,
+    }
+
+    if aborted_reason_code is not None:
+        return RefreshAclRetentionSummary(
+            dry_run=bool(dry_run),
+            config=dict(precheck.config),
+            before=dict(precheck.before),
+            candidates=dict(precheck.candidates),
+            deleted={
+                "terminal_jobs": 0,
+                "audit_rows_for_terminal_jobs": 0,
+                "acl_rows_for_terminal_jobs": 0,
+                "aged_terminal_audit_rows": 0,
+            },
+            after=dict(precheck.before),
+            safety={
+                "non_terminal_job_delete_candidates": non_terminal_risk,
+                "guards_passed": False,
+            },
+            generated_at=precheck.generated_at,
+            run_status="aborted",
+            aborted_reason_code=aborted_reason_code,
+            guardrails=guardrail_payload,
+            duration_ms=duration_ms,
+        )
+
+    if dry_run:
+        return RefreshAclRetentionSummary(
+            dry_run=True,
+            config=dict(precheck.config),
+            before=dict(precheck.before),
+            candidates=dict(precheck.candidates),
+            deleted=dict(precheck.deleted),
+            after=dict(precheck.after),
+            safety=dict(precheck.safety),
+            generated_at=precheck.generated_at,
+            run_status="success",
+            aborted_reason_code=None,
+            guardrails=guardrail_payload,
+            duration_ms=duration_ms,
+        )
+
+    executed = run_refresh_acl_retention(db, config=config, dry_run=False)
+    duration_ms = int((_utcnow() - started_at).total_seconds() * 1000)
+    return RefreshAclRetentionSummary(
+        dry_run=False,
+        config=dict(executed.config),
+        before=dict(executed.before),
+        candidates=dict(executed.candidates),
+        deleted=dict(executed.deleted),
+        after=dict(executed.after),
+        safety=dict(executed.safety),
+        generated_at=executed.generated_at,
+        run_status="success",
+        aborted_reason_code=None,
+        guardrails=guardrail_payload,
+        duration_ms=duration_ms,
     )

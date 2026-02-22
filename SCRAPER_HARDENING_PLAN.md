@@ -39,7 +39,7 @@ Implemented now:
 8. Activation-gate enforcement for live-state promotions using fresh machine-verifiable evidence.
 9. Rollout control-plane baseline with platform/bookmaker policy + kill-switch enforcement.
 10. Durable refresh-job ACL authority + audit persistence (with pre-migration Redis fallback).
-11. Durable retention cleanup policy for refresh ACL/audit records (dry-run + safety guards).
+11. Durable retention cleanup policy + automation guardrails for refresh ACL/audit records (dry-run default, lock, cap aborts, non-terminal risk abort).
 
 Known constraints still open:
 1. Evidence registry retention/discovery tooling is still limited.

@@ -156,7 +156,11 @@ This methodology is designed to be executed locally first to get as close to pro
    - allow owner + explicitly shared users from durable ACL records (`refresh_jobs` + `refresh_job_acl_entries`)
    - durable ACL is source of truth when present; Redis payload fallback is only for pre-migration jobs
    - access allow/deny decisions are durably audited (`refresh_job_audit_events`)
-   - retention cleanup is policy-driven via `cleanup_refresh_acl_retention` (dry-run default, terminal-job safety guards)
+   - retention cleanup is policy-driven via `cleanup_refresh_acl_retention` / `run_refresh_acl_retention_automation`:
+     - dry-run default
+     - single-run lock
+     - hard abort on non-terminal delete risk
+     - max-delete caps with explicit override flag only
    - deny cross-user access with `403`
 2. Scraper health endpoints:
    - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access

@@ -138,6 +138,28 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - `pr25_refresh_acl_retention_contract.md`
     - `pr25_refresh_acl_retention_tests.json`
     - `pr25_refresh_acl_retention_before_after.json`
+- PR-A2b refresh ACL/audit retention automation + guardrails completed (single slice):
+  - Added lock-aware automation service for retention runs:
+    - single-run lock guard (`lock_not_acquired` abort)
+    - structured run outcomes (`success|aborted|failure`) with reason codes and durations
+    - observability emission (`refresh_acl_retention_run`) for run outcomes
+  - Added hard safety guardrails on execute path:
+    - abort when `non_terminal_job_delete_candidates > 0`
+    - configurable max-delete caps for jobs/audit/acl rows
+    - explicit cap override flag required for cap breaches
+  - Added automation/scheduler scripts:
+    - `run_refresh_acl_retention_automation.py` (scheduled loop support)
+    - updated `cleanup_refresh_acl_retention.py` to use guarded lock-aware path
+  - Added regression tests for automation path:
+    - schedule loop behavior
+    - lock contention abort
+    - non-terminal risk abort
+    - cap abort
+    - execute success preserving non-terminal ACL authority
+  - Added PR26 evidence artifacts:
+    - `pr26_refresh_acl_retention_automation_contract.md`
+    - `pr26_refresh_acl_retention_automation_tests.json`
+    - `pr26_refresh_acl_retention_automation_runs.json`
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
@@ -155,6 +177,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - PR-C2A enforces fail-closed selection as non-bypassable safety behavior during policy-source outage.
 - PR-A1 sets durable DB ACL as refresh-status authority for durable jobs; Redis payload ACL remains temporary fallback for pre-migration jobs only.
 - PR-A2a sets refresh ACL/audit retention cleanup to dry-run-by-default with explicit `--execute` gate and non-terminal safety invariants.
+- PR-A2b enforces automation lock + guardrail abort behavior before execute deletes; no terminal-only cleanup semantics changes.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
@@ -164,6 +187,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Rollout policy rows currently store latest state only; immutable policy history is not yet available.
 - During DB/policy-source outage, refresh jobs fail closed by design; operational response needs fast DB/policy restoration playbook.
 - Refresh ACL retention policy now exists; operator-facing query/dashboards and long-term archival policy are still pending.
+- Retention automation depends on lock store availability; lock-client outages fail closed (`lock_client_unavailable`) and should alert on-call.
 
 ## 2026-02-21 (Saturday)
 

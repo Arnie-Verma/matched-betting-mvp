@@ -1,0 +1,329 @@
+{
+  "generated_at": "2026-02-22T00:00:00+00:00",
+  "scenario": "synthetic_automation_runs",
+  "run_count": 5,
+  "runs": [
+    {
+      "run_id": "cb5f325c-2990-4ef5-b335-27a5b91084a4",
+      "run_status": "success",
+      "reason_code": "success",
+      "dry_run": true,
+      "lock_key": "pr26:lock",
+      "lock_acquired": true,
+      "lock_ttl_seconds": 900,
+      "started_at": "2026-02-22T08:57:37.659389+00:00",
+      "completed_at": "2026-02-22T08:57:37.695418+00:00",
+      "duration_ms": 36,
+      "summary": {
+        "dry_run": true,
+        "config": {
+          "audit_retention_days": 30,
+          "terminal_job_retention_days": 14,
+          "terminal_statuses": [
+            "success",
+            "failed"
+          ],
+          "audit_cutoff": "2026-01-23T00:00:00+00:00",
+          "terminal_job_cutoff": "2026-02-08T00:00:00+00:00"
+        },
+        "before": {
+          "total_jobs": 2,
+          "terminal_jobs": 1,
+          "non_terminal_jobs": 1,
+          "total_acl_rows": 4,
+          "active_acl_rows": 4,
+          "total_audit_rows": 2
+        },
+        "candidates": {
+          "terminal_jobs": 1,
+          "audit_rows_for_terminal_jobs": 1,
+          "acl_rows_for_terminal_jobs": 2,
+          "aged_terminal_audit_rows": 0
+        },
+        "deleted": {
+          "terminal_jobs": 0,
+          "audit_rows_for_terminal_jobs": 0,
+          "acl_rows_for_terminal_jobs": 0,
+          "aged_terminal_audit_rows": 0
+        },
+        "after": {
+          "total_jobs": 2,
+          "terminal_jobs": 1,
+          "non_terminal_jobs": 1,
+          "total_acl_rows": 4,
+          "active_acl_rows": 4,
+          "total_audit_rows": 2
+        },
+        "safety": {
+          "non_terminal_job_delete_candidates": 0,
+          "guards_passed": true
+        },
+        "generated_at": "2026-02-22T00:00:00+00:00",
+        "run_status": "success",
+        "aborted_reason_code": null,
+        "guardrails": {
+          "allow_cap_breach": false,
+          "caps": {
+            "terminal_jobs": 100,
+            "audit_rows": 1000,
+            "acl_rows": 500
+          },
+          "candidate_totals": {
+            "terminal_jobs": 1,
+            "audit_rows": 1,
+            "acl_rows": 2
+          },
+          "cap_exceeded": [],
+          "non_terminal_job_delete_candidates": 0
+        },
+        "duration_ms": 35
+      }
+    },
+    {
+      "run_id": "09bf4606-db15-4a9e-91c8-dff88acb646a",
+      "run_status": "aborted",
+      "reason_code": "lock_not_acquired",
+      "dry_run": true,
+      "lock_key": "pr26:lock-contention",
+      "lock_acquired": false,
+      "lock_ttl_seconds": 900,
+      "started_at": "2026-02-22T08:57:37.726137+00:00",
+      "completed_at": "2026-02-22T08:57:37.726214+00:00",
+      "duration_ms": 0,
+      "summary": {
+        "run_status": "aborted",
+        "aborted_reason_code": "lock_not_acquired",
+        "guardrails": {
+          "allow_cap_breach": false
+        }
+      }
+    },
+    {
+      "run_id": "f6ee9661-de15-4de4-a383-d30c936ae56a",
+      "run_status": "aborted",
+      "reason_code": "delete_cap_exceeded",
+      "dry_run": false,
+      "lock_key": "pr26:lock-cap",
+      "lock_acquired": true,
+      "lock_ttl_seconds": 900,
+      "started_at": "2026-02-22T08:57:37.756150+00:00",
+      "completed_at": "2026-02-22T08:57:37.766671+00:00",
+      "duration_ms": 10,
+      "summary": {
+        "dry_run": false,
+        "config": {
+          "audit_retention_days": 30,
+          "terminal_job_retention_days": 14,
+          "terminal_statuses": [
+            "success",
+            "failed"
+          ],
+          "audit_cutoff": "2026-01-23T00:00:00+00:00",
+          "terminal_job_cutoff": "2026-02-08T00:00:00+00:00"
+        },
+        "before": {
+          "total_jobs": 2,
+          "terminal_jobs": 1,
+          "non_terminal_jobs": 1,
+          "total_acl_rows": 4,
+          "active_acl_rows": 4,
+          "total_audit_rows": 2
+        },
+        "candidates": {
+          "terminal_jobs": 1,
+          "audit_rows_for_terminal_jobs": 1,
+          "acl_rows_for_terminal_jobs": 2,
+          "aged_terminal_audit_rows": 0
+        },
+        "deleted": {
+          "terminal_jobs": 0,
+          "audit_rows_for_terminal_jobs": 0,
+          "acl_rows_for_terminal_jobs": 0,
+          "aged_terminal_audit_rows": 0
+        },
+        "after": {
+          "total_jobs": 2,
+          "terminal_jobs": 1,
+          "non_terminal_jobs": 1,
+          "total_acl_rows": 4,
+          "active_acl_rows": 4,
+          "total_audit_rows": 2
+        },
+        "safety": {
+          "non_terminal_job_delete_candidates": 0,
+          "guards_passed": false
+        },
+        "generated_at": "2026-02-22T00:00:00+00:00",
+        "run_status": "aborted",
+        "aborted_reason_code": "delete_cap_exceeded",
+        "guardrails": {
+          "allow_cap_breach": false,
+          "caps": {
+            "terminal_jobs": 0,
+            "audit_rows": 0,
+            "acl_rows": 0
+          },
+          "candidate_totals": {
+            "terminal_jobs": 1,
+            "audit_rows": 1,
+            "acl_rows": 2
+          },
+          "cap_exceeded": [
+            {
+              "name": "terminal_jobs",
+              "candidate_count": 1,
+              "max_allowed": 0
+            },
+            {
+              "name": "audit_rows",
+              "candidate_count": 1,
+              "max_allowed": 0
+            },
+            {
+              "name": "acl_rows",
+              "candidate_count": 2,
+              "max_allowed": 0
+            }
+          ],
+          "non_terminal_job_delete_candidates": 0
+        },
+        "duration_ms": 10
+      }
+    },
+    {
+      "run_id": "d179c2c5-4acd-4798-8279-ddd3f6b9741f",
+      "run_status": "aborted",
+      "reason_code": "non_terminal_delete_risk",
+      "dry_run": false,
+      "lock_key": "pr26:lock-risk",
+      "lock_acquired": true,
+      "lock_ttl_seconds": 900,
+      "started_at": "2026-02-22T08:57:37.774422+00:00",
+      "completed_at": "2026-02-22T08:57:37.774541+00:00",
+      "duration_ms": 0,
+      "summary": {
+        "dry_run": false,
+        "config": {
+          "audit_retention_days": 30
+        },
+        "before": {
+          "total_jobs": 2
+        },
+        "candidates": {
+          "terminal_jobs": 1,
+          "audit_rows_for_terminal_jobs": 1,
+          "acl_rows_for_terminal_jobs": 1,
+          "aged_terminal_audit_rows": 0
+        },
+        "deleted": {
+          "terminal_jobs": 0,
+          "audit_rows_for_terminal_jobs": 0,
+          "acl_rows_for_terminal_jobs": 0,
+          "aged_terminal_audit_rows": 0
+        },
+        "after": {
+          "total_jobs": 2
+        },
+        "safety": {
+          "non_terminal_job_delete_candidates": 1,
+          "guards_passed": false
+        },
+        "generated_at": "2026-02-22T00:00:00+00:00",
+        "run_status": "aborted",
+        "aborted_reason_code": "non_terminal_delete_risk",
+        "guardrails": {
+          "allow_cap_breach": false,
+          "caps": {
+            "terminal_jobs": 100,
+            "audit_rows": 1000,
+            "acl_rows": 500
+          },
+          "candidate_totals": {
+            "terminal_jobs": 1,
+            "audit_rows": 1,
+            "acl_rows": 1
+          },
+          "cap_exceeded": [],
+          "non_terminal_job_delete_candidates": 1
+        },
+        "duration_ms": 0
+      }
+    },
+    {
+      "run_id": "24759502-b231-4bd4-9a4f-c5d0665abdc4",
+      "run_status": "success",
+      "reason_code": "success",
+      "dry_run": false,
+      "lock_key": "pr26:lock-success",
+      "lock_acquired": true,
+      "lock_ttl_seconds": 900,
+      "started_at": "2026-02-22T08:57:37.802486+00:00",
+      "completed_at": "2026-02-22T08:57:37.833222+00:00",
+      "duration_ms": 30,
+      "summary": {
+        "dry_run": false,
+        "config": {
+          "audit_retention_days": 30,
+          "terminal_job_retention_days": 14,
+          "terminal_statuses": [
+            "success",
+            "failed"
+          ],
+          "audit_cutoff": "2026-01-23T00:00:00+00:00",
+          "terminal_job_cutoff": "2026-02-08T00:00:00+00:00"
+        },
+        "before": {
+          "total_jobs": 2,
+          "terminal_jobs": 1,
+          "non_terminal_jobs": 1,
+          "total_acl_rows": 4,
+          "active_acl_rows": 4,
+          "total_audit_rows": 2
+        },
+        "candidates": {
+          "terminal_jobs": 1,
+          "audit_rows_for_terminal_jobs": 1,
+          "acl_rows_for_terminal_jobs": 2,
+          "aged_terminal_audit_rows": 0
+        },
+        "deleted": {
+          "terminal_jobs": 1,
+          "audit_rows_for_terminal_jobs": 1,
+          "acl_rows_for_terminal_jobs": 2,
+          "aged_terminal_audit_rows": 0
+        },
+        "after": {
+          "total_jobs": 1,
+          "terminal_jobs": 0,
+          "non_terminal_jobs": 1,
+          "total_acl_rows": 2,
+          "active_acl_rows": 2,
+          "total_audit_rows": 1
+        },
+        "safety": {
+          "non_terminal_job_delete_candidates": 0,
+          "guards_passed": true
+        },
+        "generated_at": "2026-02-22T00:00:00+00:00",
+        "run_status": "success",
+        "aborted_reason_code": null,
+        "guardrails": {
+          "allow_cap_breach": false,
+          "caps": {
+            "terminal_jobs": 100,
+            "audit_rows": 1000,
+            "acl_rows": 500
+          },
+          "candidate_totals": {
+            "terminal_jobs": 1,
+            "audit_rows": 1,
+            "acl_rows": 2
+          },
+          "cap_exceeded": [],
+          "non_terminal_job_delete_candidates": 0
+        },
+        "duration_ms": 30
+      }
+    }
+  ]
+}
