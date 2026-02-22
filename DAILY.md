@@ -121,6 +121,23 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - `pr24_durable_refresh_acl_tests.json`
     - `pr24_durable_refresh_acl_scenarios.json`
   - Added ADR-0021 (`durable-refresh-acl-audit-persistence`).
+- PR-A2a refresh ACL/audit retention policy completed (single slice):
+  - Added `RefreshAclRetentionService` with configurable safety-first retention policy:
+    - `REFRESH_AUDIT_RETENTION_DAYS` (default `30`)
+    - `REFRESH_TERMINAL_JOB_RETENTION_DAYS` (default `14`)
+    - `REFRESH_TERMINAL_JOB_STATUSES`
+  - Added cleanup utility script with dry-run default:
+    - `python -m api.scripts.cleanup_refresh_acl_retention`
+    - `--execute` required for deletions
+  - Safety guards enforced:
+    - no deletion of non-terminal jobs
+    - no deletion of audit rows tied to non-terminal jobs
+    - no deletion of rows newer than configured cutoffs
+  - Added retention regression tests (`apps/api/tests/test_refresh_acl_retention.py`) for dry-run/execution/safety/ACL-authority invariants.
+  - Added PR25 evidence artifacts:
+    - `pr25_refresh_acl_retention_contract.md`
+    - `pr25_refresh_acl_retention_tests.json`
+    - `pr25_refresh_acl_retention_before_after.json`
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
@@ -137,6 +154,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Rollout rollback is policy-driven (kill switch / mode change), not code-change driven.
 - PR-C2A enforces fail-closed selection as non-bypassable safety behavior during policy-source outage.
 - PR-A1 sets durable DB ACL as refresh-status authority for durable jobs; Redis payload ACL remains temporary fallback for pre-migration jobs only.
+- PR-A2a sets refresh ACL/audit retention cleanup to dry-run-by-default with explicit `--execute` gate and non-terminal safety invariants.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
@@ -145,7 +163,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Worker evidence scripts write to path relative to invocation directory; this can place artifacts under `apps/worker/src/docs/...` unless explicit `--evidence-dir` is passed.
 - Rollout policy rows currently store latest state only; immutable policy history is not yet available.
 - During DB/policy-source outage, refresh jobs fail closed by design; operational response needs fast DB/policy restoration playbook.
-- Refresh ACL audit tables can grow without retention policy; add TTL/archival in follow-up slice.
+- Refresh ACL retention policy now exists; operator-facing query/dashboards and long-term archival policy are still pending.
 
 ## 2026-02-21 (Saturday)
 

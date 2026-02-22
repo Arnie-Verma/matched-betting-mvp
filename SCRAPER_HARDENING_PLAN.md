@@ -39,19 +39,20 @@ Implemented now:
 8. Activation-gate enforcement for live-state promotions using fresh machine-verifiable evidence.
 9. Rollout control-plane baseline with platform/bookmaker policy + kill-switch enforcement.
 10. Durable refresh-job ACL authority + audit persistence (with pre-migration Redis fallback).
+11. Durable retention cleanup policy for refresh ACL/audit records (dry-run + safety guards).
 
 Known constraints still open:
 1. Evidence registry retention/discovery tooling is still limited.
 2. Rollout policy history/audit stream is latest-state only (no immutable change log yet).
 3. Health/alerting is functional but not yet a first-class dashboarded operational surface.
-4. Refresh ACL audit retention/query tooling is still minimal.
+4. Refresh ACL audit query/dashboard tooling is still minimal.
 
 Planned follow-up work:
 1. Tighten canary reliability thresholds after longer bounded-scheduler telemetry windows.
 2. Add evidence registry retention + list/query operational tooling.
 3. Move from set-based matcher path to dedicated read-model serving for sustained scale.
 4. Add rollout-policy change history and operator-facing policy dashboarding.
-5. Add refresh ACL/audit retention policy and operator query dashboards.
+5. Add refresh ACL/audit operator query dashboards.
 
 ## Workstreams
 

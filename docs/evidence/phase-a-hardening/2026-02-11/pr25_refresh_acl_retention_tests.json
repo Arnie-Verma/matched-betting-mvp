@@ -1,0 +1,41 @@
+{
+  "slice": "PR-A2a",
+  "generated_at": "2026-02-22T00:00:00Z",
+  "tests": [
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_refresh_acl_retention.py -q",
+      "result": "passed",
+      "summary": "3 passed, 1 warning"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_refresh_acl_durable.py -q",
+      "result": "passed",
+      "summary": "5 passed, 3 warnings"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_security_controls.py -q",
+      "result": "passed",
+      "summary": "3 passed, 3 warnings"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q",
+      "result": "passed",
+      "summary": "6 passed, 1 warning"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q",
+      "result": "passed",
+      "summary": "1 passed, 3 warnings"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; python -m api.scripts.generate_pr25_refresh_acl_retention_before_after",
+      "result": "passed",
+      "summary": "terminal_jobs_deleted=1 in synthetic fixture"
+    }
+  ],
+  "freeze_verification": {
+    "api_env": "BOOKMAKER_FREEZE_UNIBET=true",
+    "worker_env": "BOOKMAKER_FREEZE_UNIBET=true",
+    "db_unibet_is_active": false
+  }
+}

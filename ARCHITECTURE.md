@@ -303,6 +303,9 @@ Important runtime knobs:
 - `BOOKMAKER_ROLLOUT_INTERNAL_TOKEN`
 - `ROLLOUT_ELIGIBLE_LIFECYCLE_STATES` (default `canary_active,active,degraded`)
 - `REFRESH_JOB_DURABLE_SYNC_ENABLED` (default `1`; set `0` to disable worker best-effort durable status sync)
+- `REFRESH_AUDIT_RETENTION_DAYS` (default `30`)
+- `REFRESH_TERMINAL_JOB_RETENTION_DAYS` (default `14`)
+- `REFRESH_TERMINAL_JOB_STATUSES` (default `success,failed,cancelled,canceled,expired`)
 
 Notes:
 - scraper code defaults `SCRAPER_BATCH_SIZE` to `1` if env is absent
@@ -312,7 +315,7 @@ Notes:
 1. Evidence retention/list/query tooling around canonical records is still minimal.
 2. Validation thresholds still need ongoing calibration across competitions/platforms.
 3. Matcher hot-path N+1 has been removed, but response assembly is still in-request in-memory work (no dedicated read model yet).
-4. Refresh-job ACL durability is implemented, but retention policy and query tooling for audit rows are still minimal.
+4. Refresh-job ACL durability and retention cleanup are implemented, but operator query/dashboard tooling for audit rows is still minimal.
 5. Some plan/bookmaker lists are hardcoded and need long-term config centralization.
 
 ## Implementation Status (Phase A hardening)
@@ -341,11 +344,11 @@ Still open:
 2. Dedicated matcher read model/materialization for higher sustained traffic.
 3. Canonical evidence retention and discovery tooling (list/query/dashboard) for lifecycle gate inputs.
 4. Rollout policy history/audit stream is not yet first-class (current policy rows store latest state only).
-5. Refresh ACL/audit retention + operator query tooling is still limited.
+5. Refresh ACL/audit operator query tooling is still limited.
 
 Planned follow-ups:
 1. Tighten canary reliability thresholds after scheduler and matcher improvements are observed over longer windows.
-2. Add retention policy + operator query tooling for refresh ACL audit records.
+2. Add operator query tooling and dashboards for refresh ACL audit records.
 3. Continue policy centralization for plan/bookmaker exposure rules.
 
 These are tracked in:

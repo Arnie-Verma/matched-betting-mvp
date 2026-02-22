@@ -62,6 +62,8 @@ Implemented now:
 - Security controls:
   - `GET /odds/refresh/status` restricted by durable DB-backed owner/shared ACL (Redis payload fallback only for pre-migration jobs).
   - refresh ACL decisions are durably audited (`job create`, `share/unshare`, `status access allow/deny`).
+  - refresh ACL/audit retention cleanup utility with dry-run default:
+    - `python -m api.scripts.cleanup_refresh_acl_retention --audit-retention-days 30 --terminal-job-retention-days 14`
   - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access; telemetry defaults to aggregate-only response output.
 - Unibet remains frozen by baseline policy (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
 
