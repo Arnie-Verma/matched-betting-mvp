@@ -27,7 +27,7 @@ This plan directly implements:
 - Out of scope: adding new platforms/bookmakers until hardening exit criteria pass
 - Freeze enforcement: Unibet remains code-frozen during Phase A via `BOOKMAKER_FREEZE_UNIBET=true` (default)
 
-## Phase A Progress Sync (2026-02-21)
+## Phase A Progress Sync (2026-02-22)
 Implemented now:
 1. Validation semantics hardening (`PASS/WARN/FAIL/SKIP/N_A`) with scope-aware gating.
 2. Local canary gate contract with deterministic reliability thresholds and explicit failure reasons.
@@ -35,15 +35,17 @@ Implemented now:
 4. Runtime active-bookmaker derivation from DB + freeze policy (no static active-list control path).
 5. Matcher hot-path N+1 reduction using set-based preloading.
 6. Security controls for refresh status ownership and scraper health endpoint access policy.
+7. Lifecycle state persistence + transition guards with audited transition history.
+8. Activation-gate enforcement for live-state promotions using fresh machine-verifiable evidence.
 
 Known constraints still open:
-1. Promotion blocking by gate evidence is not fully code-enforced yet.
+1. Evidence storage is still file/inline payload based (no canonical evidence registry yet).
 2. Canary/ramp selection controls are still limited (full rollout control plane pending).
 3. Health/alerting is functional but not yet a first-class dashboarded operational surface.
 
 Planned follow-up work:
 1. Tighten canary reliability thresholds after longer bounded-scheduler telemetry windows.
-2. Couple lifecycle promotions to gate-evidence checks in code.
+2. Add canonical evidence registry/storage for activation gate artifacts.
 3. Move from set-based matcher path to dedicated read-model serving for sustained scale.
 
 ## Workstreams
@@ -226,7 +228,7 @@ Pause new bookmaker onboarding if either condition is true:
 ## Final Pre-Unibet Go/No-Go Checklist
 - [ ] Entain and Punterstech pass identical DoD tests.
 - [ ] Validation output is stable and trustworthy on priority competitions.
-- [ ] Lifecycle and activation gates are code-enforced.
+- [x] Lifecycle and activation gates are code-enforced.
 - [ ] Local canary report passes (30-60 min repeated cycles).
 - [ ] Breaker behavior and recovery are verified.
 - [ ] Evidence artifact saved and reviewed.

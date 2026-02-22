@@ -35,6 +35,16 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
   - Enforced lifecycle/is_active alignment and freeze-safe live-state blocking.
   - Added lifecycle tests covering happy-path transitions, invalid jumps, audit metadata persistence, freeze guard behavior, and endpoint role enforcement.
   - Added ADR-0017 and PR18 evidence artifacts.
+- PR-L2 activation gate enforcement completed:
+  - Bound lifecycle promotions to machine-verifiable evidence checks in `BookmakerLifecycleService`:
+    - `validation_passed -> canary_active` now requires fresh validation evidence with `in_scope_fail_count=0`.
+    - `canary_active -> active` now requires fresh canary evidence with `gate.pass=true` and threshold-contract match.
+  - Added configurable evidence recency windows:
+    - `BOOKMAKER_VALIDATION_EVIDENCE_MAX_AGE_SECONDS` (default 21600)
+    - `BOOKMAKER_CANARY_EVIDENCE_MAX_AGE_SECONDS` (default 21600)
+  - Added machine-readable denial payloads (`reason_code` + `failed_criteria`) in lifecycle API responses.
+  - Expanded lifecycle tests to cover all required deny/allow branches for activation gates.
+  - Added ADR-0018 and PR19 evidence artifacts.
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
@@ -42,10 +52,13 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Keep lifecycle transitions and activation gate coupling as separate slices:
   - PR-L1 enforces transitions + audit trail.
   - activation gate blocking remains follow-up scope.
+- Keep existing canary threshold contract unchanged in PR-L2 (no relaxation).
+- Enforce exact canary threshold-contract match during `canary_active -> active` promotion checks.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
 - Model-level lifecycle/is_active synchronization can expose stale seed/script assumptions that relied on direct `is_active` flips; future scripts should use lifecycle transition flow.
+- Activation evidence is still provided via inline payloads/paths; absence of a canonical evidence registry may create operator workflow inconsistency until follow-up.
 
 ## 2026-02-21 (Saturday)
 

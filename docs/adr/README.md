@@ -29,6 +29,7 @@ Create or update an ADR when any of the following changes:
 - `ADR-0015-refresh-status-ownership-and-scraper-health-access-policy.md`
 - `ADR-0016-health-telemetry-ops-access-and-response-minimization.md`
 - `ADR-0017-bookmaker-lifecycle-state-enforcement.md`
+- `ADR-0018-activation-gate-evidence-enforcement.md`
 
 ## ADR Template
 Use this structure:

@@ -124,6 +124,7 @@ def transition_bookmaker_lifecycle(
                 "message": str(exc),
                 "from_state": exc.from_state,
                 "to_state": exc.to_state,
+                "failed_criteria": exc.failed_criteria,
             },
         ) from exc
 

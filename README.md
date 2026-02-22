@@ -52,13 +52,13 @@ Implemented now:
   - persistent bookmaker lifecycle states
   - audited lifecycle transition history
   - admin/internal guarded transition control surface
+  - evidence-gated live promotions (`validation_passed -> canary_active`, `canary_active -> active`)
 - Security controls:
   - `GET /odds/refresh/status` restricted to owner/shared users.
   - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access; telemetry defaults to aggregate-only response output.
 - Unibet remains frozen by baseline policy (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
 
 Still open:
-- Activation gate blocking (promotion blocked by gate evidence) is not fully code-enforced yet.
 - Canary/ramp cohort controls remain limited.
 - Dedicated matcher read model/materialized serving path is not implemented yet.
 - Health/audit surfacing remains endpoint-based and needs deeper operational tooling.

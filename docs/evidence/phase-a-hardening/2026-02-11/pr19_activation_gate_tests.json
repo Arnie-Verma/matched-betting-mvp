@@ -1,0 +1,49 @@
+{
+  "slice": "PR-L2",
+  "generated_at_utc": "2026-02-22T00:00:00Z",
+  "commands": [
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_bookmaker_lifecycle.py -q",
+      "result": "pass",
+      "passed": 13,
+      "failed": 0,
+      "warnings": 3
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q",
+      "result": "pass",
+      "passed": 6,
+      "failed": 0,
+      "warnings": 1
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q",
+      "result": "pass",
+      "passed": 1,
+      "failed": 0,
+      "warnings": 3
+    }
+  ],
+  "activation_gate_branch_coverage": {
+    "validation_to_canary": {
+      "missing_evidence_denied": "test_validation_to_canary_denied_when_validation_evidence_missing",
+      "stale_evidence_denied": "test_validation_to_canary_denied_when_validation_evidence_stale",
+      "in_scope_fail_denied": "test_validation_to_canary_denied_when_in_scope_fail_detected",
+      "fresh_zero_fail_allowed": "test_validation_to_canary_allowed_with_fresh_zero_fail_evidence"
+    },
+    "canary_to_active": {
+      "missing_evidence_denied": "test_canary_to_active_denied_when_canary_evidence_missing",
+      "stale_evidence_denied": "test_canary_to_active_denied_when_canary_evidence_stale",
+      "gate_fail_denied": "test_canary_to_active_denied_when_gate_fails",
+      "fresh_gate_pass_allowed": "test_canary_to_active_allowed_with_fresh_passing_canary_evidence"
+    },
+    "denial_shape": {
+      "api_reason_code_and_failed_criteria": "test_lifecycle_endpoint_enforces_role_and_persists_transition"
+    }
+  },
+  "freeze_runtime_verification": {
+    "mb_api_bookmaker_freeze_unibet": "true",
+    "mb_worker_bookmaker_freeze_unibet": "true",
+    "db_unibet_is_active": false
+  }
+}

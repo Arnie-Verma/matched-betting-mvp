@@ -210,6 +210,9 @@ Plan enforcement is server-side:
 - bookmaker lifecycle transitions are restricted to admin/internal control path:
   - `POST /admin/bookmakers/{bookmaker_code}/lifecycle`
   - authenticated `admin/ops` role or explicit internal token
+- live-state promotions are evidence-gated:
+  - `validation_passed -> canary_active` requires fresh validation evidence (`in_scope_fail_count=0`)
+  - `canary_active -> active` requires fresh canary gate PASS evidence with threshold-contract match
 
 Key code:
 - `apps/api/src/api/services/subscription_service.py`
@@ -274,13 +277,15 @@ Important runtime knobs:
 - `HEALTH_OPERATIONS_ALLOWED_ROLES` (fallback `HEALTH_SCRAPERS_ALLOWED_ROLES`)
 - `BOOKMAKER_LIFECYCLE_ALLOWED_ROLES` (default `admin,ops`)
 - `BOOKMAKER_LIFECYCLE_INTERNAL_TOKEN`
+- `BOOKMAKER_VALIDATION_EVIDENCE_MAX_AGE_SECONDS` (default `21600`)
+- `BOOKMAKER_CANARY_EVIDENCE_MAX_AGE_SECONDS` (default `21600`)
 
 Notes:
 - scraper code defaults `SCRAPER_BATCH_SIZE` to `1` if env is absent
 - environment files may override this for local constraints/perf testing
 
 ## Current Known Constraints
-1. Activation gate blocking (promotion must prove canary/validation gate evidence) is not fully code-enforced yet.
+1. Evidence storage is still file/inline payload driven; a canonical evidence registry is not implemented yet.
 2. Validation thresholds still need ongoing calibration across competitions/platforms.
 3. Matcher hot-path N+1 has been removed, but response assembly is still in-request in-memory work (no dedicated read model yet).
 4. Refresh job ACLs are stored in Redis payload metadata; stronger typed persistence/audit logging is still pending.
@@ -294,11 +299,15 @@ Implemented now:
 4. Security policy on `/odds/refresh/status` ownership/shared visibility.
 5. Security policy on `/health/scrapers`, `/health/detailed`, and `/health/telemetry` ops/internal access with consistent dependency.
 6. Lifecycle persistence + transition guard policy in code, with audited transitions and admin/internal control path.
+7. Activation-gate evidence enforcement in code:
+   - `validation_passed -> canary_active` requires fresh validation evidence with zero in-scope FAIL.
+   - `canary_active -> active` requires fresh canary evidence with gate PASS and threshold-contract match.
+   - denial payloads include machine-readable reason codes and failed criteria.
 
 Still open:
-1. Activation-gate enforcement in code (block live promotion unless gate evidence passes).
-2. First-class health dashboard + alert routing beyond current endpoint surface.
-3. Dedicated matcher read model/materialization for higher sustained traffic.
+1. First-class health dashboard + alert routing beyond current endpoint surface.
+2. Dedicated matcher read model/materialization for higher sustained traffic.
+3. Canonical evidence registry and retention policy for lifecycle gate inputs.
 
 Planned follow-ups:
 1. Tighten canary reliability thresholds after scheduler and matcher improvements are observed over longer windows.

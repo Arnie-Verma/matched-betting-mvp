@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -11,6 +12,7 @@ from api.models import Bookmaker, BookmakerLifecycleTransition
 from api.services.bookmaker_lifecycle_service import (
     BookmakerLifecycleService,
     LifecycleTransitionError,
+    REQUIRED_CANARY_GATE_THRESHOLDS,
 )
 
 
@@ -43,6 +45,50 @@ def _create_bookmaker(db, *, code: str, is_active: bool = False):
     return bookmaker
 
 
+def _validation_evidence(*, age_seconds: int = 0, in_scope_fail_count: int = 0):
+    evidence_time = datetime.now(timezone.utc) - timedelta(seconds=age_seconds)
+    return {
+        "generated_at": evidence_time.isoformat(),
+        "in_scope_fail_count": in_scope_fail_count,
+    }
+
+
+def _canary_evidence(
+    *,
+    age_seconds: int = 0,
+    gate_pass: bool = True,
+    thresholds: dict | None = None,
+    failed_criteria: list[dict] | None = None,
+):
+    evidence_time = datetime.now(timezone.utc) - timedelta(seconds=age_seconds)
+    return {
+        "ended_at": evidence_time.isoformat(),
+        "gate": {
+            "pass": gate_pass,
+            "thresholds": thresholds or dict(REQUIRED_CANARY_GATE_THRESHOLDS),
+            "criteria": failed_criteria or [],
+            "failure_reasons": [] if gate_pass else ["synthetic gate fail"],
+        },
+    }
+
+
+def _progress_to_validation_passed(db, bookmaker_code: str):
+    for target in (
+        "discovery_complete",
+        "adapter_ready",
+        "config_ready",
+        "validation_passed",
+    ):
+        BookmakerLifecycleService.transition_bookmaker_state(
+            db,
+            bookmaker_code=bookmaker_code,
+            to_state=target,
+            reason=f"progress to {target}",
+            transitioned_by="ops-user",
+            transition_source="test",
+        )
+
+
 def test_lifecycle_happy_path_transitions_and_is_active_toggle(tmp_path, monkeypatch):
     monkeypatch.delenv("BOOKMAKER_FREEZE_UNIBET", raising=False)
     SessionLocal, engine = _build_session(tmp_path)
@@ -61,6 +107,14 @@ def test_lifecycle_happy_path_transitions_and_is_active_toggle(tmp_path, monkeyp
             "active",
         ]
         for target in target_sequence:
+            transition_metadata = {"target": target}
+            if target == "canary_active":
+                transition_metadata["validation_evidence"] = _validation_evidence(
+                    in_scope_fail_count=0
+                )
+            if target == "active":
+                transition_metadata["canary_evidence"] = _canary_evidence(gate_pass=True)
+
             result = BookmakerLifecycleService.transition_bookmaker_state(
                 db,
                 bookmaker_code="ladbrokes",
@@ -69,13 +123,304 @@ def test_lifecycle_happy_path_transitions_and_is_active_toggle(tmp_path, monkeyp
                 transitioned_by="ops-user",
                 transitioned_by_email="ops@test.local",
                 transition_source="test",
-                transition_metadata={"target": target},
+                transition_metadata=transition_metadata,
             )
             assert result.to_state == target
 
         refreshed = db.query(Bookmaker).filter(Bookmaker.code == "ladbrokes").first()
         assert refreshed.lifecycle_state == "active"
         assert refreshed.is_active is True
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def test_validation_to_canary_denied_when_validation_evidence_missing(tmp_path, monkeypatch):
+    monkeypatch.delenv("BOOKMAKER_FREEZE_UNIBET", raising=False)
+    SessionLocal, engine = _build_session(tmp_path)
+    db = SessionLocal()
+    try:
+        _create_bookmaker(db, code="mintbet", is_active=False)
+        _progress_to_validation_passed(db, "mintbet")
+
+        try:
+            BookmakerLifecycleService.transition_bookmaker_state(
+                db,
+                bookmaker_code="mintbet",
+                to_state="canary_active",
+                reason="promote to canary",
+                transitioned_by="ops-user",
+                transition_source="test",
+            )
+            assert False, "expected missing validation evidence denial"
+        except LifecycleTransitionError as exc:
+            assert exc.reason_code == "validation_evidence_missing"
+            assert exc.failed_criteria
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def test_validation_to_canary_denied_when_validation_evidence_stale(tmp_path, monkeypatch):
+    monkeypatch.delenv("BOOKMAKER_FREEZE_UNIBET", raising=False)
+    monkeypatch.setenv("BOOKMAKER_VALIDATION_EVIDENCE_MAX_AGE_SECONDS", "300")
+    SessionLocal, engine = _build_session(tmp_path)
+    db = SessionLocal()
+    try:
+        _create_bookmaker(db, code="starsports", is_active=False)
+        _progress_to_validation_passed(db, "starsports")
+
+        try:
+            BookmakerLifecycleService.transition_bookmaker_state(
+                db,
+                bookmaker_code="starsports",
+                to_state="canary_active",
+                reason="promote to canary",
+                transitioned_by="ops-user",
+                transition_source="test",
+                transition_metadata={
+                    "validation_evidence": _validation_evidence(
+                        age_seconds=301,
+                        in_scope_fail_count=0,
+                    )
+                },
+            )
+            assert False, "expected stale validation evidence denial"
+        except LifecycleTransitionError as exc:
+            assert exc.reason_code == "validation_evidence_stale"
+            assert exc.failed_criteria
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def test_validation_to_canary_denied_when_in_scope_fail_detected(tmp_path, monkeypatch):
+    monkeypatch.delenv("BOOKMAKER_FREEZE_UNIBET", raising=False)
+    SessionLocal, engine = _build_session(tmp_path)
+    db = SessionLocal()
+    try:
+        _create_bookmaker(db, code="topbet", is_active=False)
+        _progress_to_validation_passed(db, "topbet")
+
+        try:
+            BookmakerLifecycleService.transition_bookmaker_state(
+                db,
+                bookmaker_code="topbet",
+                to_state="canary_active",
+                reason="promote to canary",
+                transitioned_by="ops-user",
+                transition_source="test",
+                transition_metadata={
+                    "validation_evidence": _validation_evidence(
+                        in_scope_fail_count=2
+                    )
+                },
+            )
+            assert False, "expected in-scope fail denial"
+        except LifecycleTransitionError as exc:
+            assert exc.reason_code == "validation_in_scope_fail_detected"
+            assert exc.failed_criteria
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def test_validation_to_canary_allowed_with_fresh_zero_fail_evidence(tmp_path, monkeypatch):
+    monkeypatch.delenv("BOOKMAKER_FREEZE_UNIBET", raising=False)
+    SessionLocal, engine = _build_session(tmp_path)
+    db = SessionLocal()
+    try:
+        _create_bookmaker(db, code="betvista", is_active=False)
+        _progress_to_validation_passed(db, "betvista")
+
+        result = BookmakerLifecycleService.transition_bookmaker_state(
+            db,
+            bookmaker_code="betvista",
+            to_state="canary_active",
+            reason="promote to canary",
+            transitioned_by="ops-user",
+            transition_source="test",
+            transition_metadata={
+                "validation_evidence": _validation_evidence(
+                    in_scope_fail_count=0
+                )
+            },
+        )
+        assert result.to_state == "canary_active"
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def test_canary_to_active_denied_when_canary_evidence_missing(tmp_path, monkeypatch):
+    monkeypatch.delenv("BOOKMAKER_FREEZE_UNIBET", raising=False)
+    SessionLocal, engine = _build_session(tmp_path)
+    db = SessionLocal()
+    try:
+        _create_bookmaker(db, code="cashcage", is_active=False)
+        _progress_to_validation_passed(db, "cashcage")
+        BookmakerLifecycleService.transition_bookmaker_state(
+            db,
+            bookmaker_code="cashcage",
+            to_state="canary_active",
+            reason="promote to canary",
+            transitioned_by="ops-user",
+            transition_source="test",
+            transition_metadata={
+                "validation_evidence": _validation_evidence(in_scope_fail_count=0)
+            },
+        )
+
+        try:
+            BookmakerLifecycleService.transition_bookmaker_state(
+                db,
+                bookmaker_code="cashcage",
+                to_state="active",
+                reason="promote to active",
+                transitioned_by="ops-user",
+                transition_source="test",
+            )
+            assert False, "expected missing canary evidence denial"
+        except LifecycleTransitionError as exc:
+            assert exc.reason_code == "canary_evidence_missing"
+            assert exc.failed_criteria
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def test_canary_to_active_denied_when_canary_evidence_stale(tmp_path, monkeypatch):
+    monkeypatch.delenv("BOOKMAKER_FREEZE_UNIBET", raising=False)
+    monkeypatch.setenv("BOOKMAKER_CANARY_EVIDENCE_MAX_AGE_SECONDS", "300")
+    SessionLocal, engine = _build_session(tmp_path)
+    db = SessionLocal()
+    try:
+        _create_bookmaker(db, code="blondebet", is_active=False)
+        _progress_to_validation_passed(db, "blondebet")
+        BookmakerLifecycleService.transition_bookmaker_state(
+            db,
+            bookmaker_code="blondebet",
+            to_state="canary_active",
+            reason="promote to canary",
+            transitioned_by="ops-user",
+            transition_source="test",
+            transition_metadata={
+                "validation_evidence": _validation_evidence(in_scope_fail_count=0)
+            },
+        )
+
+        try:
+            BookmakerLifecycleService.transition_bookmaker_state(
+                db,
+                bookmaker_code="blondebet",
+                to_state="active",
+                reason="promote to active",
+                transitioned_by="ops-user",
+                transition_source="test",
+                transition_metadata={
+                    "canary_evidence": _canary_evidence(
+                        age_seconds=301,
+                        gate_pass=True,
+                    )
+                },
+            )
+            assert False, "expected stale canary evidence denial"
+        except LifecycleTransitionError as exc:
+            assert exc.reason_code == "canary_evidence_stale"
+            assert exc.failed_criteria
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def test_canary_to_active_denied_when_gate_fails(tmp_path, monkeypatch):
+    monkeypatch.delenv("BOOKMAKER_FREEZE_UNIBET", raising=False)
+    SessionLocal, engine = _build_session(tmp_path)
+    db = SessionLocal()
+    try:
+        _create_bookmaker(db, code="betfocus", is_active=False)
+        _progress_to_validation_passed(db, "betfocus")
+        BookmakerLifecycleService.transition_bookmaker_state(
+            db,
+            bookmaker_code="betfocus",
+            to_state="canary_active",
+            reason="promote to canary",
+            transitioned_by="ops-user",
+            transition_source="test",
+            transition_metadata={
+                "validation_evidence": _validation_evidence(in_scope_fail_count=0)
+            },
+        )
+
+        try:
+            BookmakerLifecycleService.transition_bookmaker_state(
+                db,
+                bookmaker_code="betfocus",
+                to_state="active",
+                reason="promote to active",
+                transitioned_by="ops-user",
+                transition_source="test",
+                transition_metadata={
+                    "canary_evidence": _canary_evidence(
+                        gate_pass=False,
+                        failed_criteria=[
+                            {
+                                "name": "max_scrape_p95_seconds",
+                                "threshold": 360.0,
+                                "observed": 388.5,
+                                "pass": False,
+                            }
+                        ],
+                    )
+                },
+            )
+            assert False, "expected gate failure denial"
+        except LifecycleTransitionError as exc:
+            assert exc.reason_code == "canary_gate_failed"
+            assert exc.failed_criteria
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def test_canary_to_active_allowed_with_fresh_passing_canary_evidence(tmp_path, monkeypatch):
+    monkeypatch.delenv("BOOKMAKER_FREEZE_UNIBET", raising=False)
+    SessionLocal, engine = _build_session(tmp_path)
+    db = SessionLocal()
+    try:
+        _create_bookmaker(db, code="ripperbet", is_active=False)
+        _progress_to_validation_passed(db, "ripperbet")
+        BookmakerLifecycleService.transition_bookmaker_state(
+            db,
+            bookmaker_code="ripperbet",
+            to_state="canary_active",
+            reason="promote to canary",
+            transitioned_by="ops-user",
+            transition_source="test",
+            transition_metadata={
+                "validation_evidence": _validation_evidence(in_scope_fail_count=0)
+            },
+        )
+
+        result = BookmakerLifecycleService.transition_bookmaker_state(
+            db,
+            bookmaker_code="ripperbet",
+            to_state="active",
+            reason="promote to active",
+            transitioned_by="ops-user",
+            transition_source="test",
+            transition_metadata={"canary_evidence": _canary_evidence(gate_pass=True)},
+        )
+        assert result.to_state == "active"
+        assert result.is_active is True
     finally:
         db.close()
         Base.metadata.drop_all(bind=engine)
@@ -246,6 +591,28 @@ def test_lifecycle_endpoint_enforces_role_and_persists_transition(tmp_path, monk
         assert payload["from_state"] == "backlog"
         assert payload["to_state"] == "discovery_complete"
         assert payload["is_active"] is False
+
+        # Verify machine-readable denial reason/criteria payload for evidence-gated transition.
+        for target in ("adapter_ready", "config_ready", "validation_passed"):
+            step = client.post(
+                "/admin/bookmakers/ladbrokes/lifecycle",
+                json={"to_state": target, "reason": f"step {target}"},
+            )
+            assert step.status_code == 200
+
+        denied_canary = client.post(
+            "/admin/bookmakers/ladbrokes/lifecycle",
+            json={
+                "to_state": "canary_active",
+                "reason": "attempt without evidence",
+                "metadata": {},
+            },
+        )
+        assert denied_canary.status_code == 400
+        denied_payload = denied_canary.json().get("detail", {})
+        assert denied_payload.get("reason_code") == "validation_evidence_missing"
+        assert isinstance(denied_payload.get("failed_criteria"), list)
+        assert denied_payload.get("failed_criteria")
     finally:
         app.dependency_overrides.clear()
         Base.metadata.drop_all(bind=engine)

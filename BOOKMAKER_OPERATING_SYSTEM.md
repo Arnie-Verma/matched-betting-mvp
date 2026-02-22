@@ -260,20 +260,20 @@ Bookmaker cannot move to `active` unless all are true:
 1. Standardize scraper constructor/interface contract.
 2. Move per-bookmaker runtime policy into config.
 3. Add canary/ramp selection controls in refresh orchestration.
-4. Enforce activation gates as promotion-time blocking checks in code.
+4. Add canonical evidence registry/storage for activation gate inputs.
 5. Add alert rules on latency, stale-success age, and breaker state.
 
 ## Outstanding Build Items For Reliable Scale
 These are still required to make onboarding low-risk at 100+ bookmakers:
-1. Enforce activation gates in code (block promotion when gates fail).
-2. Add canary controls and exposure ramp controls in refresh selection.
+1. Add canary controls and exposure ramp controls in refresh selection.
+2. Add canonical evidence registry/storage with retention policy for activation-gate artifacts.
 3. Validate all target competitions for a bookmaker during onboarding, not just one mapped default.
 4. Add per-bookmaker policy config (timeouts, retries, concurrency class, proxy class).
 5. Add first-class bookmaker health dashboard with alerting hooks.
 6. Add automated onboarding report generation (go/no-go artifact).
 7. Evolve matcher from in-request set-based preloading to dedicated read-model/materialized serving for sustained high load.
 
-## Phase A Sync Status (Post PR-L1)
+## Phase A Sync Status (Post PR-L2)
 Implemented now:
 1. Bounded concurrency scheduler with global and per-platform caps.
 2. Runtime active-bookmaker derivation from DB + freeze policy (no static active-list control path).
@@ -281,9 +281,13 @@ Implemented now:
 4. Ownership/shared-reader authorization on refresh status endpoint.
 5. Auth/internal access policy on scraper health endpoints.
 6. Lifecycle states are persisted and transition-guarded in code, with audit history and admin/internal transition surface.
+7. Activation gates are code-enforced for live-state promotions:
+   - `validation_passed -> canary_active`: fresh validation evidence + zero in-scope FAIL.
+   - `canary_active -> active`: fresh canary evidence + gate PASS under existing threshold contract.
+   - deterministic denial reason codes + failed criteria payloads.
 
 Known constraints still open:
-1. Activation-gate enforcement is still partial (state transition policy is enforced, but gate-evidence blocking is not yet coupled to promotion).
+1. Activation evidence handling is still path/inline-payload based (no canonical registry yet).
 2. Refresh ACL metadata is Redis payload-based (durable ACL/audit model not yet implemented).
 3. Health visibility exists via endpoints but not a dedicated operational dashboard.
 
