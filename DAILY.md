@@ -56,6 +56,20 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
   - Enforced evidence-bookmaker binding in promotion checks.
   - Removed ad-hoc inline/path evidence as valid direct promotion input.
   - Added ADR-0019 and PR20 evidence artifacts.
+- PR-C1 pre-Unibet checklist closeout evidence completed (single slice, no Unibet onboarding/activation):
+  - Ran DoD parity suites:
+    - `apps/worker/tests/test_entain_scraper.py` -> `27 passed`
+    - `apps/worker/tests/test_punterstech_scraper.py` -> `47 passed`
+  - Ran repeated priority validation evidence (`pr21_val_run1`, `pr21_val_run2`) with no status/scope/reason drift.
+  - Ran fresh local canary (`pr21_pre_unibet_canary.json`): `1812.93s`, `12 cycles`, gate `PASS=true`.
+  - Added breaker recovery evidence with controlled breaker open/half-open/closed workflow timestamps and isolation proof.
+  - Added PR21 evidence artifacts:
+    - `pr21_pre_unibet_checklist_contract.md`
+    - `pr21_pre_unibet_test_matrix.json`
+    - `pr21_pre_unibet_canary.json`
+    - `pr21_pre_unibet_breaker_recovery.md`
+    - `pr21_pre_unibet_decision.md`
+  - Updated final checklist boxes in `SCRAPER_HARDENING_PLAN.md` to reflect satisfied evidence.
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
@@ -66,11 +80,14 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - PR-L3 makes canonical evidence registry the primary trusted source for promotion checks.
 - Keep existing canary threshold contract unchanged in PR-L2 (no relaxation).
 - Enforce exact canary threshold-contract match during `canary_active -> active` promotion checks.
+- PR-C1 made no runtime policy/threshold changes; evidence-only closeout.
+- Applied DB migrations before evidence collection (`alembic upgrade head`) to align runtime schema with merged lifecycle/evidence models.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
 - Model-level lifecycle/is_active synchronization can expose stale seed/script assumptions that relied on direct `is_active` flips; future scripts should use lifecycle transition flow.
 - Evidence retention/list/query tooling for canonical records is still minimal and should be improved for operator workflows.
+- Worker evidence scripts write to path relative to invocation directory; this can place artifacts under `apps/worker/src/docs/...` unless explicit `--evidence-dir` is passed.
 
 ## 2026-02-21 (Saturday)
 

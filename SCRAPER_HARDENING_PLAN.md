@@ -226,12 +226,12 @@ Pause new bookmaker onboarding if either condition is true:
 - Unibet (and any explicitly frozen bookmaker) cannot be re-enabled while freeze flags remain active.
 
 ## Final Pre-Unibet Go/No-Go Checklist
-- [ ] Entain and Punterstech pass identical DoD tests.
-- [ ] Validation output is stable and trustworthy on priority competitions.
+- [x] Entain and Punterstech pass identical DoD tests.
+- [x] Validation output is stable and trustworthy on priority competitions.
 - [x] Lifecycle and activation gates are code-enforced.
-- [ ] Local canary report passes (30-60 min repeated cycles).
-- [ ] Breaker behavior and recovery are verified.
-- [ ] Evidence artifact saved and reviewed.
+- [x] Local canary report passes (30-60 min repeated cycles).
+- [x] Breaker behavior and recovery are verified.
+- [x] Evidence artifact saved and reviewed.
 
 ---
 

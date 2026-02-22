@@ -1,0 +1,383 @@
+{
+  "slice": "PR-C1",
+  "generated_at": "2026-02-22T06:30:48.756786+00:00",
+  "scope": "Pre-Unibet checklist closeout evidence (no gate/policy changes)",
+  "dod_parity": {
+    "status": "PASS",
+    "tests": [
+      {
+        "file": "apps/worker/tests/test_entain_scraper.py",
+        "result": "pass",
+        "passed": 27,
+        "failed": 0
+      },
+      {
+        "file": "apps/worker/tests/test_punterstech_scraper.py",
+        "result": "pass",
+        "passed": 47,
+        "failed": 0
+      }
+    ],
+    "parity_area_mapping": {
+      "parse_path": {
+        "entain_tests": [
+          "test_parse_rest_soccer_accepts_three_way_market_shape",
+          "test_parse_graphql_nhl_enforces_two_way_shape"
+        ],
+        "punterstech_tests": [
+          "test_parse_events_valid_data",
+          "test_parse_punterstech_events_includes_money_line_full_game"
+        ]
+      },
+      "competition_filter_path": {
+        "entain_tests": [
+          "test_market_allow_deny_by_sport"
+        ],
+        "punterstech_tests": [
+          "test_market_allow_deny_by_sport"
+        ]
+      },
+      "market_shape_filter_path": {
+        "entain_tests": [
+          "test_parse_rest_basketball_enforces_two_way_shape_and_drops_disallowed_markets",
+          "test_parse_rest_soccer_requires_three_way_market_shape"
+        ],
+        "punterstech_tests": [
+          "test_market_shape_soccer_requires_home_draw_away",
+          "test_market_shape_two_way_for_basketball"
+        ]
+      },
+      "selection_key_path": {
+        "entain_tests": [
+          "test_selection_key_stability"
+        ],
+        "punterstech_tests": [
+          "test_selection_key_stability"
+        ]
+      },
+      "error_handling_path": {
+        "entain_tests": [
+          "test_scrape_sport_unsupported_sport_returns_failed",
+          "test_scrape_sport_browser_failure_returns_failed"
+        ],
+        "punterstech_tests": [
+          "test_network_timeout_handling",
+          "test_http_error_handling"
+        ]
+      }
+    }
+  },
+  "validation_stability": {
+    "status": "PASS",
+    "runs": [
+      {
+        "label": "run1",
+        "artifact": "docs/evidence/phase-a-hardening/2026-02-11/pr21_val_run1_reason_breakdown_after.json",
+        "status_counts": {
+          "PASS": 58,
+          "WARN": 4,
+          "SKIP": 42,
+          "N_A": 1
+        },
+        "category_counts": {
+          "none": 59,
+          "eligible_window_empty": 20,
+          "coverage_out_of_scope_skip": 23,
+          "structural_event_count": 3
+        },
+        "competition_status_counts": {
+          "epl": {
+            "PASS": 20,
+            "WARN": 1
+          },
+          "nba": {
+            "PASS": 21
+          },
+          "nhl": {
+            "SKIP": 19,
+            "PASS": 1,
+            "N_A": 1
+          },
+          "boxing": {
+            "SKIP": 18,
+            "WARN": 3
+          },
+          "nbl": {
+            "SKIP": 5,
+            "PASS": 16
+          }
+        },
+        "competition_category_counts": {
+          "epl": {
+            "none": 21
+          },
+          "nba": {
+            "none": 21
+          },
+          "nhl": {
+            "eligible_window_empty": 20,
+            "none": 1
+          },
+          "boxing": {
+            "coverage_out_of_scope_skip": 18,
+            "structural_event_count": 3
+          },
+          "nbl": {
+            "coverage_out_of_scope_skip": 5,
+            "none": 16
+          }
+        }
+      },
+      {
+        "label": "run2",
+        "artifact": "docs/evidence/phase-a-hardening/2026-02-11/pr21_val_run2_reason_breakdown_after.json",
+        "status_counts": {
+          "PASS": 58,
+          "WARN": 4,
+          "SKIP": 42,
+          "N_A": 1
+        },
+        "category_counts": {
+          "none": 59,
+          "eligible_window_empty": 20,
+          "coverage_out_of_scope_skip": 23,
+          "structural_event_count": 3
+        },
+        "competition_status_counts": {
+          "epl": {
+            "PASS": 20,
+            "WARN": 1
+          },
+          "nba": {
+            "PASS": 21
+          },
+          "nhl": {
+            "SKIP": 19,
+            "PASS": 1,
+            "N_A": 1
+          },
+          "boxing": {
+            "SKIP": 18,
+            "WARN": 3
+          },
+          "nbl": {
+            "SKIP": 5,
+            "PASS": 16
+          }
+        },
+        "competition_category_counts": {
+          "epl": {
+            "none": 21
+          },
+          "nba": {
+            "none": 21
+          },
+          "nhl": {
+            "eligible_window_empty": 20,
+            "none": 1
+          },
+          "boxing": {
+            "coverage_out_of_scope_skip": 18,
+            "structural_event_count": 3
+          },
+          "nbl": {
+            "coverage_out_of_scope_skip": 5,
+            "none": 16
+          }
+        }
+      }
+    ],
+    "status_or_scope_drift_count": 0,
+    "reason_drift_count": 0,
+    "status_or_scope_drift_rows": [],
+    "reason_drift_rows": [],
+    "in_scope_fail_rows": [
+      {
+        "run": "run1",
+        "rows": []
+      },
+      {
+        "run": "run2",
+        "rows": []
+      }
+    ]
+  },
+  "canary": {
+    "status": "PASS",
+    "artifact": "docs/evidence/phase-a-hardening/2026-02-11/pr21_pre_unibet_canary.json",
+    "duration_seconds": 1812.9271292686462,
+    "cycles_completed": 12,
+    "gate_pass": true,
+    "gate_failure_reasons": [],
+    "criteria": [
+      {
+        "name": "min_cycles",
+        "description": "Minimum completed cycles",
+        "operator": ">=",
+        "threshold": 10,
+        "observed": 12,
+        "pass": true
+      },
+      {
+        "name": "min_duration_seconds",
+        "description": "Minimum canary runtime (seconds)",
+        "operator": ">=",
+        "threshold": 1800.0,
+        "observed": 1812.9271292686462,
+        "pass": true
+      },
+      {
+        "name": "in_scope_fail_cycle_count",
+        "description": "In-scope FAIL cycles must be zero",
+        "operator": "==",
+        "threshold": 0,
+        "observed": 0,
+        "pass": true
+      },
+      {
+        "name": "min_scrape_success_rate",
+        "description": "Minimum scrape success rate",
+        "operator": ">=",
+        "threshold": 0.75,
+        "observed": 0.9801587301587301,
+        "pass": true
+      },
+      {
+        "name": "max_open_breaker_cycle_count",
+        "description": "Maximum cycles with open breakers",
+        "operator": "<=",
+        "threshold": 0,
+        "observed": 0,
+        "pass": true
+      },
+      {
+        "name": "max_scrape_p95_seconds",
+        "description": "Maximum scrape latency p95 (seconds)",
+        "operator": "<=",
+        "threshold": 360.0,
+        "observed": 242.15967841148375,
+        "pass": true
+      }
+    ]
+  },
+  "breaker_and_isolation": {
+    "scheduler_isolation_test": {
+      "file": "apps/worker/tests/test_scrape_scheduler.py",
+      "test": "test_scheduler_failure_isolation",
+      "result": "pass"
+    },
+    "canary_failed_cycle_samples": [
+      {
+        "cycle": 3,
+        "started_at": "2026-02-22T06:02:28.609855+00:00",
+        "sport": "ice_hockey",
+        "bookmakers_scraped": 20,
+        "total_bookmakers": 21,
+        "scrape_failures": [
+          "betfair"
+        ],
+        "open_breaker_count": 0
+      },
+      {
+        "cycle": 4,
+        "started_at": "2026-02-22T06:03:48.804308+00:00",
+        "sport": "boxing",
+        "bookmakers_scraped": 20,
+        "total_bookmakers": 21,
+        "scrape_failures": [
+          "betfair"
+        ],
+        "open_breaker_count": 0
+      },
+      {
+        "cycle": 7,
+        "started_at": "2026-02-22T06:13:38.478921+00:00",
+        "sport": "ice_hockey",
+        "bookmakers_scraped": 20,
+        "total_bookmakers": 21,
+        "scrape_failures": [
+          "betfair"
+        ],
+        "open_breaker_count": 0
+      },
+      {
+        "cycle": 11,
+        "started_at": "2026-02-22T06:24:38.280146+00:00",
+        "sport": "ice_hockey",
+        "bookmakers_scraped": 20,
+        "total_bookmakers": 21,
+        "scrape_failures": [
+          "betfair"
+        ],
+        "open_breaker_count": 0
+      },
+      {
+        "cycle": 12,
+        "started_at": "2026-02-22T06:25:53.744217+00:00",
+        "sport": "boxing",
+        "bookmakers_scraped": 20,
+        "total_bookmakers": 21,
+        "scrape_failures": [
+          "betfair"
+        ],
+        "open_breaker_count": 0
+      }
+    ]
+  },
+  "freeze_verification": {
+    "mb_api_bookmaker_freeze_unibet": "true",
+    "mb_worker_bookmaker_freeze_unibet": "true",
+    "db_unibet_is_active": false
+  },
+  "checklist_mapping": [
+    {
+      "item": "Entain and Punterstech pass identical DoD tests.",
+      "status": "PASS",
+      "evidence": [
+        "apps/worker/tests/test_entain_scraper.py",
+        "apps/worker/tests/test_punterstech_scraper.py"
+      ]
+    },
+    {
+      "item": "Validation output is stable and trustworthy on priority competitions.",
+      "status": "PASS",
+      "evidence": [
+        "docs/evidence/phase-a-hardening/2026-02-11/pr21_val_run1_reason_breakdown_after.json",
+        "docs/evidence/phase-a-hardening/2026-02-11/pr21_val_run2_reason_breakdown_after.json"
+      ]
+    },
+    {
+      "item": "Lifecycle and activation gates are code-enforced.",
+      "status": "PASS",
+      "evidence": [
+        "docs/evidence/phase-a-hardening/2026-02-11/pr19_activation_gate_contract.md",
+        "docs/evidence/phase-a-hardening/2026-02-11/pr20_evidence_registry_contract.md"
+      ]
+    },
+    {
+      "item": "Local canary report passes (30-60 min repeated cycles).",
+      "status": "PASS",
+      "evidence": [
+        "docs/evidence/phase-a-hardening/2026-02-11/pr21_pre_unibet_canary.json",
+        "docs/evidence/phase-a-hardening/2026-02-11/pr21_pre_unibet_canary.md"
+      ]
+    },
+    {
+      "item": "Breaker behavior and recovery are verified.",
+      "status": "PASS",
+      "evidence": [
+        "docs/evidence/phase-a-hardening/2026-02-11/pr21_pre_unibet_breaker_recovery.md",
+        "apps/worker/tests/test_scrape_scheduler.py"
+      ]
+    },
+    {
+      "item": "Evidence artifact saved and reviewed.",
+      "status": "PASS",
+      "evidence": [
+        "docs/evidence/phase-a-hardening/2026-02-11/pr21_pre_unibet_checklist_contract.md",
+        "docs/evidence/phase-a-hardening/2026-02-11/pr21_pre_unibet_decision.md",
+        "docs/evidence/phase-a-hardening/2026-02-11/pr21_pre_unibet_test_matrix.json"
+      ]
+    }
+  ]
+}

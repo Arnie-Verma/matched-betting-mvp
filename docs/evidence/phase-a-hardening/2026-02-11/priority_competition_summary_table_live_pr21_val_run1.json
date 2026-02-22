@@ -1,0 +1,1254 @@
+[
+  {
+    "competition": "epl",
+    "bookmaker": "betblitz",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "betbuzz",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "betchamps",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "betfair",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "betfocus",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "betreal",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "betvista",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "blondebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "cashcage",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "ladbrokes",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "lightningbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "millennialbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "mintbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "neds",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "ripperbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "starsports",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "teambet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "WARN",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "26 anomalies (warn threshold: 25)"
+    ]
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "topbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "tradiebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "truebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "epl",
+    "bookmaker": "wizbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 27,
+    "eligible_reference_events": 27,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "betblitz",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "betbuzz",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "betchamps",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "betfair",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "betfocus",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "betreal",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "betvista",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "blondebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "cashcage",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "ladbrokes",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "lightningbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "millennialbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "mintbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "neds",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "ripperbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "starsports",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "teambet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "topbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "tradiebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "truebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nba",
+    "bookmaker": "wizbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 17,
+    "eligible_reference_events": 17,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "betblitz",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "betbuzz",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "betchamps",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "betfair",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "betfocus",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "betreal",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "betvista",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "blondebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "cashcage",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "ladbrokes",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "N_A",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=N_A)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "lightningbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "millennialbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "mintbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "neds",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "ripperbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "starsports",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "teambet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "topbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "tradiebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "truebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nhl",
+    "bookmaker": "wizbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 0,
+    "eligible_reference_events": 0,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "No eligible reference fixtures in window (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "betblitz",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "betbuzz",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "betchamps",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "betfair",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "WARN",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Structural validation failed",
+      "Event count 36 outside expected range [0-20]"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "betfocus",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "betreal",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "betvista",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "blondebet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "cashcage",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "ladbrokes",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "WARN",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Structural validation failed",
+      "Event count 30 outside expected range [0-20]"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "lightningbet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "millennialbet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "mintbet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "neds",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "WARN",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Structural validation failed",
+      "Event count 30 outside expected range [0-20]"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "ripperbet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "starsports",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "teambet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "topbet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "tradiebet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "truebet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "boxing",
+    "bookmaker": "wizbet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 30,
+    "eligible_reference_events": 30,
+    "status": "SKIP",
+    "critical_anomalies": 12,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "betblitz",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "betbuzz",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "betchamps",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "betfair",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "betfocus",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "betreal",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "betvista",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "blondebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "cashcage",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "ladbrokes",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "lightningbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "millennialbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "mintbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "neds",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "ripperbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "starsports",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "teambet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "topbet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "tradiebet",
+    "coverage_scope": "in_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "PASS",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": []
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "truebet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  },
+  {
+    "competition": "nbl",
+    "bookmaker": "wizbet",
+    "coverage_scope": "out_of_scope",
+    "total_reference_events": 1,
+    "eligible_reference_events": 1,
+    "status": "SKIP",
+    "critical_anomalies": 0,
+    "failure_reasons": [],
+    "warning_reasons": [
+      "Out-of-scope competition coverage policy (status=SKIP)"
+    ]
+  }
+]
