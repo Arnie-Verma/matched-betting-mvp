@@ -1,0 +1,54 @@
+{
+  "slice": "PR-C2",
+  "scenarios": [
+    {
+      "name": "baseline_full_policy",
+      "runnable_codes": [
+        "ladbrokes",
+        "mintbet",
+        "neds"
+      ],
+      "excluded": []
+    },
+    {
+      "name": "platform_canary_cohort_limited",
+      "runnable_codes": [
+        "ladbrokes",
+        "mintbet"
+      ],
+      "neds_reasons": [
+        "platform_bookmaker_cohort_excluded"
+      ]
+    },
+    {
+      "name": "bookmaker_kill_switch_immediate",
+      "runnable_codes": [
+        "ladbrokes"
+      ],
+      "mintbet_reasons": [
+        "bookmaker_kill_switch_enabled"
+      ]
+    },
+    {
+      "name": "platform_kill_switch_immediate",
+      "runnable_codes": [
+        "mintbet"
+      ],
+      "ladbrokes_reasons": [
+        "platform_kill_switch_enabled"
+      ],
+      "neds_reasons": [
+        "platform_kill_switch_enabled"
+      ]
+    },
+    {
+      "name": "deterministic_rollback_after_disable",
+      "runnable_codes": [
+        "ladbrokes",
+        "mintbet",
+        "neds"
+      ],
+      "excluded": []
+    }
+  ]
+}

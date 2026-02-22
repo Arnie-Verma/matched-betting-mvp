@@ -31,6 +31,7 @@ Create or update an ADR when any of the following changes:
 - `ADR-0017-bookmaker-lifecycle-state-enforcement.md`
 - `ADR-0018-activation-gate-evidence-enforcement.md`
 - `ADR-0019-canonical-activation-evidence-registry.md`
+- `ADR-0020-rollout-control-plane-selection-enforcement.md`
 
 ## ADR Template
 Use this structure:

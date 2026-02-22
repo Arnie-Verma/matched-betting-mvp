@@ -4,6 +4,7 @@ from .subscription import Subscription, Plan, WebhookEvent
 from .odds import (
     Sport, Competition, Team, Bookmaker, BookmakerSource,
     BookmakerLifecycleTransition, BookmakerActivationEvidence,
+    PlatformRolloutPolicy, BookmakerRolloutPolicy,
     Event, Market, Selection, OddsSnapshot, OddsComparison,
     SourceType, SportType, MarketType, EventStatus, BookmakerLifecycleState
 )
@@ -11,6 +12,7 @@ from .odds import (
 __all__ = [
     "User", "Subscription", "Plan", "WebhookEvent",
     "Sport", "Competition", "Team", "Bookmaker", "BookmakerSource", "BookmakerLifecycleTransition", "BookmakerActivationEvidence",
+    "PlatformRolloutPolicy", "BookmakerRolloutPolicy",
     "Event", "Market", "Selection", "OddsSnapshot", "OddsComparison",
     "SourceType", "SportType", "MarketType", "EventStatus", "BookmakerLifecycleState"
 ]

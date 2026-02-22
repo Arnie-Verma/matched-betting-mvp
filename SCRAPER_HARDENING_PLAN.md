@@ -37,16 +37,18 @@ Implemented now:
 6. Security controls for refresh status ownership and scraper health endpoint access policy.
 7. Lifecycle state persistence + transition guards with audited transition history.
 8. Activation-gate enforcement for live-state promotions using fresh machine-verifiable evidence.
+9. Rollout control-plane baseline with platform/bookmaker policy + kill-switch enforcement.
 
 Known constraints still open:
 1. Evidence registry retention/discovery tooling is still limited.
-2. Canary/ramp selection controls are still limited (full rollout control plane pending).
+2. Rollout policy history/audit stream is latest-state only (no immutable change log yet).
 3. Health/alerting is functional but not yet a first-class dashboarded operational surface.
 
 Planned follow-up work:
 1. Tighten canary reliability thresholds after longer bounded-scheduler telemetry windows.
 2. Add evidence registry retention + list/query operational tooling.
 3. Move from set-based matcher path to dedicated read-model serving for sustained scale.
+4. Add rollout-policy change history and operator-facing policy dashboarding.
 
 ## Workstreams
 

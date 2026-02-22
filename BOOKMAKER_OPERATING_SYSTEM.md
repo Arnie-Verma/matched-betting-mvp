@@ -88,7 +88,7 @@ This methodology is designed to be executed locally first to get as close to pro
 1. Queue execution:
    - Enqueue per-bookmaker jobs with bounded global and per-platform concurrency.
    - Separate queues for `standard_books` and `proxy_books`.
-   - Active bookmaker set is derived from DB active rows plus freeze policy at runtime.
+   - Runnable bookmaker set is derived from lifecycle eligibility + freeze policy + rollout policy + kill switches.
    - Emit scheduler discipline metrics (`observed_max_in_flight_global`, per-platform max in-flight).
 2. Adapter pipeline:
    - `fetch -> parse -> normalize -> validate -> persist -> publish_status`.
@@ -259,13 +259,13 @@ Bookmaker cannot move to `active` unless all are true:
 ## Immediate Backlog (Repo)
 1. Standardize scraper constructor/interface contract.
 2. Move per-bookmaker runtime policy into config.
-3. Add canary/ramp selection controls in refresh orchestration.
+3. Add rollout-policy change history and audit stream (beyond latest-state rows).
 4. Add evidence-record retention and discovery tooling (list/query/dashboard).
 5. Add alert rules on latency, stale-success age, and breaker state.
 
 ## Outstanding Build Items For Reliable Scale
 These are still required to make onboarding low-risk at 100+ bookmakers:
-1. Add canary controls and exposure ramp controls in refresh selection.
+1. Evolve rollout baseline from policy rows to first-class control-plane audit/history + operator workflows.
 2. Add evidence registry retention policy and operational discovery surfaces.
 3. Validate all target competitions for a bookmaker during onboarding, not just one mapped default.
 4. Add per-bookmaker policy config (timeouts, retries, concurrency class, proxy class).
@@ -273,7 +273,7 @@ These are still required to make onboarding low-risk at 100+ bookmakers:
 6. Add automated onboarding report generation (go/no-go artifact).
 7. Evolve matcher from in-request set-based preloading to dedicated read-model/materialized serving for sustained high load.
 
-## Phase A Sync Status (Post PR-L3)
+## Phase A Sync Status (Post PR-C2)
 Implemented now:
 1. Bounded concurrency scheduler with global and per-platform caps.
 2. Runtime active-bookmaker derivation from DB + freeze policy (no static active-list control path).
@@ -288,16 +288,24 @@ Implemented now:
 8. Canonical activation evidence registry is enforced:
    - evidence records persisted with artifact path + SHA256 + creator metadata.
    - promotions consume canonical evidence IDs (no ad-hoc inline/path evidence inputs).
+9. Rollout control-plane baseline is enforced:
+   - platform and bookmaker rollout policies (`full|canary|disabled`).
+   - platform and bookmaker kill switches.
+   - canary scope controls (`sport`, `competition`, `bookmaker`) for runtime selection.
+   - admin/internal rollout policy and status endpoints.
+   - rollback path excludes affected bookmakers immediately on next selection evaluation.
 
 Known constraints still open:
 1. Evidence retention/discovery tooling around canonical records is still limited.
 2. Refresh ACL metadata is Redis payload-based (durable ACL/audit model not yet implemented).
-3. Health visibility exists via endpoints but not a dedicated operational dashboard.
+3. Rollout policy history/audit stream is latest-state only; immutable change history is pending.
+4. Health visibility exists via endpoints but not a dedicated operational dashboard.
 
 Planned follow-up work:
 1. Tighten canary thresholds after longer-run telemetry under bounded scheduler.
 2. Add durable refresh-job ACL/audit logging.
 3. Build matcher read model for sustained 100+ bookmaker load.
+4. Add rollout policy history + operator dashboards.
 
 ## Definition Of Scaled
 1. New bookmaker onboarding is mostly config + validation.

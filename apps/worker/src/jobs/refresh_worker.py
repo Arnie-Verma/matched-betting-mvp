@@ -53,23 +53,28 @@ def _set_status(job: dict, status: str, message: Optional[str] = None) -> dict:
 
 def _resolve_active_bookmakers(
     active_bookmakers: Optional[list[str]] = None,
+    *,
+    requested_sport: Optional[str] = None,
+    requested_competition: Optional[str] = None,
 ) -> list[str]:
     """
-    Resolve active bookmakers from DB/runtime and enforce freeze policy.
+    Resolve runnable bookmakers from runtime policy.
 
-    - If explicit list is provided, it is treated as an override input.
-    - Otherwise, source of truth is ScrapeService.get_active_bookmakers_from_db().
+    Source of truth is ScrapeService.get_active_bookmakers_from_db(), which
+    enforces lifecycle eligibility, freeze policy, rollout policy, and kill switches.
+    Any explicit requested bookmaker list is treated as an intersection filter.
     """
-    if active_bookmakers:
-        candidates = [code.strip() for code in active_bookmakers if code and code.strip()]
-    else:
-        service = get_scrape_service()
-        configs = service.get_active_bookmakers_from_db()
-        candidates = [
-            (cfg.get("code") or "").strip()
-            for cfg in configs
-            if isinstance(cfg, dict)
-        ]
+    service = get_scrape_service()
+    configs = service.get_active_bookmakers_from_db(
+        requested_sport=requested_sport,
+        requested_competition=requested_competition,
+        requested_bookmakers=active_bookmakers,
+    )
+    candidates = [
+        (cfg.get("code") or "").strip()
+        for cfg in configs
+        if isinstance(cfg, dict)
+    ]
 
     resolved: list[str] = []
     seen: set[str] = set()
@@ -120,6 +125,10 @@ async def _process_job(
     job = _set_status(job, "running", "Fetching latest odds...")
     _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
 
+    payload = job.get("payload") or {}
+    payload_sport = payload.get("sport") or payload.get("sports") or "all"
+    payload_competition = payload.get("competition")
+
     try:
         # Concurrency guard (global per bookmaker)
         for bm in active_bookmakers:
@@ -131,7 +140,12 @@ async def _process_job(
             redis_client.expire(running_key, slow_ttl_seconds)
 
         # Currently always scrape all sports/all bookmakers; can later use payload fields
-        result = await trigger_scrape(sport="all", limit=None)
+        result = await trigger_scrape(
+            sport=payload_sport,
+            limit=None,
+            requested_bookmakers=active_bookmakers,
+            requested_competition=payload_competition,
+        )
 
         now = datetime.now(timezone.utc)
         job["completed_at"] = now.isoformat()
@@ -227,7 +241,25 @@ async def run_worker_once(
 
     _, raw_job_id = item
     job_id = raw_job_id.decode()
-    runtime_active_bookmakers = _resolve_active_bookmakers(active_bookmakers)
+    job = _load_job(redis_client, job_id, job_prefix=job_prefix) or {}
+    payload = job.get("payload") or {}
+    payload_sport = payload.get("sport") or payload.get("sports") or "all"
+    payload_competition = payload.get("competition")
+    payload_bookmakers = payload.get("bookmakers")
+    requested_bookmakers: Optional[list[str]] = None
+    if isinstance(payload_bookmakers, list):
+        requested_bookmakers = [str(item) for item in payload_bookmakers if str(item).strip()]
+    elif isinstance(payload_bookmakers, str) and payload_bookmakers.strip():
+        requested_bookmakers = [payload_bookmakers.strip()]
+
+    if active_bookmakers:
+        requested_bookmakers = active_bookmakers
+
+    runtime_active_bookmakers = _resolve_active_bookmakers(
+        requested_bookmakers,
+        requested_sport=payload_sport,
+        requested_competition=payload_competition,
+    )
     await _process_job(
         redis_client,
         job_id,

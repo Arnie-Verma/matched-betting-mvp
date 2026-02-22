@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any
 
 from sqlalchemy import (
     Column, String, DateTime, Boolean, Integer, ForeignKey,
-    Text, JSON, Numeric, Index, UniqueConstraint, event
+    Text, JSON, Numeric, Index, UniqueConstraint, event, false
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -217,6 +217,12 @@ class Bookmaker(Base):
         cascade="all, delete-orphan",
         order_by="BookmakerActivationEvidence.created_at",
     )
+    rollout_policy = relationship(
+        "BookmakerRolloutPolicy",
+        back_populates="bookmaker",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
 
 
 class BookmakerLifecycleTransition(Base):
@@ -280,6 +286,53 @@ class BookmakerActivationEvidence(Base):
             "artifact_sha256",
             name="uq_activation_evidence_code_type_hash",
         ),
+    )
+
+
+class PlatformRolloutPolicy(Base):
+    """Platform-level rollout control policy."""
+    __tablename__ = "platform_rollout_policies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    platform_code = Column(String(40), nullable=False, unique=True, index=True)
+    rollout_mode = Column(String(20), nullable=False, default="full", server_default="full")
+    kill_switch_enabled = Column(Boolean, nullable=False, default=False, server_default=false())
+    sport_cohort = Column(JSON, nullable=True)
+    competition_cohort = Column(JSON, nullable=True)
+    bookmaker_cohort = Column(JSON, nullable=True)
+    policy_metadata = Column(JSON, nullable=True)
+    updated_by = Column(String(120), nullable=True)
+    updated_by_email = Column(String(255), nullable=True)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    __table_args__ = (
+        Index("idx_platform_rollout_policy_lookup", "platform_code", "updated_at"),
+    )
+
+
+class BookmakerRolloutPolicy(Base):
+    """Bookmaker-level rollout control policy."""
+    __tablename__ = "bookmaker_rollout_policies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    bookmaker_id = Column(Integer, ForeignKey("bookmakers.id"), nullable=False, unique=True, index=True)
+    bookmaker_code = Column(String(30), nullable=False, unique=True, index=True)
+    rollout_mode = Column(String(20), nullable=False, default="full", server_default="full")
+    kill_switch_enabled = Column(Boolean, nullable=False, default=False, server_default=false())
+    sport_cohort = Column(JSON, nullable=True)
+    competition_cohort = Column(JSON, nullable=True)
+    bookmaker_cohort = Column(JSON, nullable=True)
+    policy_metadata = Column(JSON, nullable=True)
+    updated_by = Column(String(120), nullable=True)
+    updated_by_email = Column(String(255), nullable=True)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    bookmaker = relationship("Bookmaker", back_populates="rollout_policy")
+
+    __table_args__ = (
+        Index("idx_bookmaker_rollout_policy_lookup", "bookmaker_code", "updated_at"),
     )
 
 

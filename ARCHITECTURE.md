@@ -62,6 +62,12 @@ Key code:
 - events grouped by normalized event + normalized competition key
 - selection matching prioritizes `selection_key` (`home/away/draw`)
 
+7. Rollout control-plane baseline is policy-enforced:
+- platform and bookmaker rollout policies (`full|canary|disabled`)
+- platform and bookmaker kill switches
+- canary cohort controls (`sport`, `competition`, `bookmaker`)
+- runnable-set selection emits deterministic exclusion reasons
+
 ## End-to-End Refresh Flow
 ### A) Background refresh on page load
 1. `OddsMatcherClient` calls `POST /api/proxy/odds/refresh`.
@@ -96,8 +102,8 @@ Redis-backed queue semantics:
 - retry/backoff + DLQ support in worker
 
 Worker orchestration behavior:
-- calls `trigger_scrape(sport="all")`
-- resolves active bookmakers from DB at runtime and re-applies freeze policy
+- calls `trigger_scrape(...)` with request context (`sport`, `competition`, bookmaker subset)
+- resolves runnable bookmakers from DB at runtime using lifecycle + freeze + rollout + kill-switch policy
 - bounded bookmaker scheduler enforces global + per-platform concurrency caps
 - emits scheduler metrics (`observed_max_in_flight_global`, `observed_max_in_flight_by_platform`)
 - updates global and per-bookmaker refresh timestamps
@@ -216,6 +222,12 @@ Plan enforcement is server-side:
 - live-state promotions are evidence-gated:
   - `validation_passed -> canary_active` requires fresh validation evidence (`in_scope_fail_count=0`)
   - `canary_active -> active` requires fresh canary gate PASS evidence with threshold-contract match
+- rollout control endpoints are admin/internal guarded:
+  - `GET/PUT /admin/rollout/bookmakers/{bookmaker_code}/policy`
+  - `GET/PUT /admin/rollout/bookmakers/{bookmaker_code}/kill-switch`
+  - `GET/PUT /admin/rollout/platforms/{platform_code}/policy`
+  - `GET/PUT /admin/rollout/platforms/{platform_code}/kill-switch`
+  - `GET /admin/rollout/status`
 
 Key code:
 - `apps/api/src/api/services/subscription_service.py`
@@ -283,6 +295,9 @@ Important runtime knobs:
 - `BOOKMAKER_EVIDENCE_REPO_ROOT` (artifact path base for evidence registration)
 - `BOOKMAKER_VALIDATION_EVIDENCE_MAX_AGE_SECONDS` (default `21600`)
 - `BOOKMAKER_CANARY_EVIDENCE_MAX_AGE_SECONDS` (default `21600`)
+- `BOOKMAKER_ROLLOUT_ALLOWED_ROLES` (default `admin,ops`)
+- `BOOKMAKER_ROLLOUT_INTERNAL_TOKEN`
+- `ROLLOUT_ELIGIBLE_LIFECYCLE_STATES` (default `canary_active,active,degraded`)
 
 Notes:
 - scraper code defaults `SCRAPER_BATCH_SIZE` to `1` if env is absent
@@ -310,11 +325,17 @@ Implemented now:
 8. Canonical activation evidence registry in DB:
    - evidence registered from artifact paths with hash provenance
    - promotion checks consume canonical evidence IDs only (no ad-hoc inline/path promotion input)
+9. Rollout control-plane baseline:
+   - policy persistence for platform and bookmaker rollout
+   - kill switch controls at platform and bookmaker levels
+   - canary cohort runtime filtering by sport/competition/bookmaker
+   - admin/internal rollout control endpoints and status summary
 
 Still open:
 1. First-class health dashboard + alert routing beyond current endpoint surface.
 2. Dedicated matcher read model/materialization for higher sustained traffic.
 3. Canonical evidence retention and discovery tooling (list/query/dashboard) for lifecycle gate inputs.
+4. Rollout policy history/audit stream is not yet first-class (current policy rows store latest state only).
 
 Planned follow-ups:
 1. Tighten canary reliability thresholds after scheduler and matcher improvements are observed over longer windows.

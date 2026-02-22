@@ -75,7 +75,7 @@ async def test_global_scheduler_cap_is_respected(monkeypatch, service):
         {"code": f"book{i}", "scraping_config": {"scraper_class": "entain"}}
         for i in range(6)
     ]
-    monkeypatch.setattr(service, "get_active_bookmakers_from_db", lambda: active)
+    monkeypatch.setattr(service, "get_active_bookmakers_from_db", lambda **_kwargs: active)
 
     in_flight = 0
     observed_max = 0
@@ -126,7 +126,7 @@ async def test_per_platform_caps_are_respected(monkeypatch, service):
         {"code": "betblitz", "scraping_config": {"scraper_class": "punterstech"}},
     ]
     code_to_platform = {cfg["code"]: cfg["scraping_config"]["scraper_class"] for cfg in active}
-    monkeypatch.setattr(service, "get_active_bookmakers_from_db", lambda: active)
+    monkeypatch.setattr(service, "get_active_bookmakers_from_db", lambda **_kwargs: active)
 
     current_by_platform = {"entain": 0, "punterstech": 0}
     observed_by_platform = {"entain": 0, "punterstech": 0}
@@ -172,7 +172,7 @@ async def test_scheduler_failure_isolation(monkeypatch, service):
         {"code": "neds", "scraping_config": {"scraper_class": "entain"}},
         {"code": "mintbet", "scraping_config": {"scraper_class": "punterstech"}},
     ]
-    monkeypatch.setattr(service, "get_active_bookmakers_from_db", lambda: active)
+    monkeypatch.setattr(service, "get_active_bookmakers_from_db", lambda **_kwargs: active)
 
     async def fake_scrape(bookmaker_code, sports=None, limit=None):
         await asyncio.sleep(0.01)
@@ -213,7 +213,7 @@ async def test_scheduler_emits_observability_metrics(monkeypatch, service):
         {"code": "ladbrokes", "scraping_config": {"scraper_class": "entain"}},
         {"code": "neds", "scraping_config": {"scraper_class": "entain"}},
     ]
-    monkeypatch.setattr(service, "get_active_bookmakers_from_db", lambda: active)
+    monkeypatch.setattr(service, "get_active_bookmakers_from_db", lambda **_kwargs: active)
     monkeypatch.setattr(
         service,
         "_get_breaker_state",
@@ -267,7 +267,7 @@ async def test_scheduler_emits_observability_metrics(monkeypatch, service):
 def test_resolve_active_bookmakers_filters_frozen_codes(monkeypatch):
     class _FakeService:
         @staticmethod
-        def get_active_bookmakers_from_db():
+        def get_active_bookmakers_from_db(**_kwargs):
             return [
                 {"code": "ladbrokes"},
                 {"code": "unibet"},
@@ -280,3 +280,31 @@ def test_resolve_active_bookmakers_filters_frozen_codes(monkeypatch):
 
     resolved = refresh_worker._resolve_active_bookmakers()
     assert resolved == ["ladbrokes", "betfair"]
+
+
+def test_resolve_active_bookmakers_passes_rollout_context(monkeypatch):
+    captured = {}
+
+    class _FakeService:
+        @staticmethod
+        def get_active_bookmakers_from_db(**kwargs):
+            captured.update(kwargs)
+            return [
+                {"code": "ladbrokes"},
+                {"code": "neds"},
+                {"code": "mintbet"},
+            ]
+
+    monkeypatch.setattr(refresh_worker, "get_scrape_service", lambda: _FakeService())
+    monkeypatch.setattr(refresh_worker, "is_bookmaker_frozen", lambda code: code == "neds")
+
+    resolved = refresh_worker._resolve_active_bookmakers(
+        ["ladbrokes", "neds", "mintbet"],
+        requested_sport="soccer",
+        requested_competition="epl",
+    )
+
+    assert resolved == ["ladbrokes", "mintbet"]
+    assert captured["requested_bookmakers"] == ["ladbrokes", "neds", "mintbet"]
+    assert captured["requested_sport"] == "soccer"
+    assert captured["requested_competition"] == "epl"

@@ -70,6 +70,24 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - `pr21_pre_unibet_breaker_recovery.md`
     - `pr21_pre_unibet_decision.md`
   - Updated final checklist boxes in `SCRAPER_HARDENING_PLAN.md` to reflect satisfied evidence.
+- PR-C2 rollout control-plane baseline completed (single slice, no Unibet onboarding/activation):
+  - Added persistent rollout policy model:
+    - `platform_rollout_policies`
+    - `bookmaker_rollout_policies`
+  - Added deterministic rollout selection service (`RolloutControlService`) enforcing:
+    - lifecycle eligibility
+    - freeze policy
+    - platform/bookmaker rollout policy (`full|canary|disabled`)
+    - platform/bookmaker kill switches
+    - canary cohorts (`sport`, `competition`, `bookmaker`)
+  - Wired worker runnable selection to rollout service:
+    - `ScrapeService.get_active_bookmakers_from_db(...)` now evaluates rollout controls.
+    - `refresh_worker` now passes job context (`sport`, `competition`, `bookmakers`) into selection and scrape execution.
+  - Added admin/internal rollout endpoints:
+    - set/get bookmaker policy + kill switch
+    - set/get platform policy + kill switch
+    - rollout status summary
+  - Added ADR-0020 and PR22 evidence artifacts.
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
@@ -82,12 +100,15 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Enforce exact canary threshold-contract match during `canary_active -> active` promotion checks.
 - PR-C1 made no runtime policy/threshold changes; evidence-only closeout.
 - Applied DB migrations before evidence collection (`alembic upgrade head`) to align runtime schema with merged lifecycle/evidence models.
+- PR-C2 establishes rollout policy as a mandatory runtime input for worker bookmaker selection.
+- Rollout rollback is policy-driven (kill switch / mode change), not code-change driven.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
 - Model-level lifecycle/is_active synchronization can expose stale seed/script assumptions that relied on direct `is_active` flips; future scripts should use lifecycle transition flow.
 - Evidence retention/list/query tooling for canonical records is still minimal and should be improved for operator workflows.
 - Worker evidence scripts write to path relative to invocation directory; this can place artifacts under `apps/worker/src/docs/...` unless explicit `--evidence-dir` is passed.
+- Rollout policy rows currently store latest state only; immutable policy history is not yet available.
 
 ## 2026-02-21 (Saturday)
 

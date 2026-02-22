@@ -54,13 +54,17 @@ Implemented now:
   - admin/internal guarded transition control surface
   - evidence-gated live promotions (`validation_passed -> canary_active`, `canary_active -> active`)
   - canonical activation evidence registry (`validation|canary` records with artifact hash/path provenance)
+- Rollout control-plane baseline in code:
+  - platform-level and bookmaker-level rollout policies (`full|canary|disabled`)
+  - platform and bookmaker kill switches with immediate runnable-set exclusion
+  - canary cohort controls (`sport`, `competition`, `bookmaker`) for runtime selection
+  - admin/internal rollout policy and status endpoints
 - Security controls:
   - `GET /odds/refresh/status` restricted to owner/shared users.
   - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access; telemetry defaults to aggregate-only response output.
 - Unibet remains frozen by baseline policy (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
 
 Still open:
-- Canary/ramp cohort controls remain limited.
 - Dedicated matcher read model/materialized serving path is not implemented yet.
 - Health/audit surfacing remains endpoint-based and needs deeper operational tooling.
 

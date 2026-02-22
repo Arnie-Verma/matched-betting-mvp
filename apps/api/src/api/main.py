@@ -16,6 +16,7 @@ from api.routers import (
     metadata,
     health,
     bookmaker_lifecycle,
+    rollout_control,
 )
 
 # Import monitoring
@@ -49,6 +50,7 @@ app.include_router(plan_demo.router)
 app.include_router(odds_matcher.router)
 app.include_router(metadata.router)
 app.include_router(bookmaker_lifecycle.router)
+app.include_router(rollout_control.router)
 
 # Log startup configuration
 @app.on_event("startup")

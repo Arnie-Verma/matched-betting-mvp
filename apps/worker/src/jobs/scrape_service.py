@@ -29,8 +29,8 @@ from scrapers.kindred_scraper import KindredScraper
 from scrapers.base import BaseScraper, ScrapeResult, ScraperStatus
 from jobs.save_odds import save_scrape_result_to_db
 from jobs.cleanup_service import CleanupService
-from api.core.bookmaker_freeze import is_bookmaker_frozen
 from api.services.observability_service import emit_observability_event
+from api.services.rollout_control_service import RolloutControlService
 
 # Optional validation integration
 try:
@@ -267,7 +267,14 @@ class ScrapeService:
 
         return None
 
-    def get_active_bookmakers_from_db(self) -> List[Dict[str, Any]]:
+    def get_active_bookmakers_from_db(
+        self,
+        *,
+        requested_sport: Optional[str] = None,
+        requested_competition: Optional[str] = None,
+        requested_bookmakers: Optional[List[str]] = None,
+        include_decisions: bool = False,
+    ) -> List[Dict[str, Any]]:
         """
         Get list of active bookmakers from database.
 
@@ -281,16 +288,10 @@ class ScrapeService:
 
             db = SessionLocal()
             try:
-                active = db.query(Bookmaker).filter(
-                    Bookmaker.is_active == True
-                ).all()
+                active = db.query(Bookmaker).all()
 
                 result = []
                 for bm in active:
-                    if is_bookmaker_frozen(bm.code):
-                        logger.info(f"[{bm.code}] Skipped: onboarding freeze active")
-                        continue
-
                     config = bm.scraping_config or {}
                     scraper_class = config.get("scraper_class")
 
@@ -307,8 +308,32 @@ class ScrapeService:
                     else:
                         logger.debug(f"[{bm.code}] Skipped: scraper_class '{scraper_class}' not in registry")
 
-                logger.info(f"Found {len(result)} active bookmakers with available scrapers")
-                return result
+                selection = RolloutControlService.resolve_runnable_bookmakers(
+                    db,
+                    bookmaker_rows=active,
+                    requested_sport=requested_sport,
+                    requested_competition=requested_competition,
+                    requested_bookmakers=requested_bookmakers,
+                )
+                result_codes = {_normalize_code(cfg.get("code")) for cfg in selection.runnable_configs}
+                runnable = [cfg for cfg in result if _normalize_code(cfg.get("code")) in result_codes]
+
+                logger.info(
+                    f"Found {len(runnable)} runnable bookmakers "
+                    f"(requested_sport={requested_sport}, requested_competition={requested_competition})"
+                )
+                if include_decisions:
+                    return [
+                        {
+                            **cfg,
+                            "selection_decision": next(
+                                (d for d in selection.decisions if d.get("bookmaker_code") == _normalize_code(cfg.get("code"))),
+                                None,
+                            ),
+                        }
+                        for cfg in runnable
+                    ]
+                return runnable
 
             finally:
                 db.close()
@@ -318,10 +343,14 @@ class ScrapeService:
             # Fallback to static scrapers
             self._bookmaker_platform_codes["betfair"] = "betfair"
             self._bookmaker_platform_codes["ladbrokes"] = "entain"
-            return [
+            fallback = [
                 {"code": "betfair", "base_url": "https://www.betfair.com.au", "scraping_config": {"scraper_class": "betfair"}},
                 {"code": "ladbrokes", "base_url": "https://www.ladbrokes.com.au", "scraping_config": {"scraper_class": "entain"}},
             ]
+            requested = {_normalize_code(code) for code in (requested_bookmakers or []) if _normalize_code(code)}
+            if requested:
+                return [cfg for cfg in fallback if _normalize_code(cfg.get("code")) in requested]
+            return fallback
 
     def _get_breaker_state(self, bookmaker_code: str) -> Dict[str, Any]:
         """Get circuit breaker state from Redis."""
@@ -886,7 +915,9 @@ class ScrapeService:
     async def scrape_all_active_bookmakers(
         self,
         sport: str = "all",
-        limit: Optional[int] = None
+        limit: Optional[int] = None,
+        requested_bookmakers: Optional[List[str]] = None,
+        requested_competition: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Scrape all active bookmakers for all sports with bounded concurrency.
@@ -912,8 +943,36 @@ class ScrapeService:
         sports_to_scrape = ALL_SPORTS if sport == "all" else [sport]
 
         # Get active bookmakers from database (with fallback)
-        active_bookmaker_configs = self.get_active_bookmakers_from_db()
+        active_bookmaker_configs = self.get_active_bookmakers_from_db(
+            requested_sport=sport,
+            requested_competition=requested_competition,
+            requested_bookmakers=requested_bookmakers,
+        )
         active_bookmaker_codes = [bm["code"] for bm in active_bookmaker_configs]
+
+        if not active_bookmaker_configs:
+            return {
+                "success": False,
+                "bookmakers_scraped": 0,
+                "total_bookmakers": 0,
+                "events_scraped": 0,
+                "odds_scraped": 0,
+                "odds_saved": 0,
+                "errors": ["No runnable bookmakers after lifecycle/freeze/rollout selection"],
+                "duration_seconds": 0.0,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "results": [],
+                "parallel": True,
+                "scheduler": {
+                    "global_cap": int(self.global_scrape_concurrency_cap),
+                    "platform_caps": {},
+                    "observed_max_in_flight_global": 0,
+                    "observed_max_in_flight_by_platform": {},
+                    "total_scheduled": 0,
+                },
+                "cleanup": None,
+                "validation": None,
+            }
 
         # Create scrapers for each active bookmaker
         for bm_config in active_bookmaker_configs:
@@ -1119,7 +1178,16 @@ def get_scrape_service() -> ScrapeService:
     return _scrape_service
 
 
-async def trigger_scrape(sport: str = "soccer", limit: Optional[int] = None) -> Dict[str, Any]:
+def _normalize_code(value: Any) -> str:
+    return str(value or "").strip().lower()
+
+
+async def trigger_scrape(
+    sport: str = "soccer",
+    limit: Optional[int] = None,
+    requested_bookmakers: Optional[List[str]] = None,
+    requested_competition: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Convenience function to trigger scraping.
     Can be called from API endpoints.
@@ -1132,4 +1200,9 @@ async def trigger_scrape(sport: str = "soccer", limit: Optional[int] = None) -> 
         Scrape statistics
     """
     service = get_scrape_service()
-    return await service.scrape_all_active_bookmakers(sport, limit)
+    return await service.scrape_all_active_bookmakers(
+        sport,
+        limit,
+        requested_bookmakers=requested_bookmakers,
+        requested_competition=requested_competition,
+    )

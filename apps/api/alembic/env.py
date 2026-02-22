@@ -15,6 +15,7 @@ from api.core.database import Base
 from api.models import (
     User, Subscription, Plan, WebhookEvent,
     Sport, Competition, Team, Bookmaker, BookmakerSource, BookmakerLifecycleTransition, BookmakerActivationEvidence,
+    PlatformRolloutPolicy, BookmakerRolloutPolicy,
     Event, Market, Selection, OddsSnapshot, OddsComparison
 )
 
