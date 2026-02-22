@@ -53,6 +53,7 @@ Implemented now:
   - audited lifecycle transition history
   - admin/internal guarded transition control surface
   - evidence-gated live promotions (`validation_passed -> canary_active`, `canary_active -> active`)
+  - canonical activation evidence registry (`validation|canary` records with artifact hash/path provenance)
 - Security controls:
   - `GET /odds/refresh/status` restricted to owner/shared users.
   - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access; telemetry defaults to aggregate-only response output.

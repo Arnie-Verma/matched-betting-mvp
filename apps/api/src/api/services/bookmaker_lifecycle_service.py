@@ -1,17 +1,20 @@
 """Lifecycle state transition guard service for bookmaker promotion control."""
 from __future__ import annotations
 
-import json
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, Optional, Set, Tuple
+from typing import Any, Dict, Optional, Set
 
 from sqlalchemy.orm import Session
 
 from api.core.bookmaker_freeze import is_bookmaker_frozen
-from api.models import Bookmaker, BookmakerLifecycleTransition
+from api.models import Bookmaker, BookmakerActivationEvidence, BookmakerLifecycleTransition
+from api.services.lifecycle_gate_contract import (
+    DEFAULT_CANARY_EVIDENCE_MAX_AGE_SECONDS,
+    DEFAULT_VALIDATION_EVIDENCE_MAX_AGE_SECONDS,
+    REQUIRED_CANARY_GATE_THRESHOLDS,
+)
 
 
 LIFECYCLE_STATES: Set[str] = {
@@ -38,18 +41,6 @@ ALLOWED_TRANSITIONS: Dict[str, Set[str]] = {
     "active": {"degraded", "disabled"},
     "degraded": {"canary_active", "active", "disabled"},
     "disabled": {"backlog"},
-}
-
-DEFAULT_VALIDATION_EVIDENCE_MAX_AGE_SECONDS = 6 * 60 * 60
-DEFAULT_CANARY_EVIDENCE_MAX_AGE_SECONDS = 6 * 60 * 60
-DEFAULT_REPO_ROOT = "/workspace"
-REQUIRED_CANARY_GATE_THRESHOLDS = {
-    "min_cycles": 10,
-    "min_duration_seconds": 1800,
-    "requires_in_scope_fail_zero": True,
-    "min_scrape_success_rate": 0.75,
-    "max_open_breaker_cycle_count": 0,
-    "max_scrape_p95_seconds": 360.0,
 }
 
 
@@ -86,44 +77,16 @@ def _normalize_state(value: str) -> str:
     return (value or "").strip().lower()
 
 
-def _parse_iso8601(timestamp_str: str) -> Optional[datetime]:
-    value = (timestamp_str or "").strip()
-    if not value:
-        return None
+def _as_int(value: Any) -> Optional[int]:
     try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
+        return int(value)
+    except (TypeError, ValueError):
         return None
-    if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
-
-
-def _first_nested_value(data: Dict[str, Any], paths: Tuple[str, ...]) -> Any:
-    for path in paths:
-        cursor: Any = data
-        found = True
-        for key in path.split("."):
-            if isinstance(cursor, dict) and key in cursor:
-                cursor = cursor[key]
-            else:
-                found = False
-                break
-        if found:
-            return cursor
-    return None
 
 
 def _as_float(value: Any) -> Optional[float]:
     try:
         return float(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _as_int(value: Any) -> Optional[int]:
-    try:
-        return int(value)
     except (TypeError, ValueError):
         return None
 
@@ -173,139 +136,41 @@ class BookmakerLifecycleService:
             )
 
     @staticmethod
-    def _repo_root() -> Path:
-        configured = (os.getenv("BOOKMAKER_EVIDENCE_REPO_ROOT") or DEFAULT_REPO_ROOT).strip()
-        return Path(configured)
-
-    @classmethod
-    def _load_evidence_payload(
-        cls,
-        metadata: Dict[str, Any],
+    def _evaluate_record_recency(
         *,
-        inline_key: str,
-        path_key: str,
-        missing_reason_code: str,
-        missing_message: str,
-    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        inline_payload = metadata.get(inline_key)
-        if isinstance(inline_payload, dict):
-            return inline_payload, {"source": "inline"}
-
-        evidence_path = metadata.get(path_key)
-        if not isinstance(evidence_path, str) or not evidence_path.strip():
-            raise LifecycleTransitionError(
-                reason_code=missing_reason_code,
-                message=missing_message,
-                failed_criteria=[
-                    {
-                        "name": inline_key,
-                        "expected": f"{inline_key} object or {path_key} path",
-                        "observed": None,
-                        "pass": False,
-                    }
-                ],
-            )
-
-        raw_path = evidence_path.strip()
-        candidate_paths = [Path(raw_path)]
-        if not Path(raw_path).is_absolute():
-            candidate_paths.append(cls._repo_root() / raw_path)
-        for candidate in candidate_paths:
-            if candidate.exists():
-                try:
-                    parsed = json.loads(candidate.read_text(encoding="utf-8"))
-                except (OSError, json.JSONDecodeError) as exc:
-                    raise LifecycleTransitionError(
-                        reason_code=f"{missing_reason_code}_unreadable",
-                        message=f"Failed to parse evidence file '{candidate}': {exc}",
-                        failed_criteria=[
-                            {
-                                "name": path_key,
-                                "expected": "readable JSON file",
-                                "observed": str(candidate),
-                                "pass": False,
-                            }
-                        ],
-                    ) from exc
-                if not isinstance(parsed, dict):
-                    raise LifecycleTransitionError(
-                        reason_code=f"{missing_reason_code}_invalid_shape",
-                        message=f"Evidence file '{candidate}' must contain a JSON object",
-                        failed_criteria=[
-                            {
-                                "name": path_key,
-                                "expected": "JSON object",
-                                "observed": type(parsed).__name__,
-                                "pass": False,
-                            }
-                        ],
-                    )
-                return parsed, {"source": "path", "path": str(candidate)}
-
-        raise LifecycleTransitionError(
-            reason_code=missing_reason_code,
-            message=f"Evidence file not found for key '{path_key}'",
-            failed_criteria=[
-                {
-                    "name": path_key,
-                    "expected": "existing file path",
-                    "observed": raw_path,
-                    "pass": False,
-                }
-            ],
-        )
-
-    @staticmethod
-    def _evaluate_recency(
-        payload: Dict[str, Any],
-        *,
-        timestamp_fields: Tuple[str, ...],
+        record: BookmakerActivationEvidence,
+        timestamp_value: Optional[datetime],
         max_age_seconds: int,
         reason_code_prefix: str,
         evidence_label: str,
-    ) -> Tuple[datetime, Dict[str, Any]]:
-        observed_value = None
-        for field in timestamp_fields:
-            value = _first_nested_value(payload, (field,))
-            if isinstance(value, str) and value.strip():
-                observed_value = value
-                break
-        if observed_value is None:
+    ) -> Dict[str, Any]:
+        if timestamp_value is None:
             raise LifecycleTransitionError(
                 reason_code=f"{reason_code_prefix}_timestamp_missing",
                 message=f"{evidence_label} evidence timestamp is missing",
                 failed_criteria=[
                     {
                         "name": f"{evidence_label}_timestamp",
-                        "expected": f"one of {list(timestamp_fields)}",
+                        "expected": "non-null timestamp",
                         "observed": None,
                         "pass": False,
                     }
                 ],
             )
 
-        timestamp = _parse_iso8601(observed_value)
-        if timestamp is None:
-            raise LifecycleTransitionError(
-                reason_code=f"{reason_code_prefix}_timestamp_invalid",
-                message=f"{evidence_label} evidence timestamp is invalid: '{observed_value}'",
-                failed_criteria=[
-                    {
-                        "name": f"{evidence_label}_timestamp",
-                        "expected": "ISO-8601 timestamp",
-                        "observed": observed_value,
-                        "pass": False,
-                    }
-                ],
-            )
+        ts = timestamp_value
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        else:
+            ts = ts.astimezone(timezone.utc)
 
-        now = datetime.now(timezone.utc)
-        age_seconds = (now - timestamp).total_seconds()
+        age_seconds = (datetime.now(timezone.utc) - ts).total_seconds()
         criterion = {
             "name": f"{evidence_label}_recency_seconds",
             "expected": f"<= {max_age_seconds}",
             "observed": age_seconds,
             "pass": age_seconds <= max_age_seconds,
+            "evidence_id": int(record.id),
         }
         if not criterion["pass"]:
             raise LifecycleTransitionError(
@@ -316,16 +181,117 @@ class BookmakerLifecycleService:
                 ),
                 failed_criteria=[criterion],
             )
-        return timestamp, criterion
+        return criterion
+
+    @staticmethod
+    def _load_canonical_evidence_record(
+        db: Session,
+        *,
+        metadata: Dict[str, Any],
+        id_key: str,
+        expected_type: str,
+        bookmaker_code: str,
+        missing_reason_code: str,
+    ) -> BookmakerActivationEvidence:
+        raw_id = metadata.get(id_key)
+        if raw_id is None:
+            raise LifecycleTransitionError(
+                reason_code=missing_reason_code,
+                message=f"Canonical evidence id '{id_key}' is required",
+                failed_criteria=[
+                    {
+                        "name": id_key,
+                        "expected": "integer evidence record id",
+                        "observed": None,
+                        "pass": False,
+                    }
+                ],
+            )
+
+        evidence_id = _as_int(raw_id)
+        if evidence_id is None:
+            raise LifecycleTransitionError(
+                reason_code=f"{expected_type}_evidence_record_id_invalid",
+                message=f"Evidence id '{id_key}' must be an integer",
+                failed_criteria=[
+                    {
+                        "name": id_key,
+                        "expected": "integer",
+                        "observed": raw_id,
+                        "pass": False,
+                    }
+                ],
+            )
+
+        record = (
+            db.query(BookmakerActivationEvidence)
+            .filter(BookmakerActivationEvidence.id == int(evidence_id))
+            .first()
+        )
+        if not record:
+            raise LifecycleTransitionError(
+                reason_code=f"{expected_type}_evidence_record_not_found",
+                message=f"Evidence record id '{evidence_id}' not found",
+                failed_criteria=[
+                    {
+                        "name": id_key,
+                        "expected": "existing evidence record",
+                        "observed": evidence_id,
+                        "pass": False,
+                    }
+                ],
+            )
+
+        if (record.evidence_type or "").strip().lower() != expected_type:
+            raise LifecycleTransitionError(
+                reason_code=f"{expected_type}_evidence_record_type_mismatch",
+                message=(
+                    f"Evidence id '{evidence_id}' type mismatch: expected '{expected_type}', "
+                    f"observed '{record.evidence_type}'"
+                ),
+                failed_criteria=[
+                    {
+                        "name": "evidence_type",
+                        "expected": expected_type,
+                        "observed": record.evidence_type,
+                        "pass": False,
+                    }
+                ],
+            )
+
+        if (record.bookmaker_code or "").strip().lower() != (bookmaker_code or "").strip().lower():
+            raise LifecycleTransitionError(
+                reason_code=f"{expected_type}_evidence_bookmaker_mismatch",
+                message=(
+                    f"Evidence id '{evidence_id}' belongs to bookmaker '{record.bookmaker_code}', "
+                    f"not '{bookmaker_code}'"
+                ),
+                failed_criteria=[
+                    {
+                        "name": "evidence.bookmaker_code",
+                        "expected": bookmaker_code,
+                        "observed": record.bookmaker_code,
+                        "pass": False,
+                    }
+                ],
+            )
+        return record
 
     @classmethod
-    def _evaluate_validation_evidence(cls, metadata: Dict[str, Any]) -> Dict[str, Any]:
-        payload, source = cls._load_evidence_payload(
-            metadata,
-            inline_key="validation_evidence",
-            path_key="validation_evidence_path",
-            missing_reason_code="validation_evidence_missing",
-            missing_message="Validation evidence is required for transition to canary_active",
+    def _evaluate_validation_evidence(
+        cls,
+        db: Session,
+        *,
+        bookmaker_code: str,
+        metadata: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        record = cls._load_canonical_evidence_record(
+            db,
+            metadata=metadata,
+            id_key="validation_evidence_id",
+            expected_type="validation",
+            bookmaker_code=bookmaker_code,
+            missing_reason_code="validation_evidence_record_missing",
         )
 
         max_age_seconds = _as_int(
@@ -334,87 +300,66 @@ class BookmakerLifecycleService:
                 str(DEFAULT_VALIDATION_EVIDENCE_MAX_AGE_SECONDS),
             )
         ) or DEFAULT_VALIDATION_EVIDENCE_MAX_AGE_SECONDS
-        evidence_ts, recency_criterion = cls._evaluate_recency(
-            payload,
-            timestamp_fields=(
-                "generated_at",
-                "completed_at",
-                "ended_at",
-                "timestamp",
-            ),
+        recency_criterion = cls._evaluate_record_recency(
+            record=record,
+            timestamp_value=record.generated_at or record.ended_at,
             max_age_seconds=max_age_seconds,
             reason_code_prefix="validation_evidence",
             evidence_label="validation",
         )
 
-        in_scope_fail_count = _first_nested_value(
-            payload,
-            (
-                "in_scope_fail_count",
-                "in_scope_fail_cycle_count",
-                "validation_gate_metrics.in_scope_fail_cycle_count",
-                "summary.in_scope_fail_count",
-            ),
-        )
-        if in_scope_fail_count is None:
+        fail_count = record.validation_in_scope_fail_count
+        if fail_count is None:
             raise LifecycleTransitionError(
                 reason_code="validation_in_scope_fail_count_missing",
-                message="Validation evidence must include in_scope_fail_count",
+                message="Validation evidence record missing in_scope_fail_count",
                 failed_criteria=[
                     {
-                        "name": "in_scope_fail_count",
-                        "expected": "integer value",
+                        "name": "validation_in_scope_fail_count",
+                        "expected": "integer",
                         "observed": None,
                         "pass": False,
                     }
                 ],
             )
-
-        fail_count_value = _as_int(in_scope_fail_count)
-        if fail_count_value is None:
-            raise LifecycleTransitionError(
-                reason_code="validation_in_scope_fail_count_invalid",
-                message="Validation in_scope_fail_count must be an integer",
-                failed_criteria=[
-                    {
-                        "name": "in_scope_fail_count",
-                        "expected": "integer value",
-                        "observed": in_scope_fail_count,
-                        "pass": False,
-                    }
-                ],
-            )
-
         fail_criterion = {
             "name": "in_scope_fail_count",
             "expected": 0,
-            "observed": fail_count_value,
-            "pass": fail_count_value == 0,
+            "observed": int(fail_count),
+            "pass": int(fail_count) == 0,
+            "evidence_id": int(record.id),
         }
         if not fail_criterion["pass"]:
             raise LifecycleTransitionError(
                 reason_code="validation_in_scope_fail_detected",
-                message=f"Validation evidence has in_scope_fail_count={fail_count_value}",
+                message=f"Validation evidence has in_scope_fail_count={fail_count}",
                 failed_criteria=[fail_criterion],
             )
 
         return {
             "evidence_type": "validation",
-            "source": source,
-            "max_age_seconds": max_age_seconds,
-            "evaluated_at": datetime.now(timezone.utc).isoformat(),
-            "evidence_timestamp": evidence_ts.isoformat(),
+            "evidence_id": int(record.id),
+            "artifact_path": record.artifact_path,
+            "artifact_sha256": record.artifact_sha256,
             "criteria": [recency_criterion, fail_criterion],
+            "evaluated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     @classmethod
-    def _evaluate_canary_evidence(cls, metadata: Dict[str, Any]) -> Dict[str, Any]:
-        payload, source = cls._load_evidence_payload(
-            metadata,
-            inline_key="canary_evidence",
-            path_key="canary_evidence_path",
-            missing_reason_code="canary_evidence_missing",
-            missing_message="Canary evidence is required for transition to active",
+    def _evaluate_canary_evidence(
+        cls,
+        db: Session,
+        *,
+        bookmaker_code: str,
+        metadata: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        record = cls._load_canonical_evidence_record(
+            db,
+            metadata=metadata,
+            id_key="canary_evidence_id",
+            expected_type="canary",
+            bookmaker_code=bookmaker_code,
+            missing_reason_code="canary_evidence_record_missing",
         )
 
         max_age_seconds = _as_int(
@@ -423,52 +368,22 @@ class BookmakerLifecycleService:
                 str(DEFAULT_CANARY_EVIDENCE_MAX_AGE_SECONDS),
             )
         ) or DEFAULT_CANARY_EVIDENCE_MAX_AGE_SECONDS
-        evidence_ts, recency_criterion = cls._evaluate_recency(
-            payload,
-            timestamp_fields=("ended_at", "generated_at", "completed_at", "timestamp"),
+        recency_criterion = cls._evaluate_record_recency(
+            record=record,
+            timestamp_value=record.ended_at or record.generated_at,
             max_age_seconds=max_age_seconds,
             reason_code_prefix="canary_evidence",
             evidence_label="canary",
         )
 
-        gate = payload.get("gate")
-        if not isinstance(gate, dict):
-            raise LifecycleTransitionError(
-                reason_code="canary_gate_missing",
-                message="Canary evidence must include gate result payload",
-                failed_criteria=[
-                    {
-                        "name": "gate",
-                        "expected": "object with pass/criteria/thresholds",
-                        "observed": type(gate).__name__,
-                        "pass": False,
-                    }
-                ],
-            )
-
-        gate_pass = gate.get("pass")
-        if not isinstance(gate_pass, bool):
-            raise LifecycleTransitionError(
-                reason_code="canary_gate_result_missing",
-                message="Canary gate result must include boolean gate.pass",
-                failed_criteria=[
-                    {
-                        "name": "gate.pass",
-                        "expected": "boolean",
-                        "observed": gate_pass,
-                        "pass": False,
-                    }
-                ],
-            )
-
-        thresholds = gate.get("thresholds")
+        thresholds = record.canary_gate_thresholds
         if not isinstance(thresholds, dict):
             raise LifecycleTransitionError(
                 reason_code="canary_thresholds_missing",
-                message="Canary evidence must include gate.thresholds",
+                message="Canary evidence record missing threshold contract payload",
                 failed_criteria=[
                     {
-                        "name": "gate.thresholds",
+                        "name": "canary_gate_thresholds",
                         "expected": "object",
                         "observed": type(thresholds).__name__,
                         "pass": False,
@@ -489,6 +404,7 @@ class BookmakerLifecycleService:
                     "expected": expected,
                     "observed": observed,
                     "pass": passed,
+                    "evidence_id": int(record.id),
                 }
             )
         failed_threshold_criteria = [c for c in threshold_criteria if not c["pass"]]
@@ -499,26 +415,16 @@ class BookmakerLifecycleService:
                 failed_criteria=failed_threshold_criteria,
             )
 
-        criteria = [recency_criterion] + threshold_criteria
-        if not gate_pass:
-            failed_gate_criteria = []
-            for criterion in (gate.get("criteria") or []):
-                if isinstance(criterion, dict) and not bool(criterion.get("pass", False)):
-                    failed_gate_criteria.append(
-                        {
-                            "name": criterion.get("name"),
-                            "expected": criterion.get("threshold"),
-                            "observed": criterion.get("observed"),
-                            "pass": False,
-                        }
-                    )
+        if record.canary_gate_pass is not True:
+            failed_gate_criteria = list(record.canary_gate_failed_criteria or [])
             if not failed_gate_criteria:
                 failed_gate_criteria = [
                     {
                         "name": "gate.pass",
                         "expected": True,
-                        "observed": False,
+                        "observed": record.canary_gate_pass,
                         "pass": False,
+                        "evidence_id": int(record.id),
                     }
                 ]
             raise LifecycleTransitionError(
@@ -529,18 +435,20 @@ class BookmakerLifecycleService:
 
         return {
             "evidence_type": "canary",
-            "source": source,
-            "max_age_seconds": max_age_seconds,
+            "evidence_id": int(record.id),
+            "artifact_path": record.artifact_path,
+            "artifact_sha256": record.artifact_sha256,
+            "criteria": [recency_criterion] + threshold_criteria,
+            "gate_pass": True,
             "evaluated_at": datetime.now(timezone.utc).isoformat(),
-            "evidence_timestamp": evidence_ts.isoformat(),
-            "gate_pass": gate_pass,
-            "criteria": criteria,
         }
 
     @classmethod
     def _evaluate_activation_gate_checks(
         cls,
+        db: Session,
         *,
+        bookmaker_code: str,
         from_state: str,
         to_state: str,
         transition_metadata: Optional[Dict[str, Any]],
@@ -548,9 +456,21 @@ class BookmakerLifecycleService:
         metadata = transition_metadata or {}
         checks: list[dict[str, Any]] = []
         if from_state == "validation_passed" and to_state == "canary_active":
-            checks.append(cls._evaluate_validation_evidence(metadata))
+            checks.append(
+                cls._evaluate_validation_evidence(
+                    db,
+                    bookmaker_code=bookmaker_code,
+                    metadata=metadata,
+                )
+            )
         if from_state == "canary_active" and to_state == "active":
-            checks.append(cls._evaluate_canary_evidence(metadata))
+            checks.append(
+                cls._evaluate_canary_evidence(
+                    db,
+                    bookmaker_code=bookmaker_code,
+                    metadata=metadata,
+                )
+            )
         return {
             "from_state": from_state,
             "to_state": to_state,
@@ -615,10 +535,13 @@ class BookmakerLifecycleService:
             )
 
         gate_evaluation = cls._evaluate_activation_gate_checks(
+            db,
+            bookmaker_code=bookmaker.code,
             from_state=from_state,
             to_state=normalized_to_state,
             transition_metadata=transition_metadata,
         )
+
         now = datetime.now(timezone.utc)
         desired_is_active = cls._desired_is_active(normalized_to_state)
         persisted_transition_metadata = dict(transition_metadata or {})

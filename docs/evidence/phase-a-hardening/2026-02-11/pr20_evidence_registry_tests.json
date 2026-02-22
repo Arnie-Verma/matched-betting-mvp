@@ -1,0 +1,58 @@
+{
+  "slice": "PR-L3",
+  "generated_at_utc": "2026-02-22T00:00:00Z",
+  "commands": [
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_bookmaker_lifecycle.py -q",
+      "result": "pass",
+      "passed": 16,
+      "failed": 0,
+      "warnings": 3
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q",
+      "result": "pass",
+      "passed": 6,
+      "failed": 0,
+      "warnings": 1
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q",
+      "result": "pass",
+      "passed": 1,
+      "failed": 0,
+      "warnings": 3
+    }
+  ],
+  "acceptance_branch_coverage": {
+    "promotion_denied_missing_canonical_record": [
+      "test_validation_to_canary_denied_when_canonical_record_missing",
+      "test_canary_to_active_denied_when_canonical_record_missing"
+    ],
+    "promotion_denied_bookmaker_mismatch": [
+      "test_validation_to_canary_denied_on_bookmaker_mismatch",
+      "test_canary_to_active_denied_on_bookmaker_mismatch"
+    ],
+    "promotion_denied_stale_or_failing": [
+      "test_validation_to_canary_denied_when_validation_evidence_stale",
+      "test_validation_to_canary_denied_when_in_scope_fail_detected",
+      "test_canary_to_active_denied_when_canary_evidence_stale",
+      "test_canary_to_active_denied_when_gate_fails"
+    ],
+    "promotion_allowed_fresh_matching_passing": [
+      "test_validation_to_canary_allowed_with_fresh_matching_record",
+      "test_canary_to_active_allowed_with_fresh_matching_record"
+    ],
+    "registry_audit_contract": [
+      "test_evidence_registration_persists_artifact_hash_and_path"
+    ],
+    "endpoint_contract": [
+      "test_lifecycle_and_registry_endpoints_enforce_role_and_return_structured_denials"
+    ]
+  },
+  "freeze_runtime_verification": {
+    "mb_api_bookmaker_freeze_unibet": "true",
+    "mb_worker_bookmaker_freeze_unibet": "true",
+    "db_unibet_is_active": false
+  }
+}

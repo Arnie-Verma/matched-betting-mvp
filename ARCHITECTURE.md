@@ -210,6 +210,9 @@ Plan enforcement is server-side:
 - bookmaker lifecycle transitions are restricted to admin/internal control path:
   - `POST /admin/bookmakers/{bookmaker_code}/lifecycle`
   - authenticated `admin/ops` role or explicit internal token
+- activation evidence is registered through canonical persistence:
+  - `POST /admin/bookmakers/lifecycle-evidence/register`
+  - lifecycle promotions consume evidence record IDs (`validation_evidence_id`, `canary_evidence_id`)
 - live-state promotions are evidence-gated:
   - `validation_passed -> canary_active` requires fresh validation evidence (`in_scope_fail_count=0`)
   - `canary_active -> active` requires fresh canary gate PASS evidence with threshold-contract match
@@ -277,6 +280,7 @@ Important runtime knobs:
 - `HEALTH_OPERATIONS_ALLOWED_ROLES` (fallback `HEALTH_SCRAPERS_ALLOWED_ROLES`)
 - `BOOKMAKER_LIFECYCLE_ALLOWED_ROLES` (default `admin,ops`)
 - `BOOKMAKER_LIFECYCLE_INTERNAL_TOKEN`
+- `BOOKMAKER_EVIDENCE_REPO_ROOT` (artifact path base for evidence registration)
 - `BOOKMAKER_VALIDATION_EVIDENCE_MAX_AGE_SECONDS` (default `21600`)
 - `BOOKMAKER_CANARY_EVIDENCE_MAX_AGE_SECONDS` (default `21600`)
 
@@ -285,7 +289,7 @@ Notes:
 - environment files may override this for local constraints/perf testing
 
 ## Current Known Constraints
-1. Evidence storage is still file/inline payload driven; a canonical evidence registry is not implemented yet.
+1. Evidence retention/list/query tooling around canonical records is still minimal.
 2. Validation thresholds still need ongoing calibration across competitions/platforms.
 3. Matcher hot-path N+1 has been removed, but response assembly is still in-request in-memory work (no dedicated read model yet).
 4. Refresh job ACLs are stored in Redis payload metadata; stronger typed persistence/audit logging is still pending.
@@ -303,11 +307,14 @@ Implemented now:
    - `validation_passed -> canary_active` requires fresh validation evidence with zero in-scope FAIL.
    - `canary_active -> active` requires fresh canary evidence with gate PASS and threshold-contract match.
    - denial payloads include machine-readable reason codes and failed criteria.
+8. Canonical activation evidence registry in DB:
+   - evidence registered from artifact paths with hash provenance
+   - promotion checks consume canonical evidence IDs only (no ad-hoc inline/path promotion input)
 
 Still open:
 1. First-class health dashboard + alert routing beyond current endpoint surface.
 2. Dedicated matcher read model/materialization for higher sustained traffic.
-3. Canonical evidence registry and retention policy for lifecycle gate inputs.
+3. Canonical evidence retention and discovery tooling (list/query/dashboard) for lifecycle gate inputs.
 
 Planned follow-ups:
 1. Tighten canary reliability thresholds after scheduler and matcher improvements are observed over longer windows.

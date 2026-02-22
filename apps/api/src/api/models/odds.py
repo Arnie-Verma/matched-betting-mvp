@@ -212,6 +212,11 @@ class Bookmaker(Base):
         cascade="all, delete-orphan",
         order_by="BookmakerLifecycleTransition.created_at",
     )
+    activation_evidence_records = relationship(
+        "BookmakerActivationEvidence",
+        cascade="all, delete-orphan",
+        order_by="BookmakerActivationEvidence.created_at",
+    )
 
 
 class BookmakerLifecycleTransition(Base):
@@ -234,6 +239,47 @@ class BookmakerLifecycleTransition(Base):
     __table_args__ = (
         Index("idx_bookmaker_lifecycle_transition_lookup", "bookmaker_id", "created_at"),
         Index("idx_bookmaker_lifecycle_transition_to_state", "to_state", "created_at"),
+    )
+
+
+class BookmakerActivationEvidence(Base):
+    """Canonical registry for activation-gate evidence artifacts."""
+    __tablename__ = "bookmaker_activation_evidence"
+
+    id = Column(Integer, primary_key=True, index=True)
+    evidence_type = Column(String(20), nullable=False, index=True)  # validation | canary
+    bookmaker_id = Column(Integer, ForeignKey("bookmakers.id"), nullable=False, index=True)
+    bookmaker_code = Column(String(30), nullable=False, index=True)
+
+    generated_at = Column(DateTime(timezone=True), nullable=True)
+    ended_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Normalized enforcement fields
+    validation_in_scope_fail_count = Column(Integer, nullable=True)
+    canary_gate_pass = Column(Boolean, nullable=True)
+    canary_gate_thresholds = Column(JSON, nullable=True)
+    canary_gate_failed_criteria = Column(JSON, nullable=True)
+
+    # Artifact provenance
+    artifact_path = Column(String(500), nullable=False)
+    artifact_sha256 = Column(String(64), nullable=False, index=True)
+    artifact_metadata = Column(JSON, nullable=True)
+
+    # Audit metadata
+    created_by = Column(String(120), nullable=True)
+    created_by_email = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    bookmaker = relationship("Bookmaker", back_populates="activation_evidence_records")
+
+    __table_args__ = (
+        Index("idx_activation_evidence_lookup", "bookmaker_code", "evidence_type", "created_at"),
+        UniqueConstraint(
+            "bookmaker_code",
+            "evidence_type",
+            "artifact_sha256",
+            name="uq_activation_evidence_code_type_hash",
+        ),
     )
 
 

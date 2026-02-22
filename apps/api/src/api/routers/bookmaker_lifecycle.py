@@ -11,6 +11,10 @@ from sqlalchemy.orm import Session
 
 from api.core.auth import UserClaims, optional_user
 from api.core.database import get_db
+from api.services.activation_evidence_registry_service import (
+    ActivationEvidenceRegistrationError,
+    ActivationEvidenceRegistryService,
+)
 from api.services.bookmaker_lifecycle_service import (
     BookmakerLifecycleService,
     LifecycleTransitionError,
@@ -93,6 +97,66 @@ class LifecycleTransitionResponse(BaseModel):
     is_active: bool
     transition_id: int
     transitioned_at: str
+
+
+class ActivationEvidenceRegisterRequest(BaseModel):
+    evidence_type: str = Field(..., pattern="^(validation|canary)$")
+    bookmaker_code: str = Field(..., min_length=1, max_length=30)
+    artifact_path: str = Field(..., min_length=1, max_length=500)
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class ActivationEvidenceRegisterResponse(BaseModel):
+    evidence_id: int
+    evidence_type: str
+    bookmaker_code: str
+    artifact_path: str
+    artifact_sha256: str
+    generated_at: Optional[str] = None
+    ended_at: Optional[str] = None
+    validation_in_scope_fail_count: Optional[int] = None
+    canary_gate_pass: Optional[bool] = None
+
+
+@router.post("/lifecycle-evidence/register", response_model=ActivationEvidenceRegisterResponse)
+def register_activation_evidence(
+    request: ActivationEvidenceRegisterRequest,
+    access: Dict[str, Any] = Depends(require_lifecycle_admin_access),
+    db: Session = Depends(get_db),
+):
+    try:
+        record = ActivationEvidenceRegistryService.register_from_artifact_path(
+            db,
+            evidence_type=request.evidence_type,
+            bookmaker_code=request.bookmaker_code,
+            artifact_path=request.artifact_path,
+            created_by=access.get("actor_sub"),
+            created_by_email=access.get("actor_email"),
+            metadata=request.metadata or {},
+        )
+    except ActivationEvidenceRegistrationError as exc:
+        status_code = status.HTTP_400_BAD_REQUEST
+        if exc.reason_code == "bookmaker_not_found":
+            status_code = status.HTTP_404_NOT_FOUND
+        raise HTTPException(
+            status_code=status_code,
+            detail={
+                "reason_code": exc.reason_code,
+                "message": str(exc),
+            },
+        ) from exc
+
+    return ActivationEvidenceRegisterResponse(
+        evidence_id=record.evidence_id,
+        evidence_type=record.evidence_type,
+        bookmaker_code=record.bookmaker_code,
+        artifact_path=record.artifact_path,
+        artifact_sha256=record.artifact_sha256,
+        generated_at=record.generated_at.isoformat() if record.generated_at else None,
+        ended_at=record.ended_at.isoformat() if record.ended_at else None,
+        validation_in_scope_fail_count=record.validation_in_scope_fail_count,
+        canary_gate_pass=record.canary_gate_pass,
+    )
 
 
 @router.post("/{bookmaker_code}/lifecycle", response_model=LifecycleTransitionResponse)

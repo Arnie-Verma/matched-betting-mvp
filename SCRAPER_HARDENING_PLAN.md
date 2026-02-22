@@ -39,13 +39,13 @@ Implemented now:
 8. Activation-gate enforcement for live-state promotions using fresh machine-verifiable evidence.
 
 Known constraints still open:
-1. Evidence storage is still file/inline payload based (no canonical evidence registry yet).
+1. Evidence registry retention/discovery tooling is still limited.
 2. Canary/ramp selection controls are still limited (full rollout control plane pending).
 3. Health/alerting is functional but not yet a first-class dashboarded operational surface.
 
 Planned follow-up work:
 1. Tighten canary reliability thresholds after longer bounded-scheduler telemetry windows.
-2. Add canonical evidence registry/storage for activation gate artifacts.
+2. Add evidence registry retention + list/query operational tooling.
 3. Move from set-based matcher path to dedicated read-model serving for sustained scale.
 
 ## Workstreams

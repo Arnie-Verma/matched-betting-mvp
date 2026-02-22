@@ -14,7 +14,7 @@ sys.path.append(str(Path(__file__).parent.parent / "src"))
 from api.core.database import Base
 from api.models import (
     User, Subscription, Plan, WebhookEvent,
-    Sport, Competition, Team, Bookmaker, BookmakerSource, BookmakerLifecycleTransition,
+    Sport, Competition, Team, Bookmaker, BookmakerSource, BookmakerLifecycleTransition, BookmakerActivationEvidence,
     Event, Market, Selection, OddsSnapshot, OddsComparison
 )
 

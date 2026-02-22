@@ -45,20 +45,32 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
   - Added machine-readable denial payloads (`reason_code` + `failed_criteria`) in lifecycle API responses.
   - Expanded lifecycle tests to cover all required deny/allow branches for activation gates.
   - Added ADR-0018 and PR19 evidence artifacts.
+- PR-L3 canonical activation evidence registry completed:
+  - Added DB-backed evidence registry model + migration for `validation|canary` gate inputs.
+  - Added registration service + admin/internal endpoint:
+    - `POST /admin/bookmakers/lifecycle-evidence/register`
+    - registers evidence from artifact paths with SHA256, source path, and creator metadata.
+  - Updated lifecycle promotion checks to require canonical evidence IDs:
+    - `validation_evidence_id` for `validation_passed -> canary_active`
+    - `canary_evidence_id` for `canary_active -> active`
+  - Enforced evidence-bookmaker binding in promotion checks.
+  - Removed ad-hoc inline/path evidence as valid direct promotion input.
+  - Added ADR-0019 and PR20 evidence artifacts.
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
 - Applied reusable remediation only (no bookmaker-specific one-off hacks outside platform-level scheduler default).
 - Keep lifecycle transitions and activation gate coupling as separate slices:
   - PR-L1 enforces transitions + audit trail.
-  - activation gate blocking remains follow-up scope.
+  - PR-L2 enforces activation gate blocking.
+- PR-L3 makes canonical evidence registry the primary trusted source for promotion checks.
 - Keep existing canary threshold contract unchanged in PR-L2 (no relaxation).
 - Enforce exact canary threshold-contract match during `canary_active -> active` promotion checks.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
 - Model-level lifecycle/is_active synchronization can expose stale seed/script assumptions that relied on direct `is_active` flips; future scripts should use lifecycle transition flow.
-- Activation evidence is still provided via inline payloads/paths; absence of a canonical evidence registry may create operator workflow inconsistency until follow-up.
+- Evidence retention/list/query tooling for canonical records is still minimal and should be improved for operator workflows.
 
 ## 2026-02-21 (Saturday)
 
