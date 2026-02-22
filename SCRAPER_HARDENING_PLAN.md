@@ -40,7 +40,9 @@ Implemented now:
 9. Rollout control-plane baseline with platform/bookmaker policy + kill-switch enforcement.
 10. Durable refresh-job ACL authority + audit persistence (with pre-migration Redis fallback).
 11. Durable retention cleanup policy + automation guardrails for refresh ACL/audit records (dry-run default, atomic lock release, cap aborts with explicit per-run override, non-terminal risk abort).
-12. Matcher read-model foundation (non-serving) with idempotent bounded builder + shadow parity validation.
+12. Matcher read-model foundation + feature-flagged serving with freshness fallback:
+   - idempotent bounded builder + shadow parity validation
+   - `/odds/matcher` read-model serving path behind explicit flag with deterministic runtime fallback reason codes
 
 Known constraints still open:
 1. Evidence registry retention/discovery tooling is still limited.
@@ -51,7 +53,7 @@ Known constraints still open:
 Planned follow-up work:
 1. Tighten canary reliability thresholds after longer bounded-scheduler telemetry windows.
 2. Add evidence registry retention + list/query operational tooling.
-3. Cut over matcher serving path from runtime set-based flow to read-model rows after parity soak.
+3. Expand read-model serving request-shape support and define default-on cutover criteria after parity/latency soak.
 4. Add rollout-policy change history and operator-facing policy dashboarding.
 5. Add refresh ACL/audit operator query dashboards.
 

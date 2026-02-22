@@ -185,7 +185,7 @@ Additional behavior:
 - ETag/Last-Modified headers for client revalidation
 - no debug `print()` calls in request path (enforced by regression test)
 
-Matcher read-model foundation (PR-M1a, non-serving):
+Matcher read-model foundation + guarded serving (PR-M1a + PR-M1b):
 - dedicated persistence:
   - `matcher_read_model_builds` (freshness/build metadata)
   - `matcher_read_model_rows` (matcher-ready payload rows)
@@ -195,7 +195,14 @@ Matcher read-model foundation (PR-M1a, non-serving):
   - `event_limit`
   - `event_batch_size`
   - `row_batch_size`
-- optional shadow parity compares runtime matcher output vs read-model payloads without changing serving behavior
+- optional shadow parity compares runtime matcher output vs read-model payloads
+- serving path is feature-flagged:
+  - default path remains runtime (`MATCHER_READ_MODEL_SERVING_ENABLED=false`)
+  - read-model serving is used only when build is fresh/healthy and request shape is parity-safe
+  - stale/missing/unhealthy/unsupported reads fall back to runtime with deterministic reason codes
+- matcher emits serving telemetry:
+  - `serving_source=runtime|read_model|runtime_fallback`
+  - `fallback_reason_code`
 
 Key code:
 - `apps/api/src/api/routers/odds_matcher.py`
@@ -324,6 +331,9 @@ Important runtime knobs:
 - `REFRESH_RETENTION_MAX_DELETE_ACL_ROWS` (default `50000`)
 - `REFRESH_RETENTION_LOCK_KEY` (default `maintenance:refresh_acl_retention:lock`)
 - `REFRESH_RETENTION_LOCK_TTL_SECONDS` (default `900`)
+- `MATCHER_READ_MODEL_SERVING_ENABLED` (default `false`)
+- `MATCHER_READ_MODEL_VERSION` (default `matcher_read_model_v1`)
+- `MATCHER_READ_MODEL_MAX_AGE_SECONDS` (default `300`)
 
 Notes:
 - scraper code defaults `SCRAPER_BATCH_SIZE` to `1` if env is absent
@@ -332,7 +342,7 @@ Notes:
 ## Current Known Constraints
 1. Evidence retention/list/query tooling around canonical records is still minimal.
 2. Validation thresholds still need ongoing calibration across competitions/platforms.
-3. Matcher read-model foundation exists, but serving cutover is not enabled (`/odds/matcher` still serves from runtime source path).
+3. Matcher read-model serving is feature-flagged and runtime remains default; default-on cutover criteria are still pending.
 4. Refresh-job ACL durability and retention cleanup are implemented, but operator query/dashboard tooling for audit rows is still minimal.
 5. Some plan/bookmaker lists are hardcoded and need long-term config centralization.
 
@@ -363,14 +373,16 @@ Implemented now:
    - max-delete caps per run for terminal jobs, audit rows, and ACL rows
    - cap-breach override requires explicit per-run operator flag (`--allow-cap-breach`)
    - structured run summaries and observability outcomes (`success|aborted|failure`)
-11. Matcher read-model foundation (non-serving):
+11. Matcher read-model foundation + feature-flagged serving:
    - persistent matcher-ready rows with build freshness metadata
    - idempotent bounded builder (`event_limit`, `event_batch_size`, `row_batch_size`)
    - optional shadow parity mode for runtime-vs-read-model correctness checks
+   - read-model serving path behind feature flag with deterministic runtime fallback on stale/missing/unhealthy state
+   - matcher metrics include serving source and fallback reason fields
 
 Still open:
 1. First-class health dashboard + alert routing beyond current endpoint surface.
-2. Matcher API serving cutover to read-model rows (runtime path remains primary).
+2. Matcher API read-model path is not default-on yet; broader filter-shape support and cutover criteria are still pending.
 3. Canonical evidence retention and discovery tooling (list/query/dashboard) for lifecycle gate inputs.
 4. Rollout policy history/audit stream is not yet first-class (current policy rows store latest state only).
 5. Refresh ACL/audit operator query tooling is still limited.

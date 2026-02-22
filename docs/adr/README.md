@@ -34,6 +34,7 @@ Create or update an ADR when any of the following changes:
 - `ADR-0020-rollout-control-plane-selection-enforcement.md`
 - `ADR-0021-durable-refresh-acl-audit-persistence.md`
 - `ADR-0022-matcher-read-model-foundation.md`
+- `ADR-0023-matcher-read-model-serving-with-freshness-fallback.md`
 
 ## ADR Template
 Use this structure:

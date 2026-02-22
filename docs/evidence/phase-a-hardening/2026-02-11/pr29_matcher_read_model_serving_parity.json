@@ -1,0 +1,95 @@
+{
+  "slice": "PR-M1b",
+  "generated_at": "2026-02-22T10:54:07.194385+00:00",
+  "build_summary": {
+    "read_model_version": "pr29_serving_v1",
+    "builder_run_id": "722bb6c7-bc65-4b44-b1fd-2d5bca632fc5",
+    "built_at": "2026-02-22T10:54:06.783564+00:00",
+    "source_window_start": "2026-02-22T10:54:06.747029+00:00",
+    "source_window_end": "2026-03-08T10:54:06.747029+00:00",
+    "source_max_odds_timestamp": "2026-02-22T10:54:06.692767",
+    "stake": "100",
+    "bet_type": "normal",
+    "event_limit": 100,
+    "event_batch_size": 20,
+    "row_batch_size": 50,
+    "processed_events": 14,
+    "event_batch_count": 1,
+    "query_round_trip_signal": 4,
+    "upserted_rows": 56,
+    "deleted_stale_rows": 0,
+    "row_count": 56,
+    "duration_ms": 84
+  },
+  "scenarios": {
+    "flag_off_runtime": {
+      "status_code": 200,
+      "serving_source_header": "runtime",
+      "fallback_reason_header": null,
+      "total": 56,
+      "schema_fields_match": true,
+      "matcher_metric_payload": {
+        "status_code": 200,
+        "latency_ms": 22.082,
+        "query_round_trip_signal": 4,
+        "opportunities_total": 56,
+        "has_more": false,
+        "serving_source": "runtime",
+        "fallback_reason_code": null
+      }
+    },
+    "flag_on_fresh_read_model": {
+      "status_code": 200,
+      "serving_source_header": "read_model",
+      "fallback_reason_header": null,
+      "total": 56,
+      "schema_fields_match": true,
+      "matcher_metric_payload": {
+        "status_code": 200,
+        "latency_ms": 7.277,
+        "query_round_trip_signal": 3,
+        "opportunities_total": 56,
+        "has_more": false,
+        "serving_source": "read_model",
+        "fallback_reason_code": null
+      }
+    },
+    "flag_on_missing_fallback": {
+      "status_code": 200,
+      "serving_source_header": "runtime_fallback",
+      "fallback_reason_header": "read_model_missing_build",
+      "total": 56,
+      "schema_fields_match": true,
+      "matcher_metric_payload": {
+        "status_code": 200,
+        "latency_ms": 13.898,
+        "query_round_trip_signal": 5,
+        "opportunities_total": 56,
+        "has_more": false,
+        "serving_source": "runtime_fallback",
+        "fallback_reason_code": "read_model_missing_build"
+      }
+    },
+    "flag_on_stale_fallback": {
+      "status_code": 200,
+      "serving_source_header": "runtime_fallback",
+      "fallback_reason_header": "read_model_stale",
+      "total": 56,
+      "schema_fields_match": true,
+      "matcher_metric_payload": {
+        "status_code": 200,
+        "latency_ms": 13.305,
+        "query_round_trip_signal": 5,
+        "opportunities_total": 56,
+        "has_more": false,
+        "serving_source": "runtime_fallback",
+        "fallback_reason_code": "read_model_stale"
+      }
+    }
+  },
+  "parity": {
+    "top_level_equal": true,
+    "canonical_rows_equal": true,
+    "schema_fields_match": true
+  }
+}

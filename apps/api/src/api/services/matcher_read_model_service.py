@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -30,6 +31,8 @@ DEFAULT_MATCHER_READ_MODEL_VERSION = "matcher_read_model_v1"
 DEFAULT_MATCHER_EVENT_LIMIT = 500
 DEFAULT_MATCHER_EVENT_BATCH_SIZE = 100
 DEFAULT_MATCHER_ROW_BATCH_SIZE = 250
+DEFAULT_MATCHER_READ_MODEL_SERVING_ENABLED = False
+DEFAULT_MATCHER_READ_MODEL_MAX_AGE_SECONDS = 300
 
 
 @dataclass(frozen=True)
@@ -50,8 +53,54 @@ class MatcherReadModelBuildConfig:
     row_batch_size: int = DEFAULT_MATCHER_ROW_BATCH_SIZE
 
 
+@dataclass(frozen=True)
+class MatcherReadModelServingConfig:
+    enabled: bool
+    read_model_version: str
+    max_age_seconds: int
+
+
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _parse_bool(value: Optional[str], default: bool) -> bool:
+    if value is None:
+        return bool(default)
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _parse_int(value: Optional[str], fallback: int) -> int:
+    if value is None or value == "":
+        return int(fallback)
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return int(fallback)
+    return int(parsed) if parsed > 0 else int(fallback)
+
+
+def load_matcher_read_model_serving_config_from_env() -> MatcherReadModelServingConfig:
+    return MatcherReadModelServingConfig(
+        enabled=_parse_bool(
+            os.getenv("MATCHER_READ_MODEL_SERVING_ENABLED"),
+            DEFAULT_MATCHER_READ_MODEL_SERVING_ENABLED,
+        ),
+        read_model_version=(os.getenv("MATCHER_READ_MODEL_VERSION") or DEFAULT_MATCHER_READ_MODEL_VERSION).strip()
+        or DEFAULT_MATCHER_READ_MODEL_VERSION,
+        max_age_seconds=_parse_int(
+            os.getenv("MATCHER_READ_MODEL_MAX_AGE_SECONDS"),
+            DEFAULT_MATCHER_READ_MODEL_MAX_AGE_SECONDS,
+        ),
+    )
+
+
+def _coerce_utc(value: Optional[datetime]) -> Optional[datetime]:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value
 
 
 def _normalized_list(values: Optional[Iterable[str]]) -> Optional[List[str]]:
@@ -611,6 +660,90 @@ def get_read_model_payloads(
         query = query.limit(int(limit))
     rows = query.all()
     return [dict(row.payload or {}) for row in rows]
+
+
+def get_read_model_serving_snapshot(
+    db: Session,
+    *,
+    read_model_version: str,
+    max_age_seconds: int,
+    now: Optional[datetime] = None,
+) -> Dict[str, Any]:
+    """
+    Resolve read-model payloads for serving with freshness checks.
+
+    Returns:
+    - `ok`: whether read-model is healthy for serving
+    - `reason_code`: deterministic fallback reason when `ok` is False
+    - `payloads`: read-model rows when healthy
+    - `query_round_trip_signal`: DB query count signal for telemetry parity
+    """
+    signal = 0
+    current_time = _coerce_utc(now) or _utcnow()
+    version = (read_model_version or DEFAULT_MATCHER_READ_MODEL_VERSION).strip() or DEFAULT_MATCHER_READ_MODEL_VERSION
+    max_age = max(1, int(max_age_seconds))
+
+    build = (
+        db.query(MatcherReadModelBuild)
+        .filter(MatcherReadModelBuild.read_model_version == version)
+        .first()
+    )
+    signal += 1
+    if build is None:
+        return {
+            "ok": False,
+            "reason_code": "read_model_missing_build",
+            "payloads": [],
+            "query_round_trip_signal": signal,
+            "build": None,
+        }
+
+    built_at = _coerce_utc(build.built_at)
+    if built_at is None:
+        return {
+            "ok": False,
+            "reason_code": "read_model_invalid_built_at",
+            "payloads": [],
+            "query_round_trip_signal": signal,
+            "build": build,
+        }
+
+    age_seconds = max(0.0, (current_time - built_at).total_seconds())
+    if age_seconds > float(max_age):
+        return {
+            "ok": False,
+            "reason_code": "read_model_stale",
+            "payloads": [],
+            "query_round_trip_signal": signal,
+            "build": build,
+            "age_seconds": age_seconds,
+        }
+
+    row_count = int(
+        db.query(MatcherReadModelRow)
+        .filter(MatcherReadModelRow.read_model_version == version)
+        .count()
+    )
+    signal += 1
+    if row_count <= 0:
+        return {
+            "ok": False,
+            "reason_code": "read_model_no_rows",
+            "payloads": [],
+            "query_round_trip_signal": signal,
+            "build": build,
+        }
+
+    payloads = get_read_model_payloads(db, read_model_version=version)
+    signal += 1
+    return {
+        "ok": True,
+        "reason_code": None,
+        "payloads": payloads,
+        "query_round_trip_signal": signal,
+        "build": build,
+        "age_seconds": age_seconds,
+    }
 
 
 def run_shadow_parity_check(

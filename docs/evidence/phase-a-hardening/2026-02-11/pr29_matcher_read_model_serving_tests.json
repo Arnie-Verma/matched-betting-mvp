@@ -1,0 +1,41 @@
+{
+  "slice": "PR-M1b",
+  "generated_at": "2026-02-22T00:00:00Z",
+  "commands": [
+    {
+      "command": "python -m py_compile apps/api/src/api/routers/odds_matcher.py apps/api/src/api/services/matcher_read_model_service.py apps/api/src/api/scripts/generate_pr29_matcher_read_model_serving_parity.py apps/api/tests/test_matcher_read_model_serving.py",
+      "result": "passed",
+      "summary": "syntax check passed"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_serving.py -q",
+      "result": "passed",
+      "summary": "5 passed, 3 warnings"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_odds_matcher_hot_path.py -q",
+      "result": "passed",
+      "summary": "3 passed, 3 warnings"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q",
+      "result": "passed",
+      "summary": "6 passed, 1 warning"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q",
+      "result": "passed",
+      "summary": "1 passed, 3 warnings"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; python -m api.scripts.generate_pr29_matcher_read_model_serving_parity",
+      "result": "passed",
+      "summary": "parity JSON generated with top_level_equal=true, canonical_rows_equal=true, schema_fields_match=true"
+    }
+  ],
+  "freeze_verification": {
+    "mb_api_env": "BOOKMAKER_FREEZE_UNIBET=true",
+    "mb_worker_env": "BOOKMAKER_FREEZE_UNIBET=true",
+    "db_unibet_is_active": false
+  }
+}

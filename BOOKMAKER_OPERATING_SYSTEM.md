@@ -50,7 +50,7 @@ This methodology is designed to be executed locally first to get as close to pro
 5. Fast read path:
    - Matcher reads from current-state/read-optimized data structures.
    - Avoid API hot-path N+1/in-memory heavy grouping.
-   - Maintain read-model foundation with parity checks before serving cutover.
+   - Maintain read-model foundation with parity checks and freshness-guarded serving fallback.
 6. Observable by default:
    - Mandatory per-bookmaker metrics: success rate, latency, count deltas, validation score, last success.
 
@@ -280,7 +280,7 @@ These are still required to make onboarding low-risk at 100+ bookmakers:
 4. Add per-bookmaker policy config (timeouts, retries, concurrency class, proxy class).
 5. Add first-class bookmaker health dashboard with alerting hooks.
 6. Add automated onboarding report generation (go/no-go artifact).
-7. Evolve matcher from in-request set-based preloading to dedicated read-model/materialized serving for sustained high load.
+7. Evolve matcher from runtime-first serving to default-on read-model serving after sustained parity/latency confidence.
 
 ## Phase A Sync Status (Post PR-C2)
 Implemented now:
@@ -303,21 +303,23 @@ Implemented now:
    - canary scope controls (`sport`, `competition`, `bookmaker`) for runtime selection.
    - admin/internal rollout policy and status endpoints.
    - rollback path excludes affected bookmakers immediately on next selection evaluation.
-10. Matcher read-model foundation is in place (non-serving):
+10. Matcher read-model foundation + guarded serving path are in place:
    - matcher-ready rows and build freshness metadata persisted in DB.
    - idempotent bounded builder path with deterministic summary output.
    - optional shadow parity checks compare read-model rows to runtime matcher output.
+   - `/odds/matcher` can serve from read-model behind feature flag with deterministic runtime fallback when read-model is stale/missing/unhealthy/unsupported.
+   - matcher telemetry now records `serving_source` and fallback reason codes.
 
 Known constraints still open:
 1. Evidence retention/discovery tooling around canonical records is still limited.
 2. Rollout policy history/audit stream is latest-state only; immutable change history is pending.
 3. Health visibility exists via endpoints but not a dedicated operational dashboard.
 4. Refresh ACL audit query/dashboard tooling is still minimal.
-5. Matcher serving path still reads from runtime source flow; read-model serving cutover is pending.
+5. Matcher serving default remains runtime-first; read-model path is currently opt-in and not default-on.
 
 Planned follow-up work:
 1. Tighten canary thresholds after longer-run telemetry under bounded scheduler.
-2. Cut over matcher serving path to read-model rows after sustained parity/latency validation.
+2. Expand read-model serving request-shape coverage and define default-on cutover criteria after sustained parity/latency validation.
 3. Add rollout policy history + operator dashboards.
 4. Add refresh ACL/audit operator query surfaces and dashboards.
 

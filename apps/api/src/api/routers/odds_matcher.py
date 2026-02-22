@@ -27,6 +27,10 @@ from api.services.normalization_service import (
     fuzzy_match_score,
     get_competition_display_name,
 )
+from api.services.matcher_read_model_service import (
+    get_read_model_serving_snapshot,
+    load_matcher_read_model_serving_config_from_env,
+)
 
 
 router = APIRouter(prefix="/odds", tags=["odds-matcher"])
@@ -310,6 +314,72 @@ def _load_precomputed_matcher_data(
         "odds_by_selection_id": dict(odds_by_selection_id),
         "query_round_trip_signal": query_round_trip_signal,
     }
+
+
+def _read_model_request_supported(
+    *,
+    stake: Decimal,
+    bet_type: BetType,
+    sport_filter: Optional[List[str]],
+    competition_filter: Optional[List[int]],
+) -> tuple[bool, Optional[str]]:
+    """
+    Read-model serving currently supports contract-safe filters that are present in
+    row payloads; unsupported filters fail over to runtime path.
+    """
+    if Decimal(str(stake)) != Decimal("100"):
+        return False, "read_model_unsupported_stake"
+    if bet_type != BetType.NORMAL:
+        return False, "read_model_unsupported_bet_type"
+    if sport_filter:
+        return False, "read_model_unsupported_sport_codes_filter"
+    if competition_filter:
+        return False, "read_model_unsupported_competition_ids_filter"
+    return True, None
+
+
+def _read_model_opportunities_from_payloads(
+    payloads: List[Dict[str, Any]],
+    *,
+    bookmaker_filter: List[str],
+    sport_filter: Optional[List[str]],
+    competition_code_filter: Optional[List[str]],
+    search: Optional[str],
+    min_rating: Optional[Decimal],
+) -> tuple[List["OddsMatchResponse"], Optional[str]]:
+    opportunities: List[OddsMatchResponse] = []
+    sport_filter_set = {item.strip().lower() for item in (sport_filter or []) if item}
+    normalized_comp_codes = {
+        normalize_competition_name(item)
+        for item in (competition_code_filter or [])
+        if item
+    }
+    search_value = (search or "").strip().lower()
+
+    for payload in payloads:
+        try:
+            row = OddsMatchResponse.model_validate(payload)
+        except Exception:
+            return [], "read_model_invalid_payload"
+
+        if row.back_bookmaker_code not in bookmaker_filter:
+            continue
+        if sport_filter_set:
+            sport_name = (row.sport_name or "").strip().lower()
+            if sport_name not in sport_filter_set:
+                continue
+        if normalized_comp_codes:
+            row_comp = normalize_competition_name(row.competition_name or "")
+            if row_comp not in normalized_comp_codes:
+                continue
+        if search_value and search_value not in (row.event_name or "").lower():
+            continue
+        if min_rating is not None and Decimal(str(row.rating)) < min_rating:
+            continue
+        opportunities.append(row)
+
+    opportunities.sort(key=lambda x: x.pnl_percentage, reverse=True)
+    return opportunities, None
 
 
 class OddsMatcherFilters(BaseModel):
@@ -736,6 +806,8 @@ async def get_matcher_opportunities(
     matcher_query_round_trip_signal = 0
     total_count_for_metrics = 0
     has_more_for_metrics = False
+    serving_source_for_metrics = "runtime"
+    fallback_reason_code_for_metrics: Optional[str] = None
 
     def _emit_matcher_metrics(status_code: int) -> None:
         latency_ms = (time.time() - total_start) * 1000.0
@@ -751,7 +823,71 @@ async def get_matcher_opportunities(
                 "query_round_trip_signal": int(matcher_query_round_trip_signal),
                 "opportunities_total": int(total_count_for_metrics),
                 "has_more": bool(has_more_for_metrics),
+                "serving_source": serving_source_for_metrics,
+                "fallback_reason_code": fallback_reason_code_for_metrics,
             },
+        )
+
+    def _finalize_response(opportunities: List[OddsMatchResponse]) -> PaginatedOddsResponse:
+        nonlocal total_count_for_metrics, has_more_for_metrics
+
+        opportunities.sort(key=lambda x: x.pnl_percentage, reverse=True)
+        total_count = len(opportunities)
+        paginated_opps = opportunities[offset:offset + limit]
+        has_more = (offset + limit) < total_count
+        total_count_for_metrics = total_count
+        has_more_for_metrics = has_more
+
+        response.headers["X-Matcher-Serving-Source"] = serving_source_for_metrics
+        if fallback_reason_code_for_metrics:
+            response.headers["X-Matcher-Fallback-Reason"] = fallback_reason_code_for_metrics
+
+        last_modified_dt = None
+        if paginated_opps:
+            last_modified_dt = max((opp.last_updated for opp in paginated_opps if opp.last_updated), default=None)
+
+        if last_modified_dt:
+            etag = f'W/"{int(last_modified_dt.timestamp())}-{total_count}-{offset}-{limit}"'
+            response.headers["ETag"] = etag
+            response.headers["Last-Modified"] = format_datetime(last_modified_dt)
+
+            incoming_etag = request.headers.get("if-none-match")
+            incoming_last_mod = request.headers.get("if-modified-since")
+
+            if incoming_etag and incoming_etag == etag:
+                response.status_code = 304
+                _emit_matcher_metrics(status_code=304)
+                return PaginatedOddsResponse(
+                    items=[],
+                    total=total_count,
+                    offset=offset,
+                    limit=limit,
+                    has_more=has_more,
+                )
+
+            if incoming_last_mod:
+                try:
+                    if_last_mod_dt = parsedate_to_datetime(incoming_last_mod)
+                    if last_modified_dt <= if_last_mod_dt:
+                        response.status_code = 304
+                        _emit_matcher_metrics(status_code=304)
+                        return PaginatedOddsResponse(
+                            items=[],
+                            total=total_count,
+                            offset=offset,
+                            limit=limit,
+                            has_more=has_more,
+                        )
+                except Exception:
+                    pass
+
+        _emit_matcher_metrics(status_code=200)
+        return PaginatedOddsResponse(
+            items=paginated_opps,
+            total=total_count,
+            offset=offset,
+            limit=limit,
+            has_more=has_more,
         )
 
     # Get or create user (auto-create on first access)
@@ -796,6 +932,52 @@ async def get_matcher_opportunities(
             status_code=403,
             detail="Your plan does not allow access to the requested bookmakers",
         )
+
+    serving_cfg = load_matcher_read_model_serving_config_from_env()
+    if serving_cfg.enabled:
+        supported, unsupported_reason = _read_model_request_supported(
+            stake=stake,
+            bet_type=bet_type,
+            sport_filter=sport_filter,
+            competition_filter=competition_filter,
+        )
+        if supported:
+            try:
+                snapshot = get_read_model_serving_snapshot(
+                    db,
+                    read_model_version=serving_cfg.read_model_version,
+                    max_age_seconds=serving_cfg.max_age_seconds,
+                    now=datetime.now(timezone.utc),
+                )
+            except Exception:
+                snapshot = {
+                    "ok": False,
+                    "reason_code": "read_model_query_error",
+                    "payloads": [],
+                    "query_round_trip_signal": 0,
+                }
+            matcher_query_round_trip_signal += int(snapshot.get("query_round_trip_signal", 0) or 0)
+            if snapshot.get("ok"):
+                read_model_opps, invalid_payload_reason = _read_model_opportunities_from_payloads(
+                    list(snapshot.get("payloads") or []),
+                    bookmaker_filter=bookmaker_filter,
+                    sport_filter=sport_filter,
+                    competition_code_filter=competition_code_filter,
+                    search=search,
+                    min_rating=min_rating,
+                )
+                if invalid_payload_reason is None:
+                    serving_source_for_metrics = "read_model"
+                    fallback_reason_code_for_metrics = None
+                    return _finalize_response(read_model_opps)
+                serving_source_for_metrics = "runtime_fallback"
+                fallback_reason_code_for_metrics = invalid_payload_reason
+            else:
+                serving_source_for_metrics = "runtime_fallback"
+                fallback_reason_code_for_metrics = str(snapshot.get("reason_code") or "read_model_unhealthy")
+        else:
+            serving_source_for_metrics = "runtime_fallback"
+            fallback_reason_code_for_metrics = unsupported_reason or "read_model_unsupported_filter"
 
     # Find events happening in next 14 days
     now = datetime.now(timezone.utc)
@@ -850,14 +1032,7 @@ async def get_matcher_opportunities(
             events = filtered_events
 
     if not events:
-        _emit_matcher_metrics(status_code=200)
-        return PaginatedOddsResponse(
-            items=[],
-            total=0,
-            offset=offset,
-            limit=limit,
-            has_more=False,
-        )
+        return _finalize_response([])
 
     event_groups = _group_events(events)
     preloaded = _load_precomputed_matcher_data(
@@ -1061,65 +1236,6 @@ async def get_matcher_opportunities(
     matching_time = time.time() - matching_start
     logger.info(f"[MATCHER] Matching logic took {matching_time:.2f}s")
 
-    sort_start = time.time()
-    opportunities.sort(key=lambda x: x.pnl_percentage, reverse=True)
-    sort_time = time.time() - sort_start
-    logger.info(f"[MATCHER] Sorting took {sort_time:.2f}s")
-
     total_time = time.time() - total_start
     logger.info(f"[MATCHER] Total endpoint time: {total_time:.2f}s")
-
-    total_count = len(opportunities)
-    paginated_opps = opportunities[offset:offset + limit]
-    has_more = (offset + limit) < total_count
-    total_count_for_metrics = total_count
-    has_more_for_metrics = has_more
-
-    # Compute caching headers
-    last_modified_dt = None
-    if paginated_opps:
-        last_modified_dt = max((opp.last_updated for opp in paginated_opps if opp.last_updated), default=None)
-
-    if last_modified_dt:
-        etag = f'W/"{int(last_modified_dt.timestamp())}-{total_count}-{offset}-{limit}"'
-        response.headers["ETag"] = etag
-        response.headers["Last-Modified"] = format_datetime(last_modified_dt)
-
-        incoming_etag = request.headers.get("if-none-match")
-        incoming_last_mod = request.headers.get("if-modified-since")
-
-        if incoming_etag and incoming_etag == etag:
-            response.status_code = 304
-            _emit_matcher_metrics(status_code=304)
-            return PaginatedOddsResponse(
-                items=[],
-                total=total_count,
-                offset=offset,
-                limit=limit,
-                has_more=has_more,
-            )
-
-        if incoming_last_mod:
-            try:
-                if_last_mod_dt = parsedate_to_datetime(incoming_last_mod)
-                if last_modified_dt <= if_last_mod_dt:
-                    response.status_code = 304
-                    _emit_matcher_metrics(status_code=304)
-                    return PaginatedOddsResponse(
-                        items=[],
-                        total=total_count,
-                        offset=offset,
-                        limit=limit,
-                        has_more=has_more,
-                    )
-            except Exception:
-                pass
-
-    _emit_matcher_metrics(status_code=200)
-    return PaginatedOddsResponse(
-        items=paginated_opps,
-        total=total_count,
-        offset=offset,
-        limit=limit,
-        has_more=has_more,
-    )
+    return _finalize_response(opportunities)

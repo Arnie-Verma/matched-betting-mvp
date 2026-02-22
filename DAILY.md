@@ -191,6 +191,26 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - `pr28_matcher_read_model_foundation_contract.md`
     - `pr28_matcher_read_model_foundation_tests.json`
     - `pr28_matcher_read_model_foundation_parity.json`
+- PR-M1b matcher read-model serving path completed (single slice, feature-flagged with fallback):
+  - Added feature-flagged `/odds/matcher` read-model serving mode:
+    - `MATCHER_READ_MODEL_SERVING_ENABLED` (default runtime path)
+    - `MATCHER_READ_MODEL_VERSION`
+    - `MATCHER_READ_MODEL_MAX_AGE_SECONDS`
+  - Added deterministic freshness/health fallback to runtime with reason codes:
+    - missing build, invalid build timestamp, stale build, no rows, query error, invalid payload, unsupported request shape
+  - Added matcher serving telemetry fields:
+    - `serving_source=runtime|read_model|runtime_fallback`
+    - `fallback_reason_code`
+  - Added matcher serving regression tests:
+    - flag-off runtime branch
+    - flag-on fresh read-model branch
+    - missing/stale fallback branches
+    - unsupported-request fallback branch
+    - runtime/read-model parity branch (schema + canonical row parity)
+  - Added ADR-0023 and PR29 evidence artifacts:
+    - `pr29_matcher_read_model_serving_contract.md`
+    - `pr29_matcher_read_model_serving_tests.json`
+    - `pr29_matcher_read_model_serving_parity.json`
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
@@ -211,6 +231,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - PR-A2b enforces automation lock + guardrail abort behavior before execute deletes; no terminal-only cleanup semantics changes.
 - PR-A2c hardens retention lock release to atomic compare-delete and requires explicit per-run cap-override intent.
 - PR-M1a introduces read-model persistence/builder/parity foundation while keeping `/odds/matcher` runtime path as primary serving behavior.
+- PR-M1b keeps runtime as default matcher serving path and enables read-model serving only behind explicit flag with deterministic fallback.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
@@ -223,6 +244,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Retention automation depends on lock store availability; lock-client outages fail closed (`lock_client_unavailable`) and should alert on-call.
 - Retention automation still relies on lock TTL tuning; if TTL is too short for rare long runs, operators may see repeated `lock_not_acquired` retries.
 - Matcher read-model is currently non-serving; parity and freshness checks must remain healthy before any serving-path cutover.
+- Read-model serving supports a conservative parity-safe request subset; unsupported request shapes intentionally fall back to runtime until expanded.
 
 ## 2026-02-21 (Saturday)
 
