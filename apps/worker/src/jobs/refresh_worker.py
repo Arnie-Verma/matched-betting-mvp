@@ -31,6 +31,52 @@ _LAST_SELECTION_STATUS: Dict[str, Any] = {
 }
 
 
+def _sync_durable_refresh_job_state(job_id: str, **fields: Any) -> None:
+    """
+    Best-effort durable refresh-job state sync.
+
+    Worker remains non-fatal if durable persistence is temporarily unavailable.
+    """
+    if os.getenv("REFRESH_JOB_DURABLE_SYNC_ENABLED", "1") != "1":
+        return
+    if os.getenv("PYTEST_CURRENT_TEST"):
+        return
+
+    logger = logging.getLogger(__name__)
+    try:
+        from api.core.database import SessionLocal  # type: ignore
+        from api.services.refresh_job_acl_service import RefreshJobAclService  # type: ignore
+    except Exception:
+        return
+
+    try:
+        db = SessionLocal()
+    except Exception:
+        return
+
+    try:
+        RefreshJobAclService.update_runtime_state(
+            db,
+            job_id=job_id,
+            status=fields.get("status"),
+            enqueued_at=fields.get("enqueued_at"),
+            started_at=fields.get("started_at"),
+            completed_at=fields.get("completed_at"),
+            message=fields.get("message"),
+            errors=fields.get("errors"),
+            result=fields.get("result"),
+            attempts=fields.get("attempts"),
+            payload=fields.get("payload"),
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"[refresh-worker] durable refresh-job sync skipped for {job_id}: {exc}")
+    finally:
+        try:
+            db.close()
+        except Exception:
+            pass
+
+
 def _update_job(
     redis_client,
     job_id: str,
@@ -143,6 +189,16 @@ async def _process_job(
     job["started_at"] = datetime.now(timezone.utc).isoformat()
     job = _set_status(job, "running", "Fetching latest odds...")
     _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
+    _sync_durable_refresh_job_state(
+        job_id,
+        status=job.get("status"),
+        enqueued_at=job.get("enqueued_at"),
+        started_at=job.get("started_at"),
+        message=job.get("message"),
+        errors=job.get("errors"),
+        attempts=job.get("attempts"),
+        payload=job.get("payload"),
+    )
 
     payload = job.get("payload") or {}
     payload_sport = payload.get("sport") or payload.get("sports") or "all"
@@ -179,6 +235,18 @@ async def _process_job(
             }
             job = _set_status(job, "failed", f"Refresh blocked: {reason_code}")
             _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
+            _sync_durable_refresh_job_state(
+                job_id,
+                status=job.get("status"),
+                enqueued_at=job.get("enqueued_at"),
+                started_at=job.get("started_at"),
+                completed_at=job.get("completed_at"),
+                message=job.get("message"),
+                errors=job.get("errors"),
+                result=job.get("result"),
+                attempts=job.get("attempts"),
+                payload=job.get("payload"),
+            )
             return
 
         # Concurrency guard (global per bookmaker)
@@ -213,6 +281,18 @@ async def _process_job(
         status = "success" if success else "failed"
         msg = "Odds refresh completed" if success else "Refresh completed with errors"
         job = _set_status(job, status, msg)
+        _sync_durable_refresh_job_state(
+            job_id,
+            status=job.get("status"),
+            enqueued_at=job.get("enqueued_at"),
+            started_at=job.get("started_at"),
+            completed_at=job.get("completed_at"),
+            message=job.get("message"),
+            errors=job.get("errors"),
+            result=job.get("result"),
+            attempts=job.get("attempts"),
+            payload=job.get("payload"),
+        )
 
         # On success, refresh cache timestamps (global + per bookmaker)
         redis_client.setex(global_cache_key, fast_ttl_seconds, now.isoformat())
@@ -232,6 +312,18 @@ async def _process_job(
         if attempts > max_retries:
             job = _set_status(job, "failed", "Refresh failed; moved to DLQ")
             _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
+            _sync_durable_refresh_job_state(
+                job_id,
+                status=job.get("status"),
+                enqueued_at=job.get("enqueued_at"),
+                started_at=job.get("started_at"),
+                completed_at=job.get("completed_at"),
+                message=job.get("message"),
+                errors=job.get("errors"),
+                result=job.get("result"),
+                attempts=job.get("attempts"),
+                payload=job.get("payload"),
+            )
             redis_client.lpush(dlq_key, json.dumps(job))
             try:
                 if redis_client.get(in_progress_key) == job_id.encode():
@@ -244,6 +336,18 @@ async def _process_job(
         delay = backoff_base * (2 ** (attempts - 1)) + random.random() * backoff_jitter
         job = _set_status(job, "pending", f"Retrying in {delay:.1f}s")
         _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
+        _sync_durable_refresh_job_state(
+            job_id,
+            status=job.get("status"),
+            enqueued_at=job.get("enqueued_at"),
+            started_at=job.get("started_at"),
+            completed_at=job.get("completed_at"),
+            message=job.get("message"),
+            errors=job.get("errors"),
+            result=job.get("result"),
+            attempts=job.get("attempts"),
+            payload=job.get("payload"),
+        )
         await asyncio.sleep(delay)
         redis_client.rpush(queue_key, job_id)
         return
@@ -258,6 +362,18 @@ async def _process_job(
                 pass
 
     _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
+    _sync_durable_refresh_job_state(
+        job_id,
+        status=job.get("status"),
+        enqueued_at=job.get("enqueued_at"),
+        started_at=job.get("started_at"),
+        completed_at=job.get("completed_at"),
+        message=job.get("message"),
+        errors=job.get("errors"),
+        result=job.get("result"),
+        attempts=job.get("attempts"),
+        payload=job.get("payload"),
+    )
     try:
         if redis_client.get(in_progress_key) == job_id.encode():
             redis_client.delete(in_progress_key)

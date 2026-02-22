@@ -153,7 +153,9 @@ This methodology is designed to be executed locally first to get as close to pro
 
 ## Security Access Policy (Current)
 1. Refresh status endpoint (`GET /odds/refresh/status`):
-   - allow owner (`payload.requested_by`) and explicitly shared merged readers (`payload.shared_user_ids`)
+   - allow owner + explicitly shared users from durable ACL records (`refresh_jobs` + `refresh_job_acl_entries`)
+   - durable ACL is source of truth when present; Redis payload fallback is only for pre-migration jobs
+   - access allow/deny decisions are durably audited (`refresh_job_audit_events`)
    - deny cross-user access with `403`
 2. Scraper health endpoints:
    - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access
@@ -298,15 +300,15 @@ Implemented now:
 
 Known constraints still open:
 1. Evidence retention/discovery tooling around canonical records is still limited.
-2. Refresh ACL metadata is Redis payload-based (durable ACL/audit model not yet implemented).
-3. Rollout policy history/audit stream is latest-state only; immutable change history is pending.
-4. Health visibility exists via endpoints but not a dedicated operational dashboard.
+2. Rollout policy history/audit stream is latest-state only; immutable change history is pending.
+3. Health visibility exists via endpoints but not a dedicated operational dashboard.
+4. Refresh ACL audit retention/query tooling is still minimal.
 
 Planned follow-up work:
 1. Tighten canary thresholds after longer-run telemetry under bounded scheduler.
-2. Add durable refresh-job ACL/audit logging.
-3. Build matcher read model for sustained 100+ bookmaker load.
-4. Add rollout policy history + operator dashboards.
+2. Build matcher read model for sustained 100+ bookmaker load.
+3. Add rollout policy history + operator dashboards.
+4. Add refresh ACL/audit retention and operator query surfaces.
 
 ## Definition Of Scaled
 1. New bookmaker onboarding is mostly config + validation.

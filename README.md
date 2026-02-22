@@ -60,7 +60,8 @@ Implemented now:
   - canary cohort controls (`sport`, `competition`, `bookmaker`) for runtime selection
   - admin/internal rollout policy and status endpoints
 - Security controls:
-  - `GET /odds/refresh/status` restricted to owner/shared users.
+  - `GET /odds/refresh/status` restricted by durable DB-backed owner/shared ACL (Redis payload fallback only for pre-migration jobs).
+  - refresh ACL decisions are durably audited (`job create`, `share/unshare`, `status access allow/deny`).
   - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access; telemetry defaults to aggregate-only response output.
 - Unibet remains frozen by baseline policy (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
 

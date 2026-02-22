@@ -97,6 +97,30 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - refresh job result now includes structured `selection_status` and blocked reason.
   - Added regression tests for fail-closed behavior and blocked refresh-job propagation.
   - Added PR23 evidence artifacts.
+- PR-A1 durable refresh ACL + audit logging completed (single slice, no Unibet onboarding/activation):
+  - Added durable DB-backed refresh control-plane models:
+    - `refresh_jobs`
+    - `refresh_job_acl_entries`
+    - `refresh_job_audit_events`
+  - Added migration: `apps/api/alembic/versions/20260222_durable_refresh_acl.py`.
+  - Added `RefreshJobAclService` to enforce durable ACL authority and audit:
+    - job create
+    - ACL share/unshare updates
+    - status access allow/deny decisions with reason codes
+    - opportunistic legacy Redis payload backfill for pre-migration jobs
+  - Updated `GET /odds/refresh/status` to:
+    - prefer durable ACL source of truth when durable row exists
+    - use Redis payload fallback only when durable row is missing
+    - keep cross-user deny behavior (`403`) and emit security telemetry
+  - Added worker best-effort durable status sync (non-fatal) and kill switch env:
+    - `REFRESH_JOB_DURABLE_SYNC_ENABLED` (default `1`)
+  - Added backfill utility script for active/recent jobs:
+    - `python -m api.scripts.backfill_refresh_jobs_acl --hours 24`
+  - Added PR24 evidence artifacts:
+    - `pr24_durable_refresh_acl_contract.md`
+    - `pr24_durable_refresh_acl_tests.json`
+    - `pr24_durable_refresh_acl_scenarios.json`
+  - Added ADR-0021 (`durable-refresh-acl-audit-persistence`).
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
@@ -112,6 +136,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - PR-C2 establishes rollout policy as a mandatory runtime input for worker bookmaker selection.
 - Rollout rollback is policy-driven (kill switch / mode change), not code-change driven.
 - PR-C2A enforces fail-closed selection as non-bypassable safety behavior during policy-source outage.
+- PR-A1 sets durable DB ACL as refresh-status authority for durable jobs; Redis payload ACL remains temporary fallback for pre-migration jobs only.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
@@ -120,6 +145,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Worker evidence scripts write to path relative to invocation directory; this can place artifacts under `apps/worker/src/docs/...` unless explicit `--evidence-dir` is passed.
 - Rollout policy rows currently store latest state only; immutable policy history is not yet available.
 - During DB/policy-source outage, refresh jobs fail closed by design; operational response needs fast DB/policy restoration playbook.
+- Refresh ACL audit tables can grow without retention policy; add TTL/archival in follow-up slice.
 
 ## 2026-02-21 (Saturday)
 

@@ -108,6 +108,7 @@ Worker orchestration behavior:
 - bounded bookmaker scheduler enforces global + per-platform concurrency caps
 - emits scheduler metrics (`observed_max_in_flight_global`, `observed_max_in_flight_by_platform`)
 - updates global and per-bookmaker refresh timestamps
+- best-effort durable refresh-job runtime status sync writes into Postgres for jobs that have durable rows
 
 Key code:
 - `apps/api/src/api/services/refresh_queue.py`
@@ -211,9 +212,11 @@ Plan enforcement is server-side:
 - metadata endpoints return plan-allowed bookmakers
 - frozen bookmakers are filtered from allow-lists during freeze windows
 - refresh job status access is owner/shared-reader scoped:
-  - owner: `payload.requested_by`
-  - merged/shared readers: `payload.shared_user_ids`
-  - others: `403`
+  - durable source of truth: `refresh_jobs` + `refresh_job_acl_entries`
+  - owner + explicitly shared users are allowed
+  - cross-user readers are denied with `403`
+  - legacy Redis-payload ACL fallback is used only when durable row is missing (pre-migration jobs)
+  - decisions are audited in `refresh_job_audit_events`
 - bookmaker lifecycle transitions are restricted to admin/internal control path:
   - `POST /admin/bookmakers/{bookmaker_code}/lifecycle`
   - authenticated `admin/ops` role or explicit internal token
@@ -299,6 +302,7 @@ Important runtime knobs:
 - `BOOKMAKER_ROLLOUT_ALLOWED_ROLES` (default `admin,ops`)
 - `BOOKMAKER_ROLLOUT_INTERNAL_TOKEN`
 - `ROLLOUT_ELIGIBLE_LIFECYCLE_STATES` (default `canary_active,active,degraded`)
+- `REFRESH_JOB_DURABLE_SYNC_ENABLED` (default `1`; set `0` to disable worker best-effort durable status sync)
 
 Notes:
 - scraper code defaults `SCRAPER_BATCH_SIZE` to `1` if env is absent
@@ -308,7 +312,7 @@ Notes:
 1. Evidence retention/list/query tooling around canonical records is still minimal.
 2. Validation thresholds still need ongoing calibration across competitions/platforms.
 3. Matcher hot-path N+1 has been removed, but response assembly is still in-request in-memory work (no dedicated read model yet).
-4. Refresh job ACLs are stored in Redis payload metadata; stronger typed persistence/audit logging is still pending.
+4. Refresh-job ACL durability is implemented, but retention policy and query tooling for audit rows are still minimal.
 5. Some plan/bookmaker lists are hardcoded and need long-term config centralization.
 
 ## Implementation Status (Phase A hardening)
@@ -316,7 +320,7 @@ Implemented now:
 1. Bounded scheduler with global + per-platform caps and scheduler metrics.
 2. Runtime active bookmaker derivation from DB plus freeze policy (no static active-list control path).
 3. Matcher set-based preloading strategy for events/markets/selections/odds.
-4. Security policy on `/odds/refresh/status` ownership/shared visibility.
+4. Security policy on `/odds/refresh/status` with durable owner/shared ACL authority + auditable access decisions.
 5. Security policy on `/health/scrapers`, `/health/detailed`, and `/health/telemetry` ops/internal access with consistent dependency.
 6. Lifecycle persistence + transition guard policy in code, with audited transitions and admin/internal control path.
 7. Activation-gate evidence enforcement in code:
@@ -337,10 +341,11 @@ Still open:
 2. Dedicated matcher read model/materialization for higher sustained traffic.
 3. Canonical evidence retention and discovery tooling (list/query/dashboard) for lifecycle gate inputs.
 4. Rollout policy history/audit stream is not yet first-class (current policy rows store latest state only).
+5. Refresh ACL/audit retention + operator query tooling is still limited.
 
 Planned follow-ups:
 1. Tighten canary reliability thresholds after scheduler and matcher improvements are observed over longer windows.
-2. Add durable job ACL/audit model for refresh status access.
+2. Add retention policy + operator query tooling for refresh ACL audit records.
 3. Continue policy centralization for plan/bookmaker exposure rules.
 
 These are tracked in:

@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any
 
 from sqlalchemy import (
     Column, String, DateTime, Boolean, Integer, ForeignKey,
-    Text, JSON, Numeric, Index, UniqueConstraint, event, false
+    Text, JSON, Numeric, Index, UniqueConstraint, event, false, true as sa_true
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -286,6 +286,103 @@ class BookmakerActivationEvidence(Base):
             "artifact_sha256",
             name="uq_activation_evidence_code_type_hash",
         ),
+    )
+
+
+class RefreshJob(Base):
+    """Durable refresh-job state with DB-backed ownership and ACL authority."""
+    __tablename__ = "refresh_jobs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(String(64), nullable=False, unique=True, index=True)
+    owner_user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    status = Column(String(20), nullable=False, default="pending", server_default="pending", index=True)
+    source = Column(String(40), nullable=False, default="redis_queue_v1", server_default="redis_queue_v1")
+
+    requested_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    enqueued_at = Column(DateTime(timezone=True), nullable=True)
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+    message = Column(Text, nullable=True)
+    errors = Column(JSON, nullable=True)
+    result = Column(JSON, nullable=True)
+    payload = Column(JSON, nullable=True)
+    attempts = Column(Integer, nullable=False, default=0, server_default="0")
+
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    owner = relationship("User", foreign_keys=[owner_user_id])
+    acl_entries = relationship(
+        "RefreshJobAclEntry",
+        back_populates="refresh_job",
+        cascade="all, delete-orphan",
+    )
+    audit_events = relationship(
+        "RefreshJobAuditEvent",
+        back_populates="refresh_job",
+        cascade="all, delete-orphan",
+        order_by="RefreshJobAuditEvent.created_at",
+    )
+
+    __table_args__ = (
+        Index("idx_refresh_jobs_owner_created", "owner_user_id", "created_at"),
+        Index("idx_refresh_jobs_status_updated", "status", "updated_at"),
+    )
+
+
+class RefreshJobAclEntry(Base):
+    """Durable ACL entries granting refresh-status read access."""
+    __tablename__ = "refresh_job_acl_entries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    refresh_job_id = Column(Integer, ForeignKey("refresh_jobs.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    access_type = Column(String(20), nullable=False, default="read", server_default="read")
+    is_active = Column(Boolean, nullable=False, default=True, server_default=sa_true(), index=True)
+    granted_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    grant_reason = Column(String(120), nullable=True)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    refresh_job = relationship("RefreshJob", back_populates="acl_entries")
+    user = relationship("User", foreign_keys=[user_id])
+    granted_by_user = relationship("User", foreign_keys=[granted_by_user_id])
+
+    __table_args__ = (
+        Index(
+            "idx_refresh_job_acl_lookup",
+            "refresh_job_id",
+            "is_active",
+            "user_id",
+        ),
+        UniqueConstraint("refresh_job_id", "user_id", "access_type", name="uq_refresh_job_acl_entry"),
+    )
+
+
+class RefreshJobAuditEvent(Base):
+    """Durable audit trail for refresh-job ACL and status access decisions."""
+    __tablename__ = "refresh_job_audit_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    refresh_job_id = Column(Integer, ForeignKey("refresh_jobs.id"), nullable=False, index=True)
+    job_id = Column(String(64), nullable=False, index=True)
+    action_type = Column(String(50), nullable=False)
+    decision = Column(String(20), nullable=True)
+    reason_code = Column(String(80), nullable=True)
+    actor_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    actor_sub = Column(String(120), nullable=True)
+    event_metadata = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    refresh_job = relationship("RefreshJob", back_populates="audit_events")
+    actor_user = relationship("User", foreign_keys=[actor_user_id])
+
+    __table_args__ = (
+        Index("idx_refresh_job_audit_lookup", "refresh_job_id", "created_at"),
+        Index("idx_refresh_job_audit_action", "action_type", "created_at"),
     )
 
 

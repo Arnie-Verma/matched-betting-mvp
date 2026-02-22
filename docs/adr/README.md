@@ -32,6 +32,7 @@ Create or update an ADR when any of the following changes:
 - `ADR-0018-activation-gate-evidence-enforcement.md`
 - `ADR-0019-canonical-activation-evidence-registry.md`
 - `ADR-0020-rollout-control-plane-selection-enforcement.md`
+- `ADR-0021-durable-refresh-acl-audit-persistence.md`
 
 ## ADR Template
 Use this structure:

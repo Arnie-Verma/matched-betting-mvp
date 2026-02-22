@@ -1,0 +1,75 @@
+{
+  "slice": "PR-A1",
+  "generated_at": "2026-02-22T00:00:00Z",
+  "scenarios": [
+    {
+      "name": "durable_owner_access_allowed",
+      "source_test": "apps/api/tests/test_refresh_acl_durable.py::test_durable_acl_enforces_owner_and_shared_and_writes_access_audit",
+      "expected": {"status_code": 200},
+      "observed": {"status_code": 200},
+      "pass": true
+    },
+    {
+      "name": "durable_shared_access_allowed",
+      "source_test": "apps/api/tests/test_refresh_acl_durable.py::test_durable_acl_enforces_owner_and_shared_and_writes_access_audit",
+      "expected": {"status_code": 200},
+      "observed": {"status_code": 200},
+      "pass": true
+    },
+    {
+      "name": "durable_cross_user_denied",
+      "source_test": "apps/api/tests/test_refresh_acl_durable.py::test_durable_acl_enforces_owner_and_shared_and_writes_access_audit",
+      "expected": {"status_code": 403},
+      "observed": {"status_code": 403},
+      "pass": true
+    },
+    {
+      "name": "durable_precedence_over_legacy_payload",
+      "source_test": "apps/api/tests/test_refresh_acl_durable.py::test_durable_acl_precedence_blocks_redis_payload_bypass",
+      "expected": {"status_code": 403},
+      "observed": {"status_code": 403},
+      "pass": true
+    },
+    {
+      "name": "legacy_pre_migration_fallback",
+      "source_test": "apps/api/tests/test_refresh_acl_durable.py::test_legacy_pre_migration_fallback_allows_shared_and_denies_non_shared",
+      "expected": {
+        "shared_status_code": 200,
+        "outsider_status_code": 403,
+        "durable_backfill_created": true
+      },
+      "observed": {
+        "shared_status_code": 200,
+        "outsider_status_code": 403,
+        "durable_backfill_created": true
+      },
+      "pass": true
+    },
+    {
+      "name": "redis_expiry_does_not_remove_acl_authority",
+      "source_test": "apps/api/tests/test_refresh_acl_durable.py::test_durable_acl_survives_redis_expiry_for_backfilled_jobs",
+      "expected": {
+        "status_after_redis_key_delete": 200,
+        "result_source": "durable"
+      },
+      "observed": {
+        "status_after_redis_key_delete": 200,
+        "result_source": "durable"
+      },
+      "pass": true
+    },
+    {
+      "name": "share_unshare_audit_persisted",
+      "source_test": "apps/api/tests/test_refresh_acl_durable.py::test_service_records_acl_share_and_unshare_audit_events",
+      "expected": {
+        "contains_acl_share_update": true,
+        "contains_acl_unshare_update": true
+      },
+      "observed": {
+        "contains_acl_share_update": true,
+        "contains_acl_unshare_update": true
+      },
+      "pass": true
+    }
+  ]
+}

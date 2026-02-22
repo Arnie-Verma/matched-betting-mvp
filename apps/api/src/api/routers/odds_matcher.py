@@ -19,6 +19,7 @@ from api.models import User, Event, Market, Selection, OddsSnapshot, Bookmaker, 
 from api.services.matching_engine import MatchingEngine, BetType, BackBet, LayBet
 from api.services.subscription_service import SubscriptionService
 from api.services.observability_service import emit_observability_event
+from api.services.refresh_job_acl_service import RefreshJobAclService
 from api.services.normalization_service import (
     normalize_event_name,
     normalize_competition_name,
@@ -87,6 +88,28 @@ def _append_shared_job_user(
     redis_client.setex(f"{job_prefix}{job_id}", ttl_seconds, json.dumps(job))
 
 
+def _emit_refresh_status_observability(
+    *,
+    user_id: int,
+    owner_user_id: Optional[int],
+    shared_user_count: int,
+    allowed: bool,
+) -> None:
+    action_type = "refresh_status_acl_allowed" if allowed else "refresh_status_acl_denied"
+    emit_observability_event(
+        category="security",
+        metric_name="access_decision",
+        source="api",
+        endpoint="/odds/refresh/status",
+        action_type=action_type,
+        payload={
+            "user_id": int(user_id),
+            "owner_user_id": int(owner_user_id) if owner_user_id is not None else None,
+            "shared_user_count": int(shared_user_count),
+        },
+    )
+
+
 def _authorize_refresh_status_access(job_status: Dict[str, Any], user_id: int) -> None:
     """Enforce refresh job status visibility to owner or explicit merged/shared readers."""
     payload = job_status.get("payload") or {}
@@ -100,34 +123,23 @@ def _authorize_refresh_status_access(job_status: Dict[str, Any], user_id: int) -
         if str(shared_id).isdigit():
             allowed_ids.add(int(shared_id))
 
+    owner_user_id = int(requested_by) if requested_by is not None and str(requested_by).isdigit() else None
     if int(user_id) not in allowed_ids:
-        emit_observability_event(
-            category="security",
-            metric_name="access_decision",
-            source="api",
-            endpoint="/odds/refresh/status",
-            action_type="refresh_status_acl_denied",
-            payload={
-                "user_id": int(user_id),
-                "owner_user_id": int(requested_by) if requested_by is not None and str(requested_by).isdigit() else None,
-                "shared_user_count": len(shared_user_ids),
-            },
+        _emit_refresh_status_observability(
+            user_id=int(user_id),
+            owner_user_id=owner_user_id,
+            shared_user_count=len(shared_user_ids),
+            allowed=False,
         )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden: refresh status is not accessible for this user",
         )
-    emit_observability_event(
-        category="security",
-        metric_name="access_decision",
-        source="api",
-        endpoint="/odds/refresh/status",
-        action_type="refresh_status_acl_allowed",
-        payload={
-            "user_id": int(user_id),
-            "owner_user_id": int(requested_by) if requested_by is not None and str(requested_by).isdigit() else None,
-            "shared_user_count": len(shared_user_ids),
-        },
+    _emit_refresh_status_observability(
+        user_id=int(user_id),
+        owner_user_id=owner_user_id,
+        shared_user_count=len(shared_user_ids),
+        allowed=True,
     )
 
 def _market_preference_rank(sport_code: str, market_name: str) -> int:
@@ -444,12 +456,29 @@ async def refresh_odds(
         job_id = existing_job_id.decode()
         # If the job pointer is stale, clear it and continue.
         if redis_client.get(f"{job_prefix}{job_id}"):
+            from api.services.refresh_queue import get_job_status
+
             _append_shared_job_user(
                 redis_client,
                 job_id=job_id,
                 user_id=user.id,
                 job_prefix=job_prefix,
                 ttl_seconds=job_ttl_seconds,
+            )
+            legacy_job = get_job_status(redis_client, job_id, job_prefix=job_prefix) or {}
+            RefreshJobAclService.backfill_job_from_legacy_payload(
+                db,
+                job_id=job_id,
+                legacy_job_status=legacy_job,
+                actor_sub=user_claims.sub,
+            )
+            RefreshJobAclService.share_job_with_user_if_exists(
+                db,
+                job_id=job_id,
+                user_id=user.id,
+                actor_user_id=user.id,
+                actor_sub=user_claims.sub,
+                reason_code="refresh_join_in_progress",
             )
             opportunities_count = db.query(OddsSnapshot).filter(
                 OddsSnapshot.is_current == True
@@ -520,6 +549,34 @@ async def refresh_odds(
         merge_if_pending=merge_if_pending,
     )
     job_id = enqueue_result["job_id"]
+    if enqueue_result.get("merged"):
+        # Opportunistic migration path for active/recent pre-durable jobs.
+        from api.services.refresh_queue import get_job_status
+
+        legacy_job = get_job_status(redis_client, job_id, job_prefix=job_prefix) or {}
+        RefreshJobAclService.backfill_job_from_legacy_payload(
+            db,
+            job_id=job_id,
+            legacy_job_status=legacy_job,
+            actor_sub=user_claims.sub,
+        )
+        RefreshJobAclService.share_job_with_user_if_exists(
+            db,
+            job_id=job_id,
+            user_id=user.id,
+            actor_user_id=user.id,
+            actor_sub=user_claims.sub,
+            reason_code="refresh_merge_shared_access",
+        )
+    else:
+        RefreshJobAclService.create_job(
+            db,
+            job_id=job_id,
+            owner_user_id=user.id,
+            payload=payload,
+            actor_user_id=user.id,
+            actor_sub=user_claims.sub,
+        )
 
     # Store the "refresh in progress" job_id so other users can poll the same job
     # instead of triggering additional scrapes.
@@ -580,12 +637,44 @@ async def refresh_status(
 
     from api.services.refresh_queue import get_job_status
 
-    status = get_job_status(redis_client, job_id, job_prefix=job_prefix)
-    if not status:
+    job_status = get_job_status(redis_client, job_id, job_prefix=job_prefix)
+    durable_job = RefreshJobAclService.get_job_by_job_id(db, job_id=job_id)
+
+    if durable_job is None and job_status is not None:
+        # Opportunistic backfill for pre-migration jobs still stored in Redis only.
+        durable_job = RefreshJobAclService.backfill_job_from_legacy_payload(
+            db,
+            job_id=job_id,
+            legacy_job_status=job_status,
+            actor_sub="status-backfill",
+        )
+
+    if not job_status and durable_job is None:
         raise HTTPException(status_code=404, detail="Job not found or expired")
 
     user = _get_or_create_user(db, user_claims)
-    _authorize_refresh_status_access(status, user.id)
+    if durable_job is not None:
+        decision = RefreshJobAclService.access_decision(
+            db,
+            job=durable_job,
+            actor_user_id=user.id,
+            actor_sub=user_claims.sub,
+        )
+        _emit_refresh_status_observability(
+            user_id=user.id,
+            owner_user_id=decision.owner_user_id,
+            shared_user_count=decision.shared_user_count,
+            allowed=decision.allowed,
+        )
+        if not decision.allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden: refresh status is not accessible for this user",
+            )
+        if not job_status:
+            job_status = RefreshJobAclService.status_payload_from_durable_job(durable_job)
+    else:
+        _authorize_refresh_status_access(job_status, user.id)
 
     def parse_dt(value: Optional[str]) -> Optional[datetime]:
         if not value:
@@ -597,13 +686,13 @@ async def refresh_status(
 
     return RefreshJobStatusResponse(
         job_id=job_id,
-        status=status.get("status", "unknown"),
-        enqueued_at=parse_dt(status.get("enqueued_at")),
-        started_at=parse_dt(status.get("started_at")),
-        completed_at=parse_dt(status.get("completed_at")),
-        message=status.get("message"),
-        errors=status.get("errors"),
-        result=status.get("result"),
+        status=job_status.get("status", "unknown"),
+        enqueued_at=parse_dt(job_status.get("enqueued_at")),
+        started_at=parse_dt(job_status.get("started_at")),
+        completed_at=parse_dt(job_status.get("completed_at")),
+        message=job_status.get("message"),
+        errors=job_status.get("errors"),
+        result=job_status.get("result"),
     )
 
 
