@@ -7,7 +7,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import routers
-from api.routers import auth, billing, stripe_webhooks, plan_demo, odds_matcher, metadata, health
+from api.routers import (
+    auth,
+    billing,
+    stripe_webhooks,
+    plan_demo,
+    odds_matcher,
+    metadata,
+    health,
+    bookmaker_lifecycle,
+)
 
 # Import monitoring
 from api.core.monitoring import init_sentry
@@ -39,6 +48,7 @@ app.include_router(stripe_webhooks.router)
 app.include_router(plan_demo.router)
 app.include_router(odds_matcher.router)
 app.include_router(metadata.router)
+app.include_router(bookmaker_lifecycle.router)
 
 # Log startup configuration
 @app.on_event("startup")

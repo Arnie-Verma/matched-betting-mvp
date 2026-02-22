@@ -48,7 +48,13 @@ Key code:
 - `BOOKMAKER_FREEZE_UNIBET` (default `true`) freezes Unibet activation.
 - Frozen bookmakers are excluded from worker active scrape selection and plan-exposed bookmaker lists.
 
-5. Data model is current-state first:
+5. Lifecycle transitions are code-enforced and auditable:
+- `bookmakers.lifecycle_state` persists runtime lifecycle.
+- `bookmaker_lifecycle_transitions` records `from_state -> to_state` + actor/reason metadata.
+- transitions are guarded by allowed-transition policy (no arbitrary state jumps).
+- freeze policy blocks frozen bookmakers from live runtime states.
+
+6. Data model is current-state first:
 - `odds_snapshots.is_current=true` is matcher truth
 - stale/non-current odds are cleaned aggressively
 
@@ -201,11 +207,16 @@ Plan enforcement is server-side:
   - owner: `payload.requested_by`
   - merged/shared readers: `payload.shared_user_ids`
   - others: `403`
+- bookmaker lifecycle transitions are restricted to admin/internal control path:
+  - `POST /admin/bookmakers/{bookmaker_code}/lifecycle`
+  - authenticated `admin/ops` role or explicit internal token
 
 Key code:
 - `apps/api/src/api/services/subscription_service.py`
 - `apps/api/src/api/routers/metadata.py`
 - `apps/api/src/api/routers/odds_matcher.py`
+- `apps/api/src/api/services/bookmaker_lifecycle_service.py`
+- `apps/api/src/api/routers/bookmaker_lifecycle.py`
 
 ## Validation + Health
 Validation:
@@ -261,13 +272,15 @@ Important runtime knobs:
 - `BOOKMAKER_FREEZE_UNIBET` (default `true`; set `false` only after explicit GO)
 - `HEALTH_SCRAPERS_INTERNAL_TOKEN`
 - `HEALTH_OPERATIONS_ALLOWED_ROLES` (fallback `HEALTH_SCRAPERS_ALLOWED_ROLES`)
+- `BOOKMAKER_LIFECYCLE_ALLOWED_ROLES` (default `admin,ops`)
+- `BOOKMAKER_LIFECYCLE_INTERNAL_TOKEN`
 
 Notes:
 - scraper code defaults `SCRAPER_BATCH_SIZE` to `1` if env is absent
 - environment files may override this for local constraints/perf testing
 
 ## Current Known Constraints
-1. Lifecycle and activation gates are documented but not fully code-enforced yet.
+1. Activation gate blocking (promotion must prove canary/validation gate evidence) is not fully code-enforced yet.
 2. Validation thresholds still need ongoing calibration across competitions/platforms.
 3. Matcher hot-path N+1 has been removed, but response assembly is still in-request in-memory work (no dedicated read model yet).
 4. Refresh job ACLs are stored in Redis payload metadata; stronger typed persistence/audit logging is still pending.
@@ -280,9 +293,10 @@ Implemented now:
 3. Matcher set-based preloading strategy for events/markets/selections/odds.
 4. Security policy on `/odds/refresh/status` ownership/shared visibility.
 5. Security policy on `/health/scrapers`, `/health/detailed`, and `/health/telemetry` ops/internal access with consistent dependency.
+6. Lifecycle persistence + transition guard policy in code, with audited transitions and admin/internal control path.
 
 Still open:
-1. Lifecycle transition guards and activation-gate enforcement in code.
+1. Activation-gate enforcement in code (block live promotion unless gate evidence passes).
 2. First-class health dashboard + alert routing beyond current endpoint surface.
 3. Dedicated matcher read model/materialization for higher sustained traffic.
 

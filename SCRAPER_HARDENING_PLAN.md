@@ -37,13 +37,13 @@ Implemented now:
 6. Security controls for refresh status ownership and scraper health endpoint access policy.
 
 Known constraints still open:
-1. Lifecycle transition guards and promotion blocking are not fully code-enforced.
+1. Promotion blocking by gate evidence is not fully code-enforced yet.
 2. Canary/ramp selection controls are still limited (full rollout control plane pending).
 3. Health/alerting is functional but not yet a first-class dashboarded operational surface.
 
 Planned follow-up work:
 1. Tighten canary reliability thresholds after longer bounded-scheduler telemetry windows.
-2. Add durable lifecycle state + transition enforcement in persistence layer.
+2. Couple lifecycle promotions to gate-evidence checks in code.
 3. Move from set-based matcher path to dedicated read-model serving for sustained scale.
 
 ## Workstreams
@@ -152,6 +152,7 @@ Why it matters:
 
 Changes:
 - Add lifecycle state storage and transition checks.
+- Add audited transition history and admin/internal transition control surface.
 - Block `active` promotion unless gates pass:
   - structural/coverage thresholds
   - anomaly limits
@@ -164,6 +165,7 @@ Primary files:
 - promotion/admin scripts
 
 Exit criteria:
+- Lifecycle transitions are persisted and guard-enforced in code with auditable metadata.
 - Bookmaker cannot be promoted by config flip alone.
 - Promotion requires machine-verifiable gate evidence.
 

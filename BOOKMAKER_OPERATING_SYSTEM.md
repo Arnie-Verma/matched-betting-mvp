@@ -259,31 +259,31 @@ Bookmaker cannot move to `active` unless all are true:
 ## Immediate Backlog (Repo)
 1. Standardize scraper constructor/interface contract.
 2. Move per-bookmaker runtime policy into config.
-3. Add lifecycle status storage for bookmaker state.
-4. Add canary/ramp selection controls in refresh orchestration.
+3. Add canary/ramp selection controls in refresh orchestration.
+4. Enforce activation gates as promotion-time blocking checks in code.
 5. Add alert rules on latency, stale-success age, and breaker state.
 
 ## Outstanding Build Items For Reliable Scale
 These are still required to make onboarding low-risk at 100+ bookmakers:
-1. Enforce lifecycle states in code (not doc-only), including transition guards.
-2. Enforce activation gates in code (block promotion when gates fail).
+1. Enforce activation gates in code (block promotion when gates fail).
+2. Add canary controls and exposure ramp controls in refresh selection.
 3. Validate all target competitions for a bookmaker during onboarding, not just one mapped default.
 4. Add per-bookmaker policy config (timeouts, retries, concurrency class, proxy class).
-5. Add canary controls and exposure ramp controls in refresh selection.
-6. Add first-class bookmaker health dashboard with alerting hooks.
-7. Add automated onboarding report generation (go/no-go artifact).
-8. Evolve matcher from in-request set-based preloading to dedicated read-model/materialized serving for sustained high load.
+5. Add first-class bookmaker health dashboard with alerting hooks.
+6. Add automated onboarding report generation (go/no-go artifact).
+7. Evolve matcher from in-request set-based preloading to dedicated read-model/materialized serving for sustained high load.
 
-## Phase A Sync Status (Post PR-R2/PR-R3/PR-S1)
+## Phase A Sync Status (Post PR-L1)
 Implemented now:
 1. Bounded concurrency scheduler with global and per-platform caps.
 2. Runtime active-bookmaker derivation from DB + freeze policy (no static active-list control path).
 3. Matcher hot-path N+1 reduction through set-based bulk preloading.
 4. Ownership/shared-reader authorization on refresh status endpoint.
 5. Auth/internal access policy on scraper health endpoints.
+6. Lifecycle states are persisted and transition-guarded in code, with audit history and admin/internal transition surface.
 
 Known constraints still open:
-1. Lifecycle transitions and activation gates are still partially doc-driven.
+1. Activation-gate enforcement is still partial (state transition policy is enforced, but gate-evidence blocking is not yet coupled to promotion).
 2. Refresh ACL metadata is Redis payload-based (durable ACL/audit model not yet implemented).
 3. Health visibility exists via endpoints but not a dedicated operational dashboard.
 

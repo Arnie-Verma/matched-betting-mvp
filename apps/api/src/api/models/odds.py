@@ -7,12 +7,13 @@ from typing import Optional, Dict, Any
 
 from sqlalchemy import (
     Column, String, DateTime, Boolean, Integer, ForeignKey,
-    Text, JSON, Numeric, Index, UniqueConstraint
+    Text, JSON, Numeric, Index, UniqueConstraint, event
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from api.core.database import Base
+from api.core.bookmaker_freeze import is_bookmaker_frozen
 
 
 class SourceType(str, Enum):
@@ -53,6 +54,19 @@ class EventStatus(str, Enum):
     FINISHED = "finished"
     CANCELLED = "cancelled"
     POSTPONED = "postponed"
+
+
+class BookmakerLifecycleState(str, Enum):
+    """Bookmaker onboarding and runtime lifecycle states."""
+    BACKLOG = "backlog"
+    DISCOVERY_COMPLETE = "discovery_complete"
+    ADAPTER_READY = "adapter_ready"
+    CONFIG_READY = "config_ready"
+    VALIDATION_PASSED = "validation_passed"
+    CANARY_ACTIVE = "canary_active"
+    ACTIVE = "active"
+    DEGRADED = "degraded"
+    DISABLED = "disabled"
 
 
 class Sport(Base):
@@ -169,12 +183,58 @@ class Bookmaker(Base):
     last_successful_scrape = Column(DateTime(timezone=True), nullable=True)
     consecutive_failures = Column(Integer, default=0)
 
+    # Lifecycle metadata
+    lifecycle_state = Column(
+        String(40),
+        nullable=False,
+        default=BookmakerLifecycleState.BACKLOG.value,
+        server_default=BookmakerLifecycleState.BACKLOG.value,
+        index=True,
+    )
+    lifecycle_state_updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    lifecycle_last_transition_at = Column(DateTime(timezone=True), nullable=True)
+    lifecycle_last_transition_by = Column(String(120), nullable=True)
+    lifecycle_last_transition_reason = Column(Text, nullable=True)
+
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
     bookmaker_sources = relationship("BookmakerSource", back_populates="bookmaker", cascade="all, delete-orphan")
     odds_snapshots = relationship("OddsSnapshot", back_populates="bookmaker", cascade="all, delete-orphan")
+    lifecycle_transitions = relationship(
+        "BookmakerLifecycleTransition",
+        back_populates="bookmaker",
+        cascade="all, delete-orphan",
+        order_by="BookmakerLifecycleTransition.created_at",
+    )
+
+
+class BookmakerLifecycleTransition(Base):
+    """Audit trail for bookmaker lifecycle state transitions."""
+    __tablename__ = "bookmaker_lifecycle_transitions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    bookmaker_id = Column(Integer, ForeignKey("bookmakers.id"), nullable=False, index=True)
+    from_state = Column(String(40), nullable=False)
+    to_state = Column(String(40), nullable=False)
+    transition_reason = Column(Text, nullable=False)
+    transition_metadata = Column(JSON, nullable=True)
+    transitioned_by = Column(String(120), nullable=True)
+    transitioned_by_email = Column(String(255), nullable=True)
+    transition_source = Column(String(50), nullable=False, default="api")
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    bookmaker = relationship("Bookmaker", back_populates="lifecycle_transitions")
+
+    __table_args__ = (
+        Index("idx_bookmaker_lifecycle_transition_lookup", "bookmaker_id", "created_at"),
+        Index("idx_bookmaker_lifecycle_transition_to_state", "to_state", "created_at"),
+    )
 
 
 class BookmakerSource(Base):
@@ -449,3 +509,45 @@ class OddsComparison(Base):
         Index("idx_comparison_expires", "expires_at"),
         Index("idx_comparison_calculated", "calculated_at"),
     )
+
+
+BOOKMAKER_LIVE_RUNTIME_STATES = {"canary_active", "active", "degraded"}
+BOOKMAKER_VALID_LIFECYCLE_STATES = {
+    "backlog",
+    "discovery_complete",
+    "adapter_ready",
+    "config_ready",
+    "validation_passed",
+    "canary_active",
+    "active",
+    "degraded",
+    "disabled",
+}
+
+
+def _normalize_lifecycle_state(value: Optional[str]) -> str:
+    return (value or "").strip().lower()
+
+
+@event.listens_for(Bookmaker, "before_insert")
+@event.listens_for(Bookmaker, "before_update")
+def _sync_bookmaker_lifecycle_fields(_mapper, _connection, target: Bookmaker) -> None:
+    """
+    Keep lifecycle state and runtime active flag aligned.
+
+    This prevents unsafe runtime promotion via raw `is_active` flips without a
+    valid lifecycle transition.
+    """
+    now = datetime.now(timezone.utc)
+    state = _normalize_lifecycle_state(target.lifecycle_state)
+    if state not in BOOKMAKER_VALID_LIFECYCLE_STATES:
+        state = "active" if bool(target.is_active) else "backlog"
+    target.lifecycle_state = state
+
+    if target.lifecycle_state_updated_at is None:
+        target.lifecycle_state_updated_at = now
+
+    if state in BOOKMAKER_LIVE_RUNTIME_STATES and not is_bookmaker_frozen(target.code):
+        target.is_active = True
+    else:
+        target.is_active = False

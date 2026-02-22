@@ -43,18 +43,23 @@ docker exec mb_api python ../worker/src/manual_scrape.py
 - `PRODUCTION_NOTES.md` - deployment/runtime notes
 - `ROADMAP.md` - current product roadmap
 
-## Phase A Hardening Snapshot (2026-02-21)
+## Phase A Hardening Snapshot (2026-02-22)
 Implemented now:
 - Bounded scrape scheduler in worker (`global` + `per-platform` concurrency caps) with scheduler metrics.
 - Runtime active bookmaker derivation from DB + freeze policy (no static active bookmaker control path).
 - Odds matcher hot path refactor to set-based preloading (events, markets, selections, odds) with no response schema changes.
+- Lifecycle persistence + transition guard enforcement in code:
+  - persistent bookmaker lifecycle states
+  - audited lifecycle transition history
+  - admin/internal guarded transition control surface
 - Security controls:
   - `GET /odds/refresh/status` restricted to owner/shared users.
   - `/health/scrapers`, `/health/detailed`, and `/health/telemetry` require ops-role or internal-token access; telemetry defaults to aggregate-only response output.
 - Unibet remains frozen by baseline policy (`BOOKMAKER_FREEZE_UNIBET=true`, `unibet.is_active=false`).
 
 Still open:
-- Lifecycle transition guards and activation gate enforcement are not fully code-enforced yet.
+- Activation gate blocking (promotion blocked by gate evidence) is not fully code-enforced yet.
+- Canary/ramp cohort controls remain limited.
 - Dedicated matcher read model/materialized serving path is not implemented yet.
 - Health/audit surfacing remains endpoint-based and needs deeper operational tooling.
 

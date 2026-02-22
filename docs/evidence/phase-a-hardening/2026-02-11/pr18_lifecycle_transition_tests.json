@@ -1,0 +1,69 @@
+{
+  "slice": "PR-L1",
+  "generated_at_utc": "2026-02-22T00:00:00Z",
+  "test_commands": [
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_bookmaker_lifecycle.py -q",
+      "result": "pass",
+      "passed": 5,
+      "failed": 0,
+      "warnings": 3
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q",
+      "result": "pass",
+      "passed": 6,
+      "failed": 0,
+      "warnings": 1
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q",
+      "result": "pass",
+      "passed": 1,
+      "failed": 0,
+      "warnings": 3
+    }
+  ],
+  "lifecycle_transition_coverage": [
+    {
+      "test": "test_lifecycle_happy_path_transitions_and_is_active_toggle",
+      "asserts": [
+        "valid transition sequence succeeds",
+        "final active state sets is_active=true"
+      ]
+    },
+    {
+      "test": "test_invalid_lifecycle_transition_is_blocked_with_reason",
+      "asserts": [
+        "invalid jump backlog->active is rejected",
+        "reason_code=invalid_transition"
+      ]
+    },
+    {
+      "test": "test_transition_audit_metadata_is_persisted",
+      "asserts": [
+        "transition history row created",
+        "actor/reason/metadata persisted"
+      ]
+    },
+    {
+      "test": "test_unibet_freeze_blocks_live_lifecycle_transition",
+      "asserts": [
+        "frozen unibet blocked from live state transition",
+        "reason_code=freeze_guard_blocked"
+      ]
+    },
+    {
+      "test": "test_lifecycle_endpoint_enforces_role_and_persists_transition",
+      "asserts": [
+        "non-admin denied",
+        "admin transition succeeds"
+      ]
+    }
+  ],
+  "freeze_runtime_verification": {
+    "mb_api_bookmaker_freeze_unibet": "true",
+    "mb_worker_bookmaker_freeze_unibet": "true",
+    "db_unibet_is_active": false
+  }
+}

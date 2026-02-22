@@ -3,13 +3,14 @@ from .user import User
 from .subscription import Subscription, Plan, WebhookEvent
 from .odds import (
     Sport, Competition, Team, Bookmaker, BookmakerSource,
+    BookmakerLifecycleTransition,
     Event, Market, Selection, OddsSnapshot, OddsComparison,
-    SourceType, SportType, MarketType, EventStatus
+    SourceType, SportType, MarketType, EventStatus, BookmakerLifecycleState
 )
 
 __all__ = [
     "User", "Subscription", "Plan", "WebhookEvent",
-    "Sport", "Competition", "Team", "Bookmaker", "BookmakerSource",
+    "Sport", "Competition", "Team", "Bookmaker", "BookmakerSource", "BookmakerLifecycleTransition",
     "Event", "Market", "Selection", "OddsSnapshot", "OddsComparison",
-    "SourceType", "SportType", "MarketType", "EventStatus"
+    "SourceType", "SportType", "MarketType", "EventStatus", "BookmakerLifecycleState"
 ]

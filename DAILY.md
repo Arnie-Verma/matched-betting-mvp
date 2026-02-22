@@ -27,13 +27,25 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
   - `mb_api`: `BOOKMAKER_FREEZE_UNIBET=true`
   - `mb_worker`: `BOOKMAKER_FREEZE_UNIBET=true`
   - DB: `unibet.is_active=false`
+- PR-L1 lifecycle state enforcement completed:
+  - Added persistent bookmaker lifecycle fields and transition history model.
+  - Added Alembic migration `20260222_lifecycle` with backfill from `is_active`.
+  - Added transition guard service with explicit allowed-transition graph and reason-coded failures.
+  - Added admin/internal control surface: `POST /admin/bookmakers/{bookmaker_code}/lifecycle`.
+  - Enforced lifecycle/is_active alignment and freeze-safe live-state blocking.
+  - Added lifecycle tests covering happy-path transitions, invalid jumps, audit metadata persistence, freeze guard behavior, and endpoint role enforcement.
+  - Added ADR-0017 and PR18 evidence artifacts.
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
 - Applied reusable remediation only (no bookmaker-specific one-off hacks outside platform-level scheduler default).
+- Keep lifecycle transitions and activation gate coupling as separate slices:
+  - PR-L1 enforces transitions + audit trail.
+  - activation gate blocking remains follow-up scope.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
+- Model-level lifecycle/is_active synchronization can expose stale seed/script assumptions that relied on direct `is_active` flips; future scripts should use lifecycle transition flow.
 
 ## 2026-02-21 (Saturday)
 
