@@ -104,6 +104,7 @@ Redis-backed queue semantics:
 Worker orchestration behavior:
 - calls `trigger_scrape(...)` with request context (`sport`, `competition`, bookmaker subset)
 - resolves runnable bookmakers from DB at runtime using lifecycle + freeze + rollout + kill-switch policy
+- fail-closed on policy-source unavailability: runnable set is empty with reason code `selection_source_unavailable` (no static bookmaker fallback)
 - bounded bookmaker scheduler enforces global + per-platform concurrency caps
 - emits scheduler metrics (`observed_max_in_flight_global`, `observed_max_in_flight_by_platform`)
 - updates global and per-bookmaker refresh timestamps

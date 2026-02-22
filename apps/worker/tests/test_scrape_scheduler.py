@@ -308,3 +308,117 @@ def test_resolve_active_bookmakers_passes_rollout_context(monkeypatch):
     assert captured["requested_bookmakers"] == ["ladbrokes", "neds", "mintbet"]
     assert captured["requested_sport"] == "soccer"
     assert captured["requested_competition"] == "epl"
+
+
+def test_db_unavailable_selection_fails_closed_without_static_fallback(monkeypatch, service):
+    import api.core.database as db_module
+
+    def _raise_sessionlocal():
+        raise RuntimeError("synthetic db unavailable")
+
+    emitted = []
+
+    monkeypatch.setattr(db_module, "SessionLocal", _raise_sessionlocal)
+    monkeypatch.setattr(scrape_service_module, "emit_observability_event", lambda **kwargs: emitted.append(kwargs))
+
+    resolved = service.get_active_bookmakers_from_db()
+    status = service.get_last_selection_status()
+
+    assert resolved == []
+    assert status["blocked"] is True
+    assert status["source_available"] is False
+    assert status["reason_code"] == "selection_source_unavailable"
+    assert "static fallback" in status["message"]
+    assert all(cfg.get("code") not in {"betfair", "ladbrokes"} for cfg in resolved)
+
+    selection_events = [e for e in emitted if e.get("metric_name") == "selection_blocked"]
+    assert selection_events
+    assert selection_events[0]["payload"]["reason_code"] == "selection_source_unavailable"
+
+
+@pytest.mark.asyncio
+async def test_refresh_worker_reports_blocked_selection_reason_when_empty_runnable_set(monkeypatch):
+    class _MemoryRedis:
+        def __init__(self):
+            self.store = {}
+
+        def set(self, key, value, ex=None):
+            if isinstance(value, str):
+                self.store[key] = value.encode()
+            else:
+                self.store[key] = value
+            return True
+
+        def get(self, key):
+            return self.store.get(key)
+
+        def delete(self, key):
+            self.store.pop(key, None)
+            return 1
+
+        def incr(self, _key):
+            return 1
+
+        def decr(self, _key):
+            return 0
+
+        def expire(self, *_args, **_kwargs):
+            return True
+
+        def setex(self, key, _ttl, value):
+            return self.set(key, value)
+
+        def lpush(self, _key, _value):
+            return 1
+
+        def rpush(self, _key, _value):
+            return 1
+
+    redis_client = _MemoryRedis()
+    redis_client.set(
+        "odds_refresh_job:job-1",
+        json.dumps(
+            {
+                "status": "pending",
+                "payload": {"sports": "all"},
+                "attempts": 0,
+            }
+        ),
+    )
+
+    async def _should_not_run_scrape(*_args, **_kwargs):
+        raise AssertionError("trigger_scrape should not run when selection is blocked")
+
+    monkeypatch.setattr(refresh_worker, "trigger_scrape", _should_not_run_scrape)
+
+    await refresh_worker._process_job(
+        redis_client,
+        "job-1",
+        global_cache_key="odds_last_refresh_global",
+        in_progress_key="odds_refresh_in_progress_job_id",
+        job_prefix="odds_refresh_job:",
+        queue_key="odds_refresh_jobs",
+        fast_ttl_seconds=60,
+        slow_ttl_seconds=60,
+        job_ttl_seconds=300,
+        max_retries=1,
+        backoff_base=0.01,
+        backoff_jitter=0.0,
+        active_bookmakers=[],
+        selection_status={
+            "blocked": True,
+            "source_available": False,
+            "reason_code": "selection_source_unavailable",
+            "message": "Bookmaker selection source unavailable; fail-closed without static fallback",
+        },
+        concurrency_cap=1,
+        dlq_key="odds_refresh_jobs_dead",
+        slow_bookmakers=set(),
+    )
+
+    job_state = json.loads(redis_client.get("odds_refresh_job:job-1"))
+    assert job_state["status"] == "failed"
+    assert job_state["message"] == "Refresh blocked: selection_source_unavailable"
+    assert job_state["result"]["success"] is False
+    assert job_state["result"]["selection_status"]["reason_code"] == "selection_source_unavailable"
+    assert job_state["result"]["selection_status"]["source_available"] is False

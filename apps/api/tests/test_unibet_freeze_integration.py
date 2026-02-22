@@ -136,6 +136,8 @@ class _FakeWorkerDbSession:
                 name="Ladbrokes",
                 base_url="https://www.ladbrokes.com.au",
                 website_url="https://www.ladbrokes.com.au",
+                lifecycle_state="active",
+                is_active=True,
                 scraping_config={"scraper_class": "entain"},
             ),
             SimpleNamespace(
@@ -143,12 +145,17 @@ class _FakeWorkerDbSession:
                 name="Unibet",
                 base_url="https://www.unibet.com.au",
                 website_url="https://www.unibet.com.au",
+                lifecycle_state="active",
+                is_active=True,
                 scraping_config={"scraper_class": "kindred"},
             ),
         ]
 
     def query(self, _model):
-        return _FakeWorkerQuery(self._rows)
+        if _model is _FakeWorkerBookmakerModel:
+            return _FakeWorkerQuery(self._rows)
+        # Rollout policy tables are empty in this integration fixture.
+        return _FakeWorkerQuery([])
 
     def close(self):
         return None

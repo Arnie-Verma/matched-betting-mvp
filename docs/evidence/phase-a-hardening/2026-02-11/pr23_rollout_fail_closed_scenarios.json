@@ -1,0 +1,53 @@
+{
+  "slice": "PR-C2A",
+  "generated_at_utc": "2026-02-22T07:15:29.377351+00:00",
+  "scenarios": [
+    {
+      "name": "db_unavailable_fail_closed_selection",
+      "inputs": {
+        "selection_source": "database + rollout policy",
+        "db_state": "unavailable"
+      },
+      "expected": {
+        "runnable_bookmakers": [],
+        "reason_code": "selection_source_unavailable",
+        "static_fallback_used": false,
+        "observability_event_emitted": true
+      },
+      "verified_by_tests": [
+        "test_db_unavailable_selection_fails_closed_without_static_fallback"
+      ]
+    },
+    {
+      "name": "refresh_worker_blocked_reason_propagation",
+      "inputs": {
+        "active_bookmakers": [],
+        "selection_status.reason_code": "selection_source_unavailable"
+      },
+      "expected": {
+        "job_status": "failed",
+        "job_message": "Refresh blocked: selection_source_unavailable",
+        "result.selection_status.reason_code": "selection_source_unavailable",
+        "trigger_scrape_called": false
+      },
+      "verified_by_tests": [
+        "test_refresh_worker_reports_blocked_selection_reason_when_empty_runnable_set"
+      ]
+    },
+    {
+      "name": "rollout_policy_authority_regression_guard",
+      "inputs": {
+        "platform_mode": "canary",
+        "bookmaker_or_platform_kill_switch": true
+      },
+      "expected": {
+        "selection_uses_policy": true,
+        "policy_remains_authoritative": true,
+        "fail_closed_change_does_not_bypass_kill_switch": true
+      },
+      "verified_by_tests": [
+        "test_rollout_selection_cohort_and_kill_switch_controls"
+      ]
+    }
+  ]
+}

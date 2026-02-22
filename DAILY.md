@@ -88,6 +88,15 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
     - set/get platform policy + kill switch
     - rollout status summary
   - Added ADR-0020 and PR22 evidence artifacts.
+- PR-C2A rollout fail-closed selection safety correction completed (single slice):
+  - Removed static bookmaker fallback from rollout selection path when DB/policy source is unavailable.
+  - Enforced fail-closed behavior with deterministic reason code:
+    - `selection_source_unavailable`
+  - Added blocked-selection observability emission in worker selection path (`selection_blocked` event).
+  - Added worker blocked-result propagation when runnable set is empty due to source unavailability:
+    - refresh job result now includes structured `selection_status` and blocked reason.
+  - Added regression tests for fail-closed behavior and blocked refresh-job propagation.
+  - Added PR23 evidence artifacts.
 
 ### Decisions
 - Kept canary thresholds and gate semantics unchanged in PR-R4B.
@@ -102,6 +111,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Applied DB migrations before evidence collection (`alembic upgrade head`) to align runtime schema with merged lifecycle/evidence models.
 - PR-C2 establishes rollout policy as a mandatory runtime input for worker bookmaker selection.
 - Rollout rollback is policy-driven (kill switch / mode change), not code-change driven.
+- PR-C2A enforces fail-closed selection as non-bypassable safety behavior during policy-source outage.
 
 ### Risks
 - Betfair `ice_hockey` intermittent no-event scrape errors were observed during canary; reliability threshold still passed, but this should be tracked separately if frequency increases.
@@ -109,6 +119,7 @@ Track daily work. Compress old entries weekly to keep focused on current tasks.
 - Evidence retention/list/query tooling for canonical records is still minimal and should be improved for operator workflows.
 - Worker evidence scripts write to path relative to invocation directory; this can place artifacts under `apps/worker/src/docs/...` unless explicit `--evidence-dir` is passed.
 - Rollout policy rows currently store latest state only; immutable policy history is not yet available.
+- During DB/policy-source outage, refresh jobs fail closed by design; operational response needs fast DB/policy restoration playbook.
 
 ## 2026-02-21 (Saturday)
 

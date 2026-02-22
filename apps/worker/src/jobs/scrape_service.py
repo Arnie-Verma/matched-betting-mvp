@@ -90,9 +90,9 @@ class ScrapeService:
     1. Static scrapers (legacy): Hardcoded scraper instances
     2. Dynamic scrapers (new): Created from database config using SCRAPER_CLASSES registry
 
-    Active bookmakers are determined by:
-    - Database: bookmaker.is_active = True AND scraper_class in SCRAPER_CLASSES
-    - Or fallback to static list if database unavailable
+    Active bookmakers are determined by runtime policy:
+    - lifecycle eligibility + freeze policy + rollout policy + kill switches
+    - fail-closed (no static bookmaker fallback) if selection source is unavailable
     """
 
     DEFAULT_PLATFORM_CONCURRENCY_CAPS: Dict[str, int] = {
@@ -103,7 +103,7 @@ class ScrapeService:
 
     def __init__(self):
         # Static scrapers (legacy - kept for backwards compatibility)
-        # These are used as fallback if database is unavailable
+        # Dynamic runtime selection is fail-closed and does not fall back to these.
         self._static_scrapers = {
             "betfair": BetfairScraper(),
             "ladbrokes": EntainScraper("ladbrokes", "https://www.ladbrokes.com.au"),
@@ -130,6 +130,12 @@ class ScrapeService:
             **self._load_platform_concurrency_caps(
             os.getenv("SCRAPE_PLATFORM_CONCURRENCY_CAPS_JSON", "")
             ),
+        }
+        self._last_selection_status: Dict[str, Any] = {
+            "source_available": True,
+            "blocked": False,
+            "reason_code": None,
+            "message": None,
         }
 
         # Validation settings
@@ -211,6 +217,24 @@ class ScrapeService:
                 return platform.strip()
         return "unknown"
 
+    def _set_selection_status(
+        self,
+        *,
+        source_available: bool,
+        blocked: bool,
+        reason_code: Optional[str],
+        message: Optional[str],
+    ) -> None:
+        self._last_selection_status = {
+            "source_available": bool(source_available),
+            "blocked": bool(blocked),
+            "reason_code": reason_code,
+            "message": message,
+        }
+
+    def get_last_selection_status(self) -> Dict[str, Any]:
+        return dict(self._last_selection_status)
+
     @property
     def scrapers(self) -> Dict[str, BaseScraper]:
         """
@@ -279,8 +303,8 @@ class ScrapeService:
         Get list of active bookmakers from database.
 
         Returns list of dicts with bookmaker config (code, base_url, scraping_config).
-        Applies onboarding freeze policy (for example Unibet during Phase A).
-        Falls back to static list if database unavailable.
+        Applies lifecycle eligibility + freeze + rollout policy + kill switches.
+        Fail-closed: returns an empty runnable set if policy source is unavailable.
         """
         try:
             from api.core.database import SessionLocal
@@ -317,6 +341,20 @@ class ScrapeService:
                 )
                 result_codes = {_normalize_code(cfg.get("code")) for cfg in selection.runnable_configs}
                 runnable = [cfg for cfg in result if _normalize_code(cfg.get("code")) in result_codes]
+                if runnable:
+                    self._set_selection_status(
+                        source_available=True,
+                        blocked=False,
+                        reason_code=None,
+                        message=None,
+                    )
+                else:
+                    self._set_selection_status(
+                        source_available=True,
+                        blocked=True,
+                        reason_code="no_runnable_bookmakers",
+                        message="Rollout selection returned no runnable bookmakers",
+                    )
 
                 logger.info(
                     f"Found {len(runnable)} runnable bookmakers "
@@ -339,18 +377,29 @@ class ScrapeService:
                 db.close()
 
         except Exception as e:
-            logger.warning(f"Could not load bookmakers from DB, using static list: {e}")
-            # Fallback to static scrapers
-            self._bookmaker_platform_codes["betfair"] = "betfair"
-            self._bookmaker_platform_codes["ladbrokes"] = "entain"
-            fallback = [
-                {"code": "betfair", "base_url": "https://www.betfair.com.au", "scraping_config": {"scraper_class": "betfair"}},
-                {"code": "ladbrokes", "base_url": "https://www.ladbrokes.com.au", "scraping_config": {"scraper_class": "entain"}},
-            ]
-            requested = {_normalize_code(code) for code in (requested_bookmakers or []) if _normalize_code(code)}
-            if requested:
-                return [cfg for cfg in fallback if _normalize_code(cfg.get("code")) in requested]
-            return fallback
+            reason_code = "selection_source_unavailable"
+            message = "Bookmaker selection source unavailable; fail-closed without static fallback"
+            self._set_selection_status(
+                source_available=False,
+                blocked=True,
+                reason_code=reason_code,
+                message=message,
+            )
+            logger.error(f"{message}: {e}")
+            emit_observability_event(
+                category="scheduler",
+                metric_name="selection_blocked",
+                source="worker",
+                action_type="selection_source_unavailable",
+                payload={
+                    "reason_code": reason_code,
+                    "error": str(e),
+                    "requested_sport": requested_sport,
+                    "requested_competition": requested_competition,
+                    "requested_bookmakers": list(requested_bookmakers or []),
+                },
+            )
+            return []
 
     def _get_breaker_state(self, bookmaker_code: str) -> Dict[str, Any]:
         """Get circuit breaker state from Redis."""
@@ -923,9 +972,9 @@ class ScrapeService:
         Scrape all active bookmakers for all sports with bounded concurrency.
 
         DYNAMIC REGISTRY (Phase 1.2):
-        - Loads active bookmakers from database
+        - Loads runnable bookmakers from database policy state
         - Creates scrapers dynamically based on scraping_config.scraper_class
-        - Falls back to static list if database unavailable
+        - Fail-closed if policy source is unavailable
 
         Args:
             sport: Sport to scrape ("all" for all sports, or specific sport code)
@@ -942,7 +991,7 @@ class ScrapeService:
         # Determine which sports to scrape
         sports_to_scrape = ALL_SPORTS if sport == "all" else [sport]
 
-        # Get active bookmakers from database (with fallback)
+        # Get runnable bookmakers from policy-aware DB selection (fail-closed)
         active_bookmaker_configs = self.get_active_bookmakers_from_db(
             requested_sport=sport,
             requested_competition=requested_competition,
@@ -951,6 +1000,12 @@ class ScrapeService:
         active_bookmaker_codes = [bm["code"] for bm in active_bookmaker_configs]
 
         if not active_bookmaker_configs:
+            selection_status = self.get_last_selection_status()
+            reason_code = selection_status.get("reason_code") or "no_runnable_bookmakers"
+            message = (
+                selection_status.get("message")
+                or "No runnable bookmakers after lifecycle/freeze/rollout selection"
+            )
             return {
                 "success": False,
                 "bookmakers_scraped": 0,
@@ -958,7 +1013,7 @@ class ScrapeService:
                 "events_scraped": 0,
                 "odds_scraped": 0,
                 "odds_saved": 0,
-                "errors": ["No runnable bookmakers after lifecycle/freeze/rollout selection"],
+                "errors": [f"{reason_code}: {message}"],
                 "duration_seconds": 0.0,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "results": [],
@@ -969,6 +1024,12 @@ class ScrapeService:
                     "observed_max_in_flight_global": 0,
                     "observed_max_in_flight_by_platform": {},
                     "total_scheduled": 0,
+                },
+                "selection_status": {
+                    "blocked": True,
+                    "source_available": bool(selection_status.get("source_available")),
+                    "reason_code": reason_code,
+                    "message": message,
                 },
                 "cleanup": None,
                 "validation": None,

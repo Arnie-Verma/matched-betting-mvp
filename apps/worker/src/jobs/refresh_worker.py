@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import redis
 import random
@@ -22,6 +22,13 @@ sys.path.insert(0, "apps/worker/src")
 from api.core.bookmaker_freeze import is_bookmaker_frozen  # type: ignore
 from api.services.refresh_queue import DEFAULT_JOB_PREFIX, DEFAULT_QUEUE_KEY, get_job_status  # type: ignore
 from jobs.scrape_service import get_scrape_service, trigger_scrape  # type: ignore
+
+_LAST_SELECTION_STATUS: Dict[str, Any] = {
+    "source_available": True,
+    "blocked": False,
+    "reason_code": None,
+    "message": None,
+}
 
 
 def _update_job(
@@ -75,6 +82,17 @@ def _resolve_active_bookmakers(
         for cfg in configs
         if isinstance(cfg, dict)
     ]
+    global _LAST_SELECTION_STATUS
+    if hasattr(service, "get_last_selection_status"):
+        try:
+            _LAST_SELECTION_STATUS = dict(service.get_last_selection_status())  # type: ignore[arg-type]
+        except Exception:
+            _LAST_SELECTION_STATUS = {
+                "source_available": True,
+                "blocked": False,
+                "reason_code": None,
+                "message": None,
+            }
 
     resolved: list[str] = []
     seen: set[str] = set()
@@ -103,6 +121,7 @@ async def _process_job(
     backoff_base: float,
     backoff_jitter: float,
     active_bookmakers: list[str],
+    selection_status: Optional[Dict[str, Any]],
     concurrency_cap: int,
     dlq_key: str,
     slow_bookmakers: set[str],
@@ -128,8 +147,40 @@ async def _process_job(
     payload = job.get("payload") or {}
     payload_sport = payload.get("sport") or payload.get("sports") or "all"
     payload_competition = payload.get("competition")
+    selection_state = dict(selection_status or {})
 
     try:
+        if not active_bookmakers:
+            reason_code = selection_state.get("reason_code") or "no_runnable_bookmakers"
+            reason_message = (
+                selection_state.get("message")
+                or "No runnable bookmakers after lifecycle/freeze/rollout selection"
+            )
+            now = datetime.now(timezone.utc)
+            job["completed_at"] = now.isoformat()
+            job["result"] = {
+                "success": False,
+                "bookmakers_scraped": 0,
+                "odds_saved": 0,
+                "errors": [f"{reason_code}: {reason_message}"],
+                "scheduler": {
+                    "global_cap": int(concurrency_cap),
+                    "platform_caps": {},
+                    "observed_max_in_flight_global": 0,
+                    "observed_max_in_flight_by_platform": {},
+                    "total_scheduled": 0,
+                },
+                "selection_status": {
+                    "blocked": True,
+                    "reason_code": reason_code,
+                    "message": reason_message,
+                    "source_available": bool(selection_state.get("source_available")),
+                },
+            }
+            job = _set_status(job, "failed", f"Refresh blocked: {reason_code}")
+            _update_job(redis_client, job_id, job, job_prefix=job_prefix, ttl_seconds=job_ttl_seconds)
+            return
+
         # Concurrency guard (global per bookmaker)
         for bm in active_bookmakers:
             running_key = f"odds_refresh_running:{bm}"
@@ -155,6 +206,7 @@ async def _process_job(
             "odds_saved": result.get("odds_saved"),
             "errors": result.get("errors"),
             "scheduler": result.get("scheduler"),
+            "selection_status": result.get("selection_status"),
         }
 
         success = result.get("success", False)
@@ -274,6 +326,7 @@ async def run_worker_once(
         backoff_base=backoff_base,
         backoff_jitter=backoff_jitter,
         active_bookmakers=runtime_active_bookmakers,
+        selection_status=dict(_LAST_SELECTION_STATUS),
         concurrency_cap=concurrency_cap,
         dlq_key=dlq_key,
         slow_bookmakers=slow_bookmakers or set(),

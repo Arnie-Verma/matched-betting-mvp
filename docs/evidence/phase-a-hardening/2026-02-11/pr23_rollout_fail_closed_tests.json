@@ -1,0 +1,53 @@
+{
+  "slice": "PR-C2A",
+  "generated_at_utc": "2026-02-22T07:15:44.353990+00:00",
+  "commands": [
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/worker/tests/test_scrape_scheduler.py -q",
+      "result": "pass",
+      "passed": 9,
+      "failed": 0,
+      "warnings": 1
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_rollout_control.py -q",
+      "result": "pass",
+      "passed": 2,
+      "failed": 0,
+      "warnings": 3
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q",
+      "result": "pass",
+      "passed": 6,
+      "failed": 0,
+      "warnings": 1
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q",
+      "result": "pass",
+      "passed": 1,
+      "failed": 0,
+      "warnings": 3
+    }
+  ],
+  "acceptance_coverage": {
+    "db_unavailable_no_runnable_books": [
+      "test_db_unavailable_selection_fails_closed_without_static_fallback"
+    ],
+    "no_static_fallback_policy_bypass": [
+      "test_db_unavailable_selection_fails_closed_without_static_fallback"
+    ],
+    "worker_reports_blocked_selection_reason": [
+      "test_refresh_worker_reports_blocked_selection_reason_when_empty_runnable_set"
+    ],
+    "kill_switch_and_rollout_authoritative": [
+      "test_rollout_selection_cohort_and_kill_switch_controls"
+    ]
+  },
+  "freeze_runtime_verification": {
+    "mb_api_bookmaker_freeze_unibet": "true",
+    "mb_worker_bookmaker_freeze_unibet": "true",
+    "db_unibet_is_active": false
+  }
+}

@@ -89,6 +89,7 @@ This methodology is designed to be executed locally first to get as close to pro
    - Enqueue per-bookmaker jobs with bounded global and per-platform concurrency.
    - Separate queues for `standard_books` and `proxy_books`.
    - Runnable bookmaker set is derived from lifecycle eligibility + freeze policy + rollout policy + kill switches.
+   - Fail-closed rule: if DB/policy source is unavailable, runnable set is empty (`selection_source_unavailable`), with no static fallback scrape set.
    - Emit scheduler discipline metrics (`observed_max_in_flight_global`, per-platform max in-flight).
 2. Adapter pipeline:
    - `fetch -> parse -> normalize -> validate -> persist -> publish_status`.
