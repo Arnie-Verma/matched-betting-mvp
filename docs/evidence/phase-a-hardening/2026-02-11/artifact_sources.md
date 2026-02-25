@@ -1,4 +1,4 @@
-﻿# Evidence Source Notes (PR2)
+# Evidence Source Notes (PR2)
 
 ## Authoritative live DB-backed artifacts (Docker context)
 Generated from inside `mb_api` with database connectivity (`db` network host):
@@ -102,3 +102,12 @@ Generated from Docker-connected DB context after PR4 scraper changes and stale-r
 - `pr30_matcher_read_model_scalability_tests.json`
 - `pr30_matcher_read_model_scalability_rollback.md`
 
+## PR30A matcher read-model acceptance closeout artifacts
+- `pr30_matcher_read_model_scalability_explain_analyze_postgres.md`
+- `pr30_matcher_read_model_scalability_benchmark_postgres.json`
+- `pr30_matcher_read_model_freeze_runtime_verification.md`
+- `pr30_matcher_read_model_acceptance_closeout.md`
+
+Supporting generation scripts used in this slice:
+- `pr30_generate_postgres_scalability_evidence.py`
+- `pr30_generate_acceptance_closeout.py`

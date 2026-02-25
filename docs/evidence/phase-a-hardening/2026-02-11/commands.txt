@@ -1,4 +1,4 @@
-﻿# PR2 commands run (2026-02-11)
+# PR2 commands run (2026-02-11)
 
 1. docker ps --format "table {{.Names}}\t{{.Status}}"
    - result: all required services healthy (`mb_api`, `mb_worker`, `mb_db`, `mb_redis`, `mb_web`).
@@ -204,3 +204,29 @@ Note:
 3. PR30 parity artifact generation:
    - `$env:PYTHONPATH='apps/api/src'; @' ... write pr30_matcher_read_model_scalability_parity.json ... '@ | python -`
 
+# PR-M1cA commands run (2026-02-24)
+
+1. Runtime stack bring-up for live Postgres + API/worker verification:
+   - `docker compose -f infra/dev/docker-compose.yml up -d db redis api worker`
+   - `docker ps --format "table {{.Names}}\t{{.Status}}"`
+
+2. Ensure DB schema is at latest revision before Postgres benchmark:
+   - `docker exec mb_api bash -lc "cd /workspace/apps/api && alembic upgrade head"`
+
+3. Required PR-M1cA regression tests:
+   - `$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_scalability.py -q`
+   - `$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_serving.py -q`
+   - `$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_foundation.py -q`
+   - `$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q`
+   - `$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q`
+
+4. Postgres scalability evidence generation (50k rows, supported shape benchmark + explain):
+   - `$env:PYTHONPATH='apps/api/src'; $env:DATABASE_URL='postgresql+psycopg://postgres:postgres@localhost:5432/mb_dev'; python docs/evidence/phase-a-hardening/2026-02-11/pr30_generate_postgres_scalability_evidence.py`
+
+5. Live freeze runtime verification commands:
+   - `docker exec mb_api printenv BOOKMAKER_FREEZE_UNIBET`
+   - `docker exec mb_worker printenv BOOKMAKER_FREEZE_UNIBET`
+   - `docker exec mb_db psql -U postgres -d mb_dev -At -c "SELECT code || ',' || is_active::text FROM bookmakers WHERE code='unibet';"`
+
+6. Acceptance closeout document refresh from Postgres benchmark artifact:
+   - `python docs/evidence/phase-a-hardening/2026-02-11/pr30_generate_acceptance_closeout.py`

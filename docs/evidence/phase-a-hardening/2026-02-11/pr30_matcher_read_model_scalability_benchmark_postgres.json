@@ -1,0 +1,68 @@
+{
+  "slice": "PR-M1cA",
+  "date": "2026-02-24",
+  "backend": "postgresql",
+  "dataset": {
+    "read_model_version": "pr30_postgres_benchmark_v1",
+    "read_model_rows": 50000,
+    "limit": 30,
+    "offsets": [
+      0,
+      300,
+      3000
+    ],
+    "requests_per_offset": 35,
+    "total_requests": 105
+  },
+  "latency_ms": {
+    "offset_0": {
+      "p50": 68.538,
+      "p95": 76.033,
+      "max": 90.205
+    },
+    "offset_300": {
+      "p50": 70.017,
+      "p95": 73.748,
+      "max": 75.057
+    },
+    "offset_3000": {
+      "p50": 115.207,
+      "p95": 133.309,
+      "max": 151.403
+    },
+    "overall": {
+      "p50": 71.184,
+      "p95": 129.529,
+      "max": 151.403
+    }
+  },
+  "fallback": {
+    "fallback_count": 0,
+    "fallback_rate_percent": 0.0,
+    "served_from_read_model_count": 105
+  },
+  "read_model_query_round_trip_signal": {
+    "samples": 105,
+    "p95": 3.0,
+    "max": 3
+  },
+  "materialized_rows": {
+    "samples": 105,
+    "max": 30,
+    "all_lte_limit": true
+  },
+  "serving_source_ratio": {
+    "read_model": 105
+  },
+  "enforce_now": {
+    "sql_limit_offset_pushdown": true,
+    "request_path_materialized_rows_lte_limit": true,
+    "read_model_query_round_trip_signal_p95_lte_3": 3.0,
+    "supported_shape_fallback_rate_percent": 0.0,
+    "latency_p95_target_ms_lte_400": 129.529
+  },
+  "observe_only": {
+    "latency_p95_target_ms_lte_250": 129.529,
+    "offset_3000_max_latency_ms": 151.403
+  }
+}
