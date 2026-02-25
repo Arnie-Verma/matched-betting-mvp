@@ -63,3 +63,13 @@ If read-model serving is noisy or incorrect:
 1. Expand read-model serving support to additional request filters once parity-safe.
 2. Define promotion criteria for default-on read-model serving.
 3. Add read-model freshness/usage alerts using `serving_source` and fallback reason telemetry.
+
+## Follow-up Status (PR-M1c, 2026-02-24)
+Completed in PR-M1c:
+1. Request-path read-model serving moved to SQL-scaled count + paged fetch (no full payload load in request path).
+2. Unsupported request shapes now deterministically runtime-fallback with explicit reason codes.
+3. Serving telemetry now includes read-model query-mode/materialization/query-round-trip fields.
+
+Still open after PR-M1c:
+1. Serving remains feature-flagged (`MATCHER_READ_MODEL_SERVING_ENABLED=false` default).
+2. Default-on cutover criteria and broader filter-shape support are pending.

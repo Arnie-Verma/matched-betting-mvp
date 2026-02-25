@@ -185,7 +185,7 @@ Additional behavior:
 - ETag/Last-Modified headers for client revalidation
 - no debug `print()` calls in request path (enforced by regression test)
 
-Matcher read-model foundation + guarded serving (PR-M1a + PR-M1b):
+Matcher read-model foundation + guarded/scalable serving (PR-M1a + PR-M1c):
 - dedicated persistence:
   - `matcher_read_model_builds` (freshness/build metadata)
   - `matcher_read_model_rows` (matcher-ready payload rows)
@@ -199,10 +199,17 @@ Matcher read-model foundation + guarded serving (PR-M1a + PR-M1b):
 - serving path is feature-flagged:
   - default path remains runtime (`MATCHER_READ_MODEL_SERVING_ENABLED=false`)
   - read-model serving is used only when build is fresh/healthy and request shape is parity-safe
+  - supported read-model shape is explicit (`stake=100`, `bet_type=normal`, no sport/competition/search filters)
+  - supported-shape serving uses DB-side filtered count + DB-side `ORDER BY ... LIMIT/OFFSET` page fetch
+  - request-path read-model row materialization is bounded by requested `limit` (no full-table payload load)
   - stale/missing/unhealthy/unsupported reads fall back to runtime with deterministic reason codes
 - matcher emits serving telemetry:
   - `serving_source=runtime|read_model|runtime_fallback`
   - `fallback_reason_code`
+  - `read_model_query_mode`
+  - `read_model_query_round_trip_signal`
+  - `read_model_materialized_rows`
+  - `read_model_total_rows`
 
 Key code:
 - `apps/api/src/api/routers/odds_matcher.py`
@@ -373,12 +380,13 @@ Implemented now:
    - max-delete caps per run for terminal jobs, audit rows, and ACL rows
    - cap-breach override requires explicit per-run operator flag (`--allow-cap-breach`)
    - structured run summaries and observability outcomes (`success|aborted|failure`)
-11. Matcher read-model foundation + feature-flagged serving:
+11. Matcher read-model foundation + feature-flagged scalable serving:
    - persistent matcher-ready rows with build freshness metadata
    - idempotent bounded builder (`event_limit`, `event_batch_size`, `row_batch_size`)
    - optional shadow parity mode for runtime-vs-read-model correctness checks
-   - read-model serving path behind feature flag with deterministic runtime fallback on stale/missing/unhealthy state
-   - matcher metrics include serving source and fallback reason fields
+   - read-model serving path uses SQL count + SQL paged fetch for supported shape (no request-path full-table payload reads)
+   - deterministic runtime fallback on stale/missing/unhealthy/unsupported shape
+   - matcher metrics include serving source/fallback plus read-model query/materialization fields
 
 Still open:
 1. First-class health dashboard + alert routing beyond current endpoint surface.

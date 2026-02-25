@@ -1,4 +1,4 @@
-# PR2 commands run (2026-02-11)
+﻿# PR2 commands run (2026-02-11)
 
 1. docker ps --format "table {{.Names}}\t{{.Status}}"
    - result: all required services healthy (`mb_api`, `mb_worker`, `mb_db`, `mb_redis`, `mb_web`).
@@ -182,3 +182,25 @@ Note:
 
 8. Final post-canary validation artifact refresh:
    - `docker exec mb_api sh -lc "cd /workspace && PYTHONPATH=/workspace/apps/worker/src:/workspace/apps/api/src python -m scripts.generate_phase_a_validation_evidence --suffix pr7 --baseline-file pr6_1_reason_breakdown_after.json"`
+
+# PR30 commands run (2026-02-24)
+
+1. PR-M1c regression and required suites:
+   - `pytest apps/worker/tests/test_entain_scraper.py -q`
+   - `pytest apps/worker/tests/test_punterstech_scraper.py -q`
+   - `pytest apps/worker/tests/test_validation.py -q`
+   - `pytest apps/worker/tests/test_scrape_scheduler.py -q`
+   - `$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_scalability.py -q`
+   - `$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_serving.py -q`
+   - `$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_foundation.py -q`
+   - `$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_odds_matcher_hot_path.py -q`
+   - `$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_rollout_control.py -q`
+   - `$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q`
+   - `$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q`
+
+2. PR30 benchmark + explain artifact generation:
+   - `$env:PYTHONPATH='apps/api/src'; @' ... write pr30_matcher_read_model_scalability_benchmark.json + pr30_matcher_read_model_scalability_explain_analyze.md ... '@ | python -`
+
+3. PR30 parity artifact generation:
+   - `$env:PYTHONPATH='apps/api/src'; @' ... write pr30_matcher_read_model_scalability_parity.json ... '@ | python -`
+

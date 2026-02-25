@@ -1,0 +1,61 @@
+{
+  "slice": "PR-M1c",
+  "date": "2026-02-24",
+  "results": [
+    {
+      "command": "pytest apps/worker/tests/test_entain_scraper.py -q",
+      "status": "PASS",
+      "summary": "27 passed"
+    },
+    {
+      "command": "pytest apps/worker/tests/test_punterstech_scraper.py -q",
+      "status": "PASS",
+      "summary": "47 passed"
+    },
+    {
+      "command": "pytest apps/worker/tests/test_validation.py -q",
+      "status": "PASS",
+      "summary": "63 passed"
+    },
+    {
+      "command": "pytest apps/worker/tests/test_scrape_scheduler.py -q",
+      "status": "PASS",
+      "summary": "9 passed"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_scalability.py -q",
+      "status": "PASS",
+      "summary": "4 passed"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_serving.py -q",
+      "status": "PASS",
+      "summary": "5 passed"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_matcher_read_model_foundation.py -q",
+      "status": "PASS",
+      "summary": "3 passed"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_odds_matcher_hot_path.py -q",
+      "status": "PASS",
+      "summary": "3 passed"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_rollout_control.py -q",
+      "status": "PASS",
+      "summary": "2 passed"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src'; pytest apps/api/tests/test_bookmaker_freeze.py -q",
+      "status": "PASS",
+      "summary": "6 passed"
+    },
+    {
+      "command": "$env:PYTHONPATH='apps/api/src;apps/worker/src'; pytest apps/api/tests/test_unibet_freeze_integration.py -q",
+      "status": "PASS",
+      "summary": "1 passed"
+    }
+  ]
+}

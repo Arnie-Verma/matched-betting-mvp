@@ -322,6 +322,8 @@ def _read_model_request_supported(
     bet_type: BetType,
     sport_filter: Optional[List[str]],
     competition_filter: Optional[List[int]],
+    competition_code_filter: Optional[List[str]],
+    search: Optional[str],
 ) -> tuple[bool, Optional[str]]:
     """
     Read-model serving currently supports contract-safe filters that are present in
@@ -335,51 +337,11 @@ def _read_model_request_supported(
         return False, "read_model_unsupported_sport_codes_filter"
     if competition_filter:
         return False, "read_model_unsupported_competition_ids_filter"
+    if competition_code_filter:
+        return False, "read_model_unsupported_competition_codes_filter"
+    if search and search.strip():
+        return False, "read_model_unsupported_search_filter"
     return True, None
-
-
-def _read_model_opportunities_from_payloads(
-    payloads: List[Dict[str, Any]],
-    *,
-    bookmaker_filter: List[str],
-    sport_filter: Optional[List[str]],
-    competition_code_filter: Optional[List[str]],
-    search: Optional[str],
-    min_rating: Optional[Decimal],
-) -> tuple[List["OddsMatchResponse"], Optional[str]]:
-    opportunities: List[OddsMatchResponse] = []
-    sport_filter_set = {item.strip().lower() for item in (sport_filter or []) if item}
-    normalized_comp_codes = {
-        normalize_competition_name(item)
-        for item in (competition_code_filter or [])
-        if item
-    }
-    search_value = (search or "").strip().lower()
-
-    for payload in payloads:
-        try:
-            row = OddsMatchResponse.model_validate(payload)
-        except Exception:
-            return [], "read_model_invalid_payload"
-
-        if row.back_bookmaker_code not in bookmaker_filter:
-            continue
-        if sport_filter_set:
-            sport_name = (row.sport_name or "").strip().lower()
-            if sport_name not in sport_filter_set:
-                continue
-        if normalized_comp_codes:
-            row_comp = normalize_competition_name(row.competition_name or "")
-            if row_comp not in normalized_comp_codes:
-                continue
-        if search_value and search_value not in (row.event_name or "").lower():
-            continue
-        if min_rating is not None and Decimal(str(row.rating)) < min_rating:
-            continue
-        opportunities.append(row)
-
-    opportunities.sort(key=lambda x: x.pnl_percentage, reverse=True)
-    return opportunities, None
 
 
 class OddsMatcherFilters(BaseModel):
@@ -808,6 +770,10 @@ async def get_matcher_opportunities(
     has_more_for_metrics = False
     serving_source_for_metrics = "runtime"
     fallback_reason_code_for_metrics: Optional[str] = None
+    read_model_query_mode_for_metrics: Optional[str] = None
+    read_model_materialized_rows_for_metrics = 0
+    read_model_total_rows_for_metrics = 0
+    read_model_query_round_trip_signal_for_metrics = 0
 
     def _emit_matcher_metrics(status_code: int) -> None:
         latency_ms = (time.time() - total_start) * 1000.0
@@ -825,15 +791,20 @@ async def get_matcher_opportunities(
                 "has_more": bool(has_more_for_metrics),
                 "serving_source": serving_source_for_metrics,
                 "fallback_reason_code": fallback_reason_code_for_metrics,
+                "read_model_query_mode": read_model_query_mode_for_metrics,
+                "read_model_query_round_trip_signal": int(read_model_query_round_trip_signal_for_metrics),
+                "read_model_materialized_rows": int(read_model_materialized_rows_for_metrics),
+                "read_model_total_rows": int(read_model_total_rows_for_metrics),
             },
         )
 
-    def _finalize_response(opportunities: List[OddsMatchResponse]) -> PaginatedOddsResponse:
+    def _finalize_paginated_response(
+        *,
+        paginated_opps: List[OddsMatchResponse],
+        total_count: int,
+    ) -> PaginatedOddsResponse:
         nonlocal total_count_for_metrics, has_more_for_metrics
 
-        opportunities.sort(key=lambda x: x.pnl_percentage, reverse=True)
-        total_count = len(opportunities)
-        paginated_opps = opportunities[offset:offset + limit]
         has_more = (offset + limit) < total_count
         total_count_for_metrics = total_count
         has_more_for_metrics = has_more
@@ -890,6 +861,15 @@ async def get_matcher_opportunities(
             has_more=has_more,
         )
 
+    def _finalize_response(opportunities: List[OddsMatchResponse]) -> PaginatedOddsResponse:
+        opportunities.sort(key=lambda x: x.pnl_percentage, reverse=True)
+        total_count = len(opportunities)
+        paginated_opps = opportunities[offset:offset + limit]
+        return _finalize_paginated_response(
+            paginated_opps=paginated_opps,
+            total_count=total_count,
+        )
+
     # Get or create user (auto-create on first access)
     user = db.query(User).filter(User.clerk_user_id == user_claims.sub).first()
     if not user:
@@ -940,6 +920,8 @@ async def get_matcher_opportunities(
             bet_type=bet_type,
             sport_filter=sport_filter,
             competition_filter=competition_filter,
+            competition_code_filter=competition_code_filter,
+            search=search,
         )
         if supported:
             try:
@@ -947,6 +929,10 @@ async def get_matcher_opportunities(
                     db,
                     read_model_version=serving_cfg.read_model_version,
                     max_age_seconds=serving_cfg.max_age_seconds,
+                    limit=limit,
+                    offset=offset,
+                    bookmaker_codes=bookmaker_filter,
+                    min_rating=min_rating,
                     now=datetime.now(timezone.utc),
                 )
             except Exception:
@@ -954,29 +940,39 @@ async def get_matcher_opportunities(
                     "ok": False,
                     "reason_code": "read_model_query_error",
                     "payloads": [],
+                    "total_count": 0,
+                    "materialized_row_count": 0,
                     "query_round_trip_signal": 0,
                 }
             matcher_query_round_trip_signal += int(snapshot.get("query_round_trip_signal", 0) or 0)
+            read_model_query_mode_for_metrics = "sql_limit_offset"
+            read_model_query_round_trip_signal_for_metrics = int(snapshot.get("query_round_trip_signal", 0) or 0)
+            read_model_materialized_rows_for_metrics = int(snapshot.get("materialized_row_count", 0) or 0)
+            read_model_total_rows_for_metrics = int(snapshot.get("total_count", 0) or 0)
             if snapshot.get("ok"):
-                read_model_opps, invalid_payload_reason = _read_model_opportunities_from_payloads(
-                    list(snapshot.get("payloads") or []),
-                    bookmaker_filter=bookmaker_filter,
-                    sport_filter=sport_filter,
-                    competition_code_filter=competition_code_filter,
-                    search=search,
-                    min_rating=min_rating,
-                )
-                if invalid_payload_reason is None:
+                read_model_opps: List[OddsMatchResponse] = []
+                invalid_payload = False
+                for payload in list(snapshot.get("payloads") or []):
+                    try:
+                        read_model_opps.append(OddsMatchResponse.model_validate(payload))
+                    except Exception:
+                        invalid_payload = True
+                        break
+                if not invalid_payload:
                     serving_source_for_metrics = "read_model"
                     fallback_reason_code_for_metrics = None
-                    return _finalize_response(read_model_opps)
+                    return _finalize_paginated_response(
+                        paginated_opps=read_model_opps,
+                        total_count=int(snapshot.get("total_count", len(read_model_opps)) or 0),
+                    )
                 serving_source_for_metrics = "runtime_fallback"
-                fallback_reason_code_for_metrics = invalid_payload_reason
+                fallback_reason_code_for_metrics = "read_model_invalid_payload"
             else:
                 serving_source_for_metrics = "runtime_fallback"
                 fallback_reason_code_for_metrics = str(snapshot.get("reason_code") or "read_model_unhealthy")
         else:
             serving_source_for_metrics = "runtime_fallback"
+            read_model_query_mode_for_metrics = "unsupported_shape_runtime_fallback"
             fallback_reason_code_for_metrics = unsupported_reason or "read_model_unsupported_filter"
 
     # Find events happening in next 14 days

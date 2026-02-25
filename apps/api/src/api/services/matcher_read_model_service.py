@@ -667,6 +667,10 @@ def get_read_model_serving_snapshot(
     *,
     read_model_version: str,
     max_age_seconds: int,
+    limit: Optional[int] = None,
+    offset: int = 0,
+    bookmaker_codes: Optional[List[str]] = None,
+    min_rating: Optional[Decimal] = None,
     now: Optional[datetime] = None,
 ) -> Dict[str, Any]:
     """
@@ -676,12 +680,18 @@ def get_read_model_serving_snapshot(
     - `ok`: whether read-model is healthy for serving
     - `reason_code`: deterministic fallback reason when `ok` is False
     - `payloads`: read-model rows when healthy
+    - `total_count`: filtered total rows (for pagination metadata)
+    - `materialized_row_count`: rows materialized on this request path
     - `query_round_trip_signal`: DB query count signal for telemetry parity
     """
     signal = 0
     current_time = _coerce_utc(now) or _utcnow()
     version = (read_model_version or DEFAULT_MATCHER_READ_MODEL_VERSION).strip() or DEFAULT_MATCHER_READ_MODEL_VERSION
     max_age = max(1, int(max_age_seconds))
+    page_limit = max(1, int(limit)) if isinstance(limit, int) else None
+    page_offset = max(0, int(offset))
+    normalized_bookmaker_codes = _normalized_list(bookmaker_codes)
+    normalized_min_rating = Decimal(str(min_rating)) if min_rating is not None else None
 
     build = (
         db.query(MatcherReadModelBuild)
@@ -694,6 +704,8 @@ def get_read_model_serving_snapshot(
             "ok": False,
             "reason_code": "read_model_missing_build",
             "payloads": [],
+            "total_count": 0,
+            "materialized_row_count": 0,
             "query_round_trip_signal": signal,
             "build": None,
         }
@@ -704,6 +716,8 @@ def get_read_model_serving_snapshot(
             "ok": False,
             "reason_code": "read_model_invalid_built_at",
             "payloads": [],
+            "total_count": 0,
+            "materialized_row_count": 0,
             "query_round_trip_signal": signal,
             "build": build,
         }
@@ -714,32 +728,72 @@ def get_read_model_serving_snapshot(
             "ok": False,
             "reason_code": "read_model_stale",
             "payloads": [],
+            "total_count": 0,
+            "materialized_row_count": 0,
             "query_round_trip_signal": signal,
             "build": build,
             "age_seconds": age_seconds,
         }
 
-    row_count = int(
-        db.query(MatcherReadModelRow)
-        .filter(MatcherReadModelRow.read_model_version == version)
-        .count()
+    base_query = db.query(MatcherReadModelRow).filter(
+        MatcherReadModelRow.read_model_version == version,
     )
+    if normalized_bookmaker_codes:
+        base_query = base_query.filter(
+            MatcherReadModelRow.back_bookmaker_code.in_(normalized_bookmaker_codes),
+        )
+    if normalized_min_rating is not None:
+        base_query = base_query.filter(MatcherReadModelRow.rating >= normalized_min_rating)
+
+    row_count = int(base_query.order_by(None).count())
     signal += 1
     if row_count <= 0:
+        has_explicit_filters = bool(normalized_bookmaker_codes) or normalized_min_rating is not None
+        if has_explicit_filters:
+            total_unfiltered_count = int(
+                db.query(MatcherReadModelRow)
+                .filter(MatcherReadModelRow.read_model_version == version)
+                .order_by(None)
+                .count()
+            )
+            signal += 1
+            if total_unfiltered_count > 0:
+                return {
+                    "ok": True,
+                    "reason_code": None,
+                    "payloads": [],
+                    "total_count": 0,
+                    "materialized_row_count": 0,
+                    "query_round_trip_signal": signal,
+                    "build": build,
+                    "age_seconds": age_seconds,
+                }
         return {
             "ok": False,
             "reason_code": "read_model_no_rows",
             "payloads": [],
+            "total_count": 0,
+            "materialized_row_count": 0,
             "query_round_trip_signal": signal,
             "build": build,
         }
 
-    payloads = get_read_model_payloads(db, read_model_version=version)
+    row_query = base_query.order_by(
+        MatcherReadModelRow.pnl_percentage.desc(),
+        MatcherReadModelRow.id.asc(),
+    )
+    if page_limit is not None:
+        row_query = row_query.offset(page_offset).limit(page_limit)
+    rows = row_query.all()
     signal += 1
+    payloads = [dict(row.payload or {}) for row in rows]
+
     return {
         "ok": True,
         "reason_code": None,
         "payloads": payloads,
+        "total_count": int(row_count),
+        "materialized_row_count": int(len(payloads)),
         "query_round_trip_signal": signal,
         "build": build,
         "age_seconds": age_seconds,

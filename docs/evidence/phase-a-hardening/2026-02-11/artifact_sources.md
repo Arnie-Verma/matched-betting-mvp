@@ -1,4 +1,4 @@
-# Evidence Source Notes (PR2)
+﻿# Evidence Source Notes (PR2)
 
 ## Authoritative live DB-backed artifacts (Docker context)
 Generated from inside `mb_api` with database connectivity (`db` network host):
@@ -93,3 +93,12 @@ Generated from Docker-connected DB context after PR4 scraper changes and stale-r
 - `phase_a_canary_pr7.md`
 - `pr7_db_query_outputs.md`
 - `phase_a_go_no_go_pr7.md`
+
+## PR30 matcher read-model scalability artifacts
+- `pr30_matcher_read_model_scalability_contract.md`
+- `pr30_matcher_read_model_scalability_explain_analyze.md`
+- `pr30_matcher_read_model_scalability_benchmark.json`
+- `pr30_matcher_read_model_scalability_parity.json`
+- `pr30_matcher_read_model_scalability_tests.json`
+- `pr30_matcher_read_model_scalability_rollback.md`
+

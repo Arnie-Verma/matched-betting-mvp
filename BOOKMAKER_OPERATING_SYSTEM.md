@@ -282,7 +282,7 @@ These are still required to make onboarding low-risk at 100+ bookmakers:
 6. Add automated onboarding report generation (go/no-go artifact).
 7. Evolve matcher from runtime-first serving to default-on read-model serving after sustained parity/latency confidence.
 
-## Phase A Sync Status (Post PR-C2)
+## Phase A Sync Status (Post PR-M1c)
 Implemented now:
 1. Bounded concurrency scheduler with global and per-platform caps.
 2. Runtime active-bookmaker derivation from DB + freeze policy (no static active-list control path).
@@ -307,8 +307,8 @@ Implemented now:
    - matcher-ready rows and build freshness metadata persisted in DB.
    - idempotent bounded builder path with deterministic summary output.
    - optional shadow parity checks compare read-model rows to runtime matcher output.
-   - `/odds/matcher` can serve from read-model behind feature flag with deterministic runtime fallback when read-model is stale/missing/unhealthy/unsupported.
-   - matcher telemetry now records `serving_source` and fallback reason codes.
+   - `/odds/matcher` read-model serving now uses SQL-scaled count + page fetch (`LIMIT/OFFSET`) for supported shape, with deterministic runtime fallback on stale/missing/unhealthy/unsupported shape.
+   - matcher telemetry now records `serving_source`, fallback reason codes, and read-model query/materialization signals.
 
 Known constraints still open:
 1. Evidence retention/discovery tooling around canonical records is still limited.

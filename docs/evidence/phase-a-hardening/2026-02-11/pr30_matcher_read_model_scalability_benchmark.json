@@ -1,0 +1,58 @@
+{
+  "slice": "PR-M1c",
+  "date": "2026-02-24",
+  "dataset": {
+    "read_model_rows": 50000,
+    "limit": 30,
+    "offsets": [
+      0,
+      300,
+      3000
+    ],
+    "requests_per_offset": 35,
+    "total_requests": 105
+  },
+  "latency_ms": {
+    "offset_0": {
+      "p50": 27.311,
+      "p95": 31.457,
+      "max": 75.936
+    },
+    "offset_300": {
+      "p50": 29.215,
+      "p95": 36.936,
+      "max": 38.648
+    },
+    "offset_3000": {
+      "p50": 56.005,
+      "p95": 97.625,
+      "max": 109.472
+    },
+    "overall": {
+      "p50": 29.948,
+      "p95": 73.638,
+      "max": 109.472
+    }
+  },
+  "fallback": {
+    "fallback_count": 0,
+    "fallback_rate_percent": 0.0,
+    "served_from_read_model_count": 105
+  },
+  "read_model_query_round_trip_signal": {
+    "samples": 105,
+    "max": 3,
+    "p95": 3.0
+  },
+  "enforce_now": {
+    "limit_offset_pushdown": true,
+    "materialization_lte_limit": true,
+    "query_round_trip_signal_lte_3": true,
+    "supported_shape_fallback_rate_percent": 0.0,
+    "latency_p95_target_ms_lte_400": 73.638
+  },
+  "observe_only": {
+    "latency_p95_target_ms_lte_250": 73.638,
+    "fallback_rate_target_percent_lte_0_5": 0.0
+  }
+}

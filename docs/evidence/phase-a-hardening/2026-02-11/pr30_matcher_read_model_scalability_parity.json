@@ -1,0 +1,16 @@
+{
+  "slice": "PR-M1c",
+  "date": "2026-02-24",
+  "version": "pr30_parity_v1",
+  "runtime_status": 200,
+  "read_model_status": 200,
+  "runtime_serving_source": "runtime",
+  "read_model_serving_source": "read_model",
+  "runtime_total": 56,
+  "read_model_total": 56,
+  "runtime_has_more": false,
+  "read_model_has_more": false,
+  "rows_equal": true,
+  "schema_equal": true,
+  "parity_pass": true
+}

@@ -35,6 +35,7 @@ Create or update an ADR when any of the following changes:
 - `ADR-0021-durable-refresh-acl-audit-persistence.md`
 - `ADR-0022-matcher-read-model-foundation.md`
 - `ADR-0023-matcher-read-model-serving-with-freshness-fallback.md`
+- `ADR-0024-matcher-read-model-scalable-serving-contract.md`
 
 ## ADR Template
 Use this structure:

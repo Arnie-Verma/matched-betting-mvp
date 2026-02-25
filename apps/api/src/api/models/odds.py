@@ -773,6 +773,14 @@ class MatcherReadModelRow(Base):
         Index("idx_matcher_rm_version_event", "read_model_version", "event_id"),
         Index("idx_matcher_rm_version_market", "read_model_version", "market_id"),
         Index("idx_matcher_rm_version_rating", "read_model_version", "rating"),
+        Index("idx_matcher_rm_version_pnl_id", "read_model_version", "pnl_percentage", "id"),
+        Index(
+            "idx_matcher_rm_version_bookmaker_pnl_id",
+            "read_model_version",
+            "back_bookmaker_code",
+            "pnl_percentage",
+            "id",
+        ),
     )
 
 
